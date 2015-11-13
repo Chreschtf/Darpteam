@@ -1,4 +1,4 @@
-\documentclass[11pt,a4paper]{report}
+\documentclass[10pt,a4paper]{report}
 \usepackage[utf8]{inputenc}
 \usepackage[french]{babel}
 \usepackage[T1]{fontenc}
@@ -51,11 +51,15 @@ Notre algorithme essaye donc de créer des routes dans le graphe G en respectant
 %    Par contre, il ne faut pas oublier le fait que de temps en temps il pourrait être plus avantageux de délayer le commencement du service au sommet vi dans le but de réduire le temps d'attente au sommet vi+n (ou à un autre sommet visité entre vi et vi+n), ce qui aurait comme conséquence de prolonger L (le temps de trajet).
 
 \section*{Descriptions d'articles de référence}
+\subsection*{A tabu search heuristic for the static multi-vehicle
+dial-a-ride problem (Jean-François Cordeau, Gilbert Laporte) 2002}
+Dans cet article y est décrit un algorithme de recherche tabou ('Tabu Search'). Leur approche consiste à établir un ensemble de solutions initiales sans se préoccuper des contraintes de temps et de charge. Est ensuite déterminé une fonction de coût régie par plusieurs paramètres ajustables ce qui permettra de construire les solutions. Le fait d'être souple quant à la violation des contraintes initiales est caractéristique de cet algorithme décrit dans cet article. Il se base sur l'évaluation de voisinages pour construire un trajet optimal minimisant le temps total de trajet ainsi que la durée d'un trajet pour un client. L'article décrit un algorithme 'Tabu Search' \underline{sur lequel nous allons nous baser pour résoudre notre DARP}.
 \subsection*{A new regret insertion heuristic for solving large-scale
-dial-a-ride problems with time windows} 
- Dans leur article, Marco Diana et Maged M. Dessouky décrivent une solution du DARP en tenant compte de contraintes horaires (time windows) et de la situation géographique des différents clients. Les time windows admissibles de chaque requête sont définis à l'aide des données des clients (heure de départ souhaitée ou heure d'arrivée souhaitée) et d'un temps de service à chaque arrêt, vu que les auteurs se concentre particulièrement sur le tranpsort de personnes à mobilité réduite. Cet article est  intéressant pour notre projet car on y décrit une façon comment choisir un bon point de départ de chaque route pour les différents véhicules et on y décrit une façon comment insérer de nouvelles requêtes dans des routes déjà établies en profitant du système des time windows.
+dial-a-ride problems with time windows ( Marco Diana ,
+ Maged M. Dessouky) 2002} 
+ Dans leur article,les auteurs décrivent une solution du DARP en tenant compte de contraintes horaires (time windows) et de la situation géographique des différents clients. Les time windows admissibles de chaque requête sont définis à l'aide des données des clients (heure de départ souhaitée ou heure d'arrivée souhaitée) et d'un temps de service à chaque arrêt, vu que les auteurs se concentre particulièrement sur le tranpsort de personnes à mobilité réduite. Cet article est  intéressant pour notre projet car on y décrit une façon comment choisir un bon point de départ de chaque route pour les différents véhicules et on y décrit une façon comment insérer de nouvelles requêtes dans des routes déjà établies en profitant du système des time windows.
  \subsection*{A distributed VNS algorithm for optimizing dial-a-ride
-problems in large-scale scenarios (Santiago Muelas , Antonio LaTorre , José-María Peña )}
+problems in large-scale scenarios (Santiago Muelas , Antonio LaTorre , José-María Peña ) 2014}
 Dans leur article, les auteurs décrivent une façon pour résoudre des DARPs de grande taille. Pour maîtriser la taille du problème, les différents requêtes qui sont proches d'un point de vue géographique et horaire sont regroupés, puis ces groupes sont traités comme sous-problèmes. Chaque sous-problème est résolu et la route optimale de sa solution est renvoyé à l'algorithme appelant. Chaque groupe est traité indépendant des autres groupe. La construction de la solution finale est construite à partir des différents sous-solutions du problème. L'article est pertinent pour notre projet parce qu'il montre une façon comment traiter un DARP de grande taille.
 \subsection*{The dial-a-ride problem: models and algorithms     (Jean-François Cordeau et Gilbert Laporte) 2007}
 Cet article résume la littérature scientifique à propos des DARP. Il donne un aperçu des différents algorithmes qui ont été publiés pour attaquer ce problème, chacun avec une description des contraintes (time windows, véhicules, ...) et une nombre n d'utilisateurs que l'algorithme est capable de gérer dans un temps raisonnable. Cet aperçu peut nous servir pour apprécier quelle structure l'algorithme convient le plus pour résoudre notre problème. Aussi les différents modèles mathématiques sont présentés et la différence entre le modèle statique et le modèle dynamique est expliquée.
@@ -70,6 +74,11 @@ L'article semble présenter l'état de l'art de l'époque en matière de Branch-
 \subsection*{A Branch-and-Cut Algorithm for the Dial-a-Ride Problem (Jean-Francois Cordeau) 2003}
 Dans cet article est décrit la première version d'un Branch-and-cut pour DARP décrit par Cordeau peu après son article sur la méthode heuristique tabu. Sont présentés une somme à minimiser sous de nombreuses contraintes et inégalités qui décrivent les limitations du problème.
 L'article peut nous informer sur les débuts de la méthode Branch-and-cut.
+\subsection*{Large Neighborhood Search For Dial-a-Ride Problems (Siddhartha Jain et Pascal Van Hentenryck) 2011}
+Cet article présente une variante "First Feasible Probabilistic Acceptance" de la méthode appelée Large Neighborhood Search qui fait une recherche de voisinage sans fixer de contrainte d'amélioration des solutions partielles jusqu'à trouver des solutions faisables qui sont choisies sur bases probabilistes. La méthode est dite plus efficace dans l'article pour des recherches à contraintes à temps limité que les méthodes tabu de l'époque (2011), le rendant approprié pour du DARP semi-dynamique, et donne des résultats non-optimaux comparables aux algorithmes état-de-l'art de l'époque.
+Cet article peut nous donner une autre piste dans la recherche d'un algorithme efficace de résolution de DARP.
+
+
 
 
 \end{document}
