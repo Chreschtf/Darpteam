@@ -7,6 +7,7 @@
 \usepackage{amssymb}
 \usepackage{makeidx}
 \usepackage{fixltx2e}
+\usepackage{biblatex}
 
 
 \author{Frantzen Christian, Küpper Marius, Baes Akira, Palmieri-Adant Emile}
@@ -24,6 +25,7 @@ Dans un DARP il y a n clients qui requièrent un transport depuis un point de d�
 \subsection*{Notre sujet en tant que DARP}
 Dans notre projet il y a n couples de cuisiniers et de clients dont les repas sont transportés. On peut voir le problème en tant que points de départ et points d'arrivée. Deux fenêtres de temps sont spécifiées, une pour le départ (donnée par le cuisinier) et une pour l'arrivée (donnée par le client). Les véhicules (livreurs) possèdent une capacité maximale et la tournée d’un livreur a une durée limite tout comme le transport d’un repas.
 \section*{Formulation du problème}
+Tiré de l'article de référence "A tabu search heuristic for the static multi-vehicle dial-a-ride problem.": \newline
 Le DARP est modélisé par un graphe G = (V,A). V = \{ v\textsubscript{0},v\textsubscript{1},v\textsubscript{2},...,v\textsubscript{2n} \} représente l'ensemble des sommets du graphe. 
 A = \{ ( v\textsubscript{i},v\textsubscript{j} ) : v\textsubscript{i},v\textsubscript{j} $\in$ V, i$\neq $j \} représente l'ensemble des arcs du graphe.  v\textsubscript{0} correspond au dépôt et les 2n sommets restants correspondent aux origines et destinations des clients. La paire de sommet (v\textsubscript{i},v\textsubscript{i+n}) définit une demande de transport.  
 A chaque sommet est associé une charge q\textsubscript{i} (avec q\textsubscript{0} = 0), une durée de service d\textsubscript{i} (avec d\textsubscript{0} = 0)  et une fenêtre de temps [e\textsubscript{i},l\textsubscript{i}] où e\textsubscript{i} et l\textsubscript{i} sont non négatifs.
@@ -75,7 +77,36 @@ Dans cet article est décrit la première version d'un Branch-and-cut pour DARP 
 \subsection*{Large Neighborhood Search For Dial-a-Ride Problems (Siddhartha Jain et Pascal Van Hentenryck) 2011}
 Cet article présente une variante "First Feasible Probabilistic Acceptance" de la méthode appelée Large Neighborhood Search qui fait une recherche de voisinage sans fixer de contrainte d'amélioration des solutions partielles jusqu'à trouver des solutions faisables qui sont choisies sur bases probabilistes. La méthode est dite plus efficace dans l'article pour des recherches à contraintes à temps limité que les méthodes tabu de l'époque (2011), le rendant approprié pour du DARP semi-dynamique, et donne des résultats non-optimaux comparables aux algorithmes état-de-l'art de l'époque. 
 Cet article peut nous donner une autre piste dans la recherche d'un algorithme efficace de résolution de DARP.
+\begin{thebibliography}{10}
+\bibitem{} 
+A tabu search heuristic for the static multi-vehicle
+dial-a-ride problem (Jean-François Cordeau, Gilbert Laporte) 2002
+\bibitem{}
+A new regret insertion heuristic for solving large-scale dial-
+a-ride problems with time windows ( Marco Diana , Maged
+M. Dessouky) 2002
+\bibitem{}
+A distributed VNS algorithm for optimizing dial-a-ride pro-
+blems in large-scale scenarios (Santiago Muelas , Antonio
+LaTorre , José-María Peña ) 2014
+\bibitem{}
+The dial-a-ride problem : models and algorithms (Jean-
+François Cordeau et Gilbert Laporte) 2007
+\bibitem{}
+A Granular Tabu Search algorithm for the Dial-a-Ride Pro-
+blem (Dominik Kirchler, Roberto Wolfer Calvo) 2013
+\bibitem{}
+Recent Models and Algorithms for One-to-One Pickup and
+Delivery Problems revised (Jean-Francois Cordeau, Gilbert
+Laporte et Stefan Ropke) 2007
+\bibitem{}
+A Branch-and-Cut Algorithm for the Dial-a-Ride Problem
+(Jean-Francois Cordeau) 2003
+\bibitem{}
+Large Neighborhood Search For Dial-a-Ride Problems (Sid-
+dhartha Jain et Pascal Van Hentenryck) 2011
 
+\end{thebibliography}
 
 
 
