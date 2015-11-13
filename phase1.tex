@@ -1,4 +1,4 @@
-\documentclass[12pt,a4paper]{report}
+\documentclass[11pt,a4paper]{report}
 \usepackage[utf8]{inputenc}
 \usepackage[french]{babel}
 \usepackage[T1]{fontenc}
@@ -32,22 +32,44 @@ A chaque sommet est associé une charge q\textsubscript{i} (avec q\textsubscript
 A chaque arc (v\textsubscript{i},v\textsubscript{j}) est associée une valeur c\textsubscript{ij} positive étant le coût de déplacement et une valeur t\textsubscript{ij} également positive étant le temps de déplacement.
 La variable L  représente le temps maximum de trajet d'un repas.
     
-%Le DARP a pour but de construire m routes dans le graphe G telles que:
-%
-%    • Chaque route commence et termine au dépot (v0);
-%    • Pour chaque requête i, les sommets vi et vi+n appartiennent à la même route et vi+n est visité après vi;
-%    • La charge d'un véhicule k ne peut en aucun cas excéder une limite Qk;
-%    • La durée totale d'une route k ne peut en aucun cas éxcéder la limite Tk;
-%    • Le service ayant lieu au sommet vi a lieu dans l'interval [ei,li] et chaque véhicule quitte et retourne au dépot dans l'interval [e0,l0];
-%    • Le temps de déplacement d'un client ne peut en aucun cas dépasser L;
-%    • Le coût dû au déplacement de chaque véhicule est minimisé.
-%    
-%    On dénote par Ai le temps d'arrivée d'un véhicule au sommet vi, par Bi étant supérieur ou égal au max(ei,Ai) le moment correspondant au début du service au même sommet, et par Di=Bi+di le moment correspondant au départ du véhicule du sommet vi après avoir effectué le service.
+Notre algorithme essaye donc de créer des routes dans le graphe G en respectant les contraintes suivantes :
+\begin{itemize}
+\item Chaque route commence et termine au dépot;
+\item Pour chaque requête i, les sommets v\textsubscript{i} et v\textsubscript{i+n} appartiennent à la même route et v\textsubscript{i} est visité avant v\textsubscript{i+n};
+\item La charge d'un véhicule k ne peut en aucun cas excéder une limite Q\textsubscript{k};
+\item La durée totale d'une route k ne peut en aucun cas éxcéder la limite T\textsubscript{k};
+%\item Le service ayant lieu au sommet vi a lieu dans l'interval [ei,li] et chaque véhicule quitte et retourne au dépot dans l'interval [e0,l0];
+\item Le temps de trajet d'un repas ne peut en aucun cas dépasser L;
+\item Le coût dû au déplacement de chaque véhicule est minimisé. 
+\end{itemize}
+
+%On dénote par A\textsubscript{i} le temps d'arrivée d'un véhicule au sommet v\textsubscript{i}, par Bi étant supérieur ou égal au max(ei,Ai) le moment correspondant au début du service au même sommet, et par Di=Bi+di le moment correspondant au départ du véhicule du sommet vi après avoir effectué le service.
 %    Nous décrétons également qu'il est autorisé pour un véhicule d'attendre à un sommet avant que le service n'ai lieu. Parallèlement, si un véhicule arrive avant ei, ce qui est aussi autorisé, on définit par Wi=Bi-Ai le temps d'attente du véhicule au sommet vi.
 %    Il faut aussi impérativement que Bi>li (si ce n'est pas le cas, la contrainte de la fenêtre de temps est violée).
 %    On peut maintenant noter par Li=Bi+n-Di le temps de trajet d'un client ayant fait la requête i. 
 %    Si il n'y a pas de contrainte de temps, le moment d'arrivée du véhicule au sommet vi serait optimal quand Bi=max{ei,Ai}.
 %    Par contre, il ne faut pas oublier le fait que de temps en temps il pourrait être plus avantageux de délayer le commencement du service au sommet vi dans le but de réduire le temps d'attente au sommet vi+n (ou à un autre sommet visité entre vi et vi+n), ce qui aurait comme conséquence de prolonger L (le temps de trajet).
+
+\section*{Descriptions d'articles de référence}
+\subsection*{A new regret insertion heuristic for solving large-scale
+dial-a-ride problems with time windows} 
+ Dans leur article, Marco Diana et Maged M. Dessouky décrivent une solution du DARP en tenant compte de contraintes horaires (time windows) et de la situation géographique des différents clients. Les time windows admissibles de chaque requête sont définis à l'aide des données des clients (heure de départ souhaitée ou heure d'arrivée souhaitée) et d'un temps de service à chaque arrêt, vu que les auteurs se concentre particulièrement sur le tranpsort de personnes à mobilité réduite. Cet article est  intéressant pour notre projet car on y décrit une façon comment choisir un bon point de départ de chaque route pour les différents véhicules et on y décrit une façon comment insérer de nouvelles requêtes dans des routes déjà établies en profitant du système des time windows.
+ \subsection*{A distributed VNS algorithm for optimizing dial-a-ride
+problems in large-scale scenarios (Santiago Muelas , Antonio LaTorre , José-María Peña )}
+Dans leur article, les auteurs décrivent une façon pour résoudre des DARPs de grande taille. Pour maîtriser la taille du problème, les différents requêtes qui sont proches d'un point de vue géographique et horaire sont regroupés, puis ces groupes sont traités comme sous-problèmes. Chaque sous-problème est résolu et la route optimale de sa solution est renvoyé à l'algorithme appelant. Chaque groupe est traité indépendant des autres groupe. La construction de la solution finale est construite à partir des différents sous-solutions du problème. L'article est pertinent pour notre projet parce qu'il montre une façon comment traiter un DARP de grande taille.
+\subsection*{The dial-a-ride problem: models and algorithms     (Jean-François Cordeau et Gilbert Laporte) 2007}
+Cet article résume la littérature scientifique à propos des DARP. Il donne un aperçu des différents algorithmes qui ont été publiés pour attaquer ce problème, chacun avec une description des contraintes (time windows, véhicules, ...) et une nombre n d'utilisateurs que l'algorithme est capable de gérer dans un temps raisonnable. Cet aperçu peut nous servir pour apprécier quelle structure l'algorithme convient le plus pour résoudre notre problème. Aussi les différents modèles mathématiques sont présentés et la différence entre le modèle statique et le modèle dynamique est expliquée.
+\subsection*{A Granular Tabu Search algorithm for the Dial-a-Ride Problem (Dominik Kirchler, Roberto Wolfer Calvo) 2013}
+Dans cet article, un algorithme 'Granular Tabu Search' est présenté, qui est une amélioration de l'algorithme 'Tabu Search' décrit par l'article de référence. 'Granular', granulaire en français, parce que les voisinages qui sont utilisés pour l'amélioration de la solution initiale sont sous forme réduite, c'est-à-dire que les trajets qui ont une faible probabilité d'appartenir à de bonnes solutions sont exclus. L'article peut nous fournir des informations pour améliorer notre algorithme.
+\subsection*{Recent Models and Algorithms for One-to-One
+Pickup and Delivery Problems revised (Jean-Francois Cordeau, Gilbert Laporte et Stefan Ropke) 2007}
+Dans cet article sont décrits des algorithmes (2007) pour résoudre les PDP (Pickup \& Delivevy Problem), dont un branch-and-cut pour DARP développé par Cordeau et Ropke en pages 16-19 ("3.1.2 A branch-and-cut algorithm for the PDPTW and the DARP").
+Branch-and-cut est présenté comme plus efficace pour donner une solution optimale sur de petits problèmes.
+Dans ce modèle où tous les véhicules sont identiques, on pose une variable à minimiser avec une série de nouvelles contraintes et d'inégalités sur lesquelles on applique un algorithme branch-and-cut. C'est une version améliorée du Branch-and-cut Cordeau de 2003.
+L'article semble présenter l'état de l'art de l'époque en matière de Branch-and-cut pour DARP.
+\subsection*{A Branch-and-Cut Algorithm for the Dial-a-Ride Problem (Jean-Francois Cordeau) 2003}
+Dans cet article est décrit la première version d'un Branch-and-cut pour DARP décrit par Cordeau peu après son article sur la méthode heuristique tabu. Sont présentés une somme à minimiser sous de nombreuses contraintes et inégalités qui décrivent les limitations du problème.
+L'article peut nous informer sur les débuts de la méthode Branch-and-cut.
 
 
 \end{document}
