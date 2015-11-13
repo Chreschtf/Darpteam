@@ -25,13 +25,12 @@ Dans un DARP il y a n clients qui requièrent un transport depuis un point de d�
 Dans notre projet il y a n couples de cuisiniers et de clients qui doivent voir leur repas transportés. On peut voir le problème en tant que points de départ et points d'arrivée. Deux fenêtres de temps sont spécifiées, une pour le départ (donnée par le cuisinier) et une pour l'arrivée (donnée par le client).Les véhicules (livreur) possèdent une capacité maximale et la tournée d’un livreur a une durée limite tout comme le transport d’un repas.
 \section*{Formulation du problème}
 Le DARP est modélisé par un graphe G = (V,A). V = \{ v\textsubscript{0},v\textsubscript{1},v\textsubscript{2},...,v\textsubscript{2n} \} représente l'ensemble des sommets du graphe. 
-A = \{ ( v\textsubscript{i},v\textsubscript{j} ) : v\textsubscript{i},v\textsubscript{j}  V, i!=j \} représente l'ensemble des arcs du graphe.
-%    v0 correspond au dépot et les 2n sommets restants correspondent aux origines et destinations des clients. La paire de sommet (vi,vi+n) définit une demande de transport. 
-%    A chaque sommet est associé une charge qi (avec q0 = 0), une durée de service di (avec d0 = 0) qui est en fait le temps d'embarquement d'une personne ou le temps de déchargement, et une fenêtre de temps [ei,li] non négative.
-%    La différence de charge est toujours positive pour les sommets v1,...,vn et a contrario, la charge est toujours négative pour les sommets vn+1,...,v2n. 2n. 
-%    La variable T est le temps correspondant à la fin du planning. Dès lors, on définit par requête outbound une requête dont ei = 0 et li = T. A l'opposé, on définit par requête inbound une requête dont ei+n = T et li+n = 0. 
-%    A chaque arc (vi,vj) sont associées une valeur cij positive étant le coût de déplacement et une valeur tij également positive étant le temps de déplacement.
-%    Finalement, il ne reste qu'à définir une variable L qui représente le temps maximum de trajet d'un client.
+A = \{ ( v\textsubscript{i},v\textsubscript{j} ) : v\textsubscript{i},v\textsubscript{j} $\in$ V, i$\neq $j \} représente l'ensemble des arcs du graphe.  v\textsubscript{0} correspond au dépot et les 2n sommets restants correspondent aux origines et destinations des clients. La paire de sommet (v\textsubscript{i},v\textsubscript{i+n}) définit une demande de transport.  
+A chaque sommet est associé une charge q\textsubscript{i} (avec q\textsubscript{0} = 0), une durée de service d\textsubscript{i} (avec d\textsubscript{0} = 0)  et une fenêtre de temps [e\textsubscript{i},l\textsubscript{i}] où e\textsubscript{i} et l\textsubscript{i} sont non négatifs.
+ Les charges associées aux sommets v\textsubscript{1},...,v\textsubscript{n} sont toujours positives et a contrario, les charges associées aux sommets v\textsubscript{n+1},...,v\textsubscript{2n} sont toujours négatives. 
+ La variable T est le temps correspondant à la fin de toutes les tournées des véhicules, T\textsubscript{k} étant la durée maximale d'une tournée d'un véhicule k. Dès lors, on définit par requête outbound une requête dont e\textsubscript{i} = 0 et l\textsubscript{i} = T. A l'opposé, on définit par requête inbound une requête dont e\textsubscript{i+n} = T et l\textsubscript{i+n} = 0. 
+A chaque arc (v\textsubscript{i},v\textsubscript{j}) est associée une valeur c\textsubscript{ij} positive étant le coût de déplacement et une valeur t\textsubscript{ij} également positive étant le temps de déplacement.
+La variable L  représente le temps maximum de trajet d'un repas.
     
 %Le DARP a pour but de construire m routes dans le graphe G telles que:
 %
