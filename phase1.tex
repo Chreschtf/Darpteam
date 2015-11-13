@@ -1,0 +1,54 @@
+\documentclass[12pt,a4paper]{report}
+\usepackage[utf8]{inputenc}
+\usepackage[french]{babel}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{makeidx}
+\usepackage{fixltx2e}
+
+
+\author{Frantzen Christian, Küpper Marius, Baes Akira, Palmieri-Adant Emile}
+\title{Optimiser la distribution de repas}
+\begin{document}
+\maketitle
+\chapter*{Introduction}
+L'optimisation de la distribution des repas est un problème qui s'apparente fort au Dial-A-Ride-Problem (DARP). Il a fortement été étudié dans le but d'optimiser le transport des personnes agées ou inaptes au déplacement. Dans le cadre de ce projet, ce sont des repas que l'on doit transporter des cuisiniers jusqu'aux clients. Ce problème implique un troisième personnage, le livreur. Le défi ici consiste à prendre en compte les contraintes de chacun et trouver une route de moindre coût qui satisfait les demandes de tous les clients.
+    
+Nous allons donc étudier le DARP plus en détail dans la prochaine section.
+\section*{Description d'un DARP}
+Dans un DARP il y a n clients qui requièrent un transport depuis un point de départ jusqu'à la destination désirée. Chaque client doit spécifier une fenêtre de temps de leur heures désirées de départ ainsi que d'arrivée. Chaque véhicule possède une capacité maximale. Chaque client a un temps de transport maximum (on ne peut pas faire trop attendre un client déjà embarqué).\newline
+ Il existe 2 types différents de DARPs, \textit{statique} et \textit{dynamique}. Un DARP statique part de l'idée que toutes les requêtes sont connues avant qu'un véhicule ne commence sa trajectoire. Un DARP dynamique, ici les requêtes ont lieue graduellement au cours du temps. La trajet est donc déterminé en temps réel. 
+    Nous allons d'abord considérer un modèle statique dans le cadre de ce projet.
+\subsection*{Notre sujet en tant qu'un DARP}
+Dans notre projet il y a n couples de cuisiniers et de clients qui doivent voir leur repas transportés. On peut voir le problème en tant que points de départ et points d'arrivée. Deux fenêtres de temps sont spécifiées, une pour le départ (donnée par le cuisinier) et une pour l'arrivée (donnée par le client).Les véhicules (livreur) possèdent une capacité maximale et la tournée d’un livreur a une durée limite tout comme le transport d’un repas.
+\section*{Formulation du problème}
+Le DARP est modélisé par un graphe G = (V,A). V = \{ v\textsubscript{0},v\textsubscript{1},v\textsubscript{2},...,v\textsubscript{2n} \} représente l'ensemble des sommets du graphe. 
+A = \{ ( v\textsubscript{i},v\textsubscript{j} ) : v\textsubscript{i},v\textsubscript{j}  V, i!=j \} représente l'ensemble des arcs du graphe.
+%    v0 correspond au dépot et les 2n sommets restants correspondent aux origines et destinations des clients. La paire de sommet (vi,vi+n) définit une demande de transport. 
+%    A chaque sommet est associé une charge qi (avec q0 = 0), une durée de service di (avec d0 = 0) qui est en fait le temps d'embarquement d'une personne ou le temps de déchargement, et une fenêtre de temps [ei,li] non négative.
+%    La différence de charge est toujours positive pour les sommets v1,...,vn et a contrario, la charge est toujours négative pour les sommets vn+1,...,v2n. 2n. 
+%    La variable T est le temps correspondant à la fin du planning. Dès lors, on définit par requête outbound une requête dont ei = 0 et li = T. A l'opposé, on définit par requête inbound une requête dont ei+n = T et li+n = 0. 
+%    A chaque arc (vi,vj) sont associées une valeur cij positive étant le coût de déplacement et une valeur tij également positive étant le temps de déplacement.
+%    Finalement, il ne reste qu'à définir une variable L qui représente le temps maximum de trajet d'un client.
+    
+%Le DARP a pour but de construire m routes dans le graphe G telles que:
+%
+%    • Chaque route commence et termine au dépot (v0);
+%    • Pour chaque requête i, les sommets vi et vi+n appartiennent à la même route et vi+n est visité après vi;
+%    • La charge d'un véhicule k ne peut en aucun cas excéder une limite Qk;
+%    • La durée totale d'une route k ne peut en aucun cas éxcéder la limite Tk;
+%    • Le service ayant lieu au sommet vi a lieu dans l'interval [ei,li] et chaque véhicule quitte et retourne au dépot dans l'interval [e0,l0];
+%    • Le temps de déplacement d'un client ne peut en aucun cas dépasser L;
+%    • Le coût dû au déplacement de chaque véhicule est minimisé.
+%    
+%    On dénote par Ai le temps d'arrivée d'un véhicule au sommet vi, par Bi étant supérieur ou égal au max(ei,Ai) le moment correspondant au début du service au même sommet, et par Di=Bi+di le moment correspondant au départ du véhicule du sommet vi après avoir effectué le service.
+%    Nous décrétons également qu'il est autorisé pour un véhicule d'attendre à un sommet avant que le service n'ai lieu. Parallèlement, si un véhicule arrive avant ei, ce qui est aussi autorisé, on définit par Wi=Bi-Ai le temps d'attente du véhicule au sommet vi.
+%    Il faut aussi impérativement que Bi>li (si ce n'est pas le cas, la contrainte de la fenêtre de temps est violée).
+%    On peut maintenant noter par Li=Bi+n-Di le temps de trajet d'un client ayant fait la requête i. 
+%    Si il n'y a pas de contrainte de temps, le moment d'arrivée du véhicule au sommet vi serait optimal quand Bi=max{ei,Ai}.
+%    Par contre, il ne faut pas oublier le fait que de temps en temps il pourrait être plus avantageux de délayer le commencement du service au sommet vi dans le but de réduire le temps d'attente au sommet vi+n (ou à un autre sommet visité entre vi et vi+n), ce qui aurait comme conséquence de prolonger L (le temps de trajet).
+
+
+\end{document}
