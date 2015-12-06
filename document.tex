@@ -23,7 +23,7 @@ Dans un DARP il y a n clients qui requièrent un transport depuis un point de d�
  Il existe deux types différents de DARP, \textit{statique} et \textit{dynamique}. Un DARP statique part de l'idée que toutes les requêtes sont connues avant qu'un véhicule ne commence sa tournée. Dans un DARP dynamique, les requêtes ont lieu graduellement au cours du temps. Le trajet est donc déterminé en temps réel. 
     Nous allons d'abord considérer un modèle statique dans le cadre de ce projet.
 \subsection*{Notre sujet en tant que DARP}
-Dans notre projet il y a n couples de cuisiniers et de clients dont les repas sont transportés. On peut voir le problème en tant que points de départ et points d'arrivée. Deux fenêtres de temps sont spécifiées, une pour le départ (donnée par le cuisinier) et une pour l'arrivée (donnée par le client). Les véhicules (livreurs) possèdent une capacité maximale et la tournée d’un livreur a une durée limite tout comme le transport d’un repas. Pour notre problème, la notion de Inbound et Outbound requêts ne fais pas beaucoup de sens puisque les répas sont toujours transporté du cuisinier aux clients et jamais dans l'autre direction. Du point de vue du cuisinier il s'agit que des outbound requêtes et du point de vue du client que des inbound requêtes mais les deux notions ne sont pas complètement applicable puisque le cuisinier ne donne pas l'heure d'arrivée du répas chez le client et le client ne donne pas l'heure de départ du répas chez le cuisinier. Un client demande un repas pour telle heure et le cuisinier construit ensuite la requête en calculant quand il est important de passer prendre le repas en fonction de l'heure à laquelle il doit être livré.
+Dans notre projet il y a n couples de cuisiniers et de clients dont les repas sont transportés. On peut voir le problème en tant que points de départ et points d'arrivée. Deux fenêtres de temps sont spécifiées, une pour le départ (donnée par le cuisinier) et une pour l'arrivée (donnée par le client). Les véhicules (livreurs) possèdent une capacité maximale et la tournée d’un livreur a une durée limite tout comme le transport d’un repas. Pour notre problème, la notion de Inbound et Outbound requêts ne fais pas beaucoup de sens puisque les répas sont toujours transporté du cuisinier aux clients et jamais dans l'autre direction. Du point de vue du cuisinier il s'agit que des outbound requêtes et du point de vue du client que des inbound requêtes mais les deux notions ne sont pas complètement applicable puisque le cuisinier ne donne pas l'heure d'arrivée du répas chez le client et le client ne donne pas l'heure de départ du répas chez le cuisinier.
 \section*{Formulation du problème}
 Tiré de l'article de référence "A tabu search heuristic for the static multi-vehicle dial-a-ride problem.": \newline
 Le DARP est modélisé par un graphe $G=(V,A)$. $V=\{v\textsubscript{0},v\textsubscript{1},v\textsubscript{2},...,v\textsubscript{2n} \}$ représente l'ensemble des sommets du graphe. 
@@ -88,8 +88,7 @@ LaTorre , José-María Peña ) 2014
 The dial-a-ride problem : models and algorithms (Jean-
 François Cordeau et Gilbert Laporte) 2007
 \bibitem{}
-A Granular Tabu Search algorithm for the Dial-a-Ride Pro-
-blem (Dominik Kirchler, Roberto Wolfer Calvo) 2013
+A Granular Tabu Search algorithm for the Dial-a-Ride Problem (Dominik Kirchler, Roberto Wolfer Calvo) 2013
 \bibitem{}
 Recent Models and Algorithms for One-to-One Pickup and
 Delivery Problems revised (Jean-Francois Cordeau, Gilbert
@@ -98,8 +97,7 @@ Laporte et Stefan Ropke) 2007
 A Branch-and-Cut Algorithm for the Dial-a-Ride Problem
 (Jean-Francois Cordeau) 2003
 \bibitem{}
-Large Neighborhood Search For Dial-a-Ride Problems (Sid-
-dhartha Jain et Pascal Van Hentenryck) 2011
+Large Neighborhood Search For Dial-a-Ride Problems (Siddhartha Jain et Pascal Van Hentenryck) 2011
 
 \end{thebibliography}
 
