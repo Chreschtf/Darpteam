@@ -10,3 +10,5 @@ class Block:
 
     def addStop(self,node,time):
         self.stops.append(Stop(node,time))
+
+    def

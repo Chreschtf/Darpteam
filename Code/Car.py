@@ -24,15 +24,20 @@ class Car:
         """
         ept=meal.getEPT()
         ldt=meal.getLDT()
-        #+1 (-1) car on ne recoit (livre) pas de repas au dépot
-        if ept<=self.start and max(ept,self.start+1)<=meal.getLPT():
+        #+1 (-1) because we do not pickup (deliver) at the depot
+        if ept<=self.start and max(ept,self.start+1)<=meal.getLPT():    #adjusting bounds
             ept=self.start+1
-        if self.end<=ldt and min(ldt,self.end-1)<=meal.getEDT():
+        if self.end<=ldt and min(ldt,self.end-1)<=meal.getEDT():        #adjusting bounds
             ldt=self.end-1
 
-        if self.start<ept and ldt<self.end:
         #meal delivery constraints must fit into car work schedule
-
+        #if they do not, the previous test/changes weren't able to adjust bounds
+        # which means that it is infeasible for this car to cater this meal
+        if self.start<ept and ldt<self.end:
+            #we now try to find a Block where we can insert the pickup and
+            # delivery of the meal
+            for i in range(len(self.schedule)):
+                if self.schedule[i]
 
 
 
