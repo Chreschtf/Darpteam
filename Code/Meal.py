@@ -2,9 +2,9 @@ from Node import *
 from Graph import *
 
 class Meal:
-    def __init__(self,_mrt,_origin,_destination,_drt,_ddt,_earlier):
+    def __init__(self,_mrt,_chef,_destination,_drt,_ddt,_earlier):
         self.mrt=_mrt   #maximal ride time
-        self.origin=_origin
+        self.chef=_chef
         self.destination=_destination
         self.ddt=_ddt   #desired delivery time
         self.ldt=self.ddt   #lates delivery time
@@ -27,3 +27,9 @@ class Meal:
 
     def getDRT(self):
         return self.drt
+
+    def getChef(self):
+        return self.chef
+
+    def getDestination(self):
+        return self.destination
