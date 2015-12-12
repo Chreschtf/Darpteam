@@ -97,25 +97,21 @@ class Car:
 
     def case0(self,meal,utilityC):
         """
-        Schedule is empty. if feasible, we add it to the schedule.
+        First insertion to the schedule
         """
-
-        # if meal.getEPT()< self.start+self.graph.dist(self.depot,meal.getChef())\
-        #     and\
-        #     meal.getEDT() + self.graph.dist(meal.getDestination(),self.depot) <\
-        #     self.end:
-        #pickupT=self.start+self.graph.dist(self.depot,meal.getChef())
-
-
-
-
-
 
         stop1=Stop(meal.getChef(),
                    meal.getLDT()-self.graph.dist(meal.getChef(),meal.getDestination()),
                    meal,
                    True)
-        stop2=Stop(meal.getDestination(),meal.getLDT(),False)
-        block=Block(stop1,stop2,self.start,self.end)
+        stop2=Stop(meal.getDestination(),
+                   meal.getLDT(),
+                   meal,
+                   False)
+        prevSlack=stop1.getST()-self.start-\
+                  self.graph.dist(self.depot,meal.getChef())
+        nextSlack=self.end-stop2.getST()-self.graph.dist(self.depot,meal.getDestination())
+        block=Block(stop1,stop2,prevSlack,nextSlack)
+        block.calcUPnDOWN()
         self.feasibleSchedules.append(block)
 

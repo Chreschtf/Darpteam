@@ -1,5 +1,5 @@
 class Stop:
-    def __init__(self, _node, _time, _meal,_pickup=False):
+    def __init__(self, _node, _time, _meal,_pickup):
         self.node = _node
         self.st = _time  # scheduled time
         self.meal = _meal
@@ -12,6 +12,18 @@ class Stop:
 
     def getST(self):
         return self.st
+
+    def getET(self):
+        if self.pickup:
+            return self.meal.getEPT()
+        else:
+            return self.meal.getEDT()
+
+    def getLT(self):
+        if self.pickup:
+            return self.meal.getLPT()
+        else:
+            return self.meal.getLDT()
 
     def getNode(self):
         return self.node
@@ -28,6 +40,28 @@ class Stop:
     def getADOWN(self):
         return self.adown
 
+    def setST(self,newST):
+        self.st=newST
+
+    def setBUP(self,newBUP):
+        self.bup=newBUP
+
+    def setBDOWN(self,newBDOWN):
+        self.bdown=newBDOWN
+
+    def setAUP(self,newAUP):
+        self.aup=newAUP
+
+    def setADOWN(self,newADOWN):
+        self.adown=newADOWN
+
+    #def set(self):
+
+
+
 
     def __str__(self):
-        return str(self.node.coords)
+        txt="Coords : {0} ,".format(self.node.coords)
+        txt+="BUP : {0} , BDOWN : {1} , AUP : {2} , ADOWN : {3}\n".format(
+            self.bup,self.bdown,self.aup,self.adown)
+        return txt
