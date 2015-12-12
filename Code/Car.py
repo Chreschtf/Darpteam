@@ -10,85 +10,75 @@ class Car:
         self.depot=_depot
         self.graph=_graph
 
-        self.schedule=[]
+        self.currentSchedule=[]
+        self.feasibleSchedules=[]
 
-        #self.schedule.append(Stop(self.depot,self.start))
-        #self.schedule.append(Stop(self.depot,self.end))
+    def getFeasibleSchedules(self):
+        return self.feasibleSchedules
 
-
-
-    def findFeasibleInsertions(self,meal):
+    def addIntoSameBlock(self,meal,utilityC):
         """
-        Trying to fit the meal into the existing working schedule while not violating
-        any constraints.
+        Trying to fit the meal into the existing working schedule while
+        pickup and delivery happen in the same block
 
         :param meal:
         :return:
         """
-        # ept=meal.getEPT()
-        # ldt=meal.getLDT()
-        # lpt=meal.getLPT()
-        # edt=meal.getEDT()
-        # #+1 (-1) because we do not pick-up (deliver) at the depot
-        # if ept<=self.start and max(ept,self.start+1)<=meal.getLPT():    #adjusting bounds
-        #     ept=self.start+1
-        # if self.end<=ldt and min(ldt,self.end-1)<=meal.getEDT():        #adjusting bounds
-        #     ldt=self.end-1
-        #
-        # #meal delivery constraints must fit into car work schedule
-        # #if they do not, the previous test/changes weren't able to adjust bounds
-        # # which means that it is infeasible for this car to cater this meal
-        # if self.start<ept and ldt<self.end:
-        #     #we now try to insert the pickup and delivery stop of the meal
-        #
-        #     for i in range(len(self.schedule)):
+
+
+        if self.currentSchedule!=[]:
+            #case1 : pickup and delivery are inserted at the end of the
+            # working schedule.
+            lastDestination = self.currentSchedule[-1].getLastStop().getNode()
+            if self.currentSchedule[-1].getEnd() \
+                +self.graph.dist(lastDestination,meal.getChef()) < meal.getLPT() \
+                    and \
+                self.currentSchedule[-1].getEnd() \
+                + self.graph.dist(lastDestination,meal.getChef()) \
+                + self.graph.dist(meal.getChef(),meal.getDestination()) \
+                + self.graph.dist(meal.getDestination(),self.depot) <self.end :
+                self.currentSchedule[-1].case1(meal)
+                #optimisation
+
+            #case 2 : pickup and delivery are consecutive stops in a block
+            #case 4 : pickup and delivery are separated by at least one stop
+            for block in self.currentSchedule:
+                block.case2(meal)
+                block.case4(meal)
+
+            #case 3 : pickup in the last block, delivery becomes last stop in
+            # schedule
+            self.currentSchedule[-1].case3(meal)
+
+            #return
+
 
 
         #case0 : first Block is being created if possible
-        if self.schedule==[]:
-            self.case0(meal)
-            #optimisation
-            #return
+        self.case0(meal,utilityC)
+        #optimisation
+        #return
 
-        #case1 : pickup and delivery are inserted at the end of the
-        # working schedule.
-        lastDestination = self.schedule[-1].getLastStop().getNode()
-        if self.schedule[-1].getEnd() \
-            +self.graph.dist(lastDestination,meal.getChef()) < meal.getLPT() \
-                and \
-            self.schedule[-1].getEnd() \
-            + self.graph.dist(lastDestination,meal.getChef()) \
-            + self.graph.dist(meal.getChef(),meal.getDestination()) \
-            + self.graph.dist(meal.getDestination(),self.depot) <self.end :
-            self.schedule[-1].case1(meal)
-            #optimisation
 
-        #case 2 : pickup and delivery are consecutive stops in a block
-        #case 4 : pickup and delivery are separated by at least one stop
-        for block in self.schedule:
-            block.case2(meal)
-            block.case4(meal)
 
-        #case 3 : pickup in the last block, delivery becomes last stop in
-        # schedule
-        self.schedule[-1].case3(meal)
+    def addIntoDifferentBlocks(self,meal):
 
 
         # pickup and delivery are in different blocks
         i=0
         #detirmining block for pickup :
-        while i<len(self.schedule)-1 and (
-                meal.getEPT() < self.schedule[i].getEnd()+ self.schedule[
-                i].getNextSlack() or
-                meal.getLPT() < self.schedule[i].getEnd()+ self.schedule[
-                i].getNextSlack()):
+        while i<len(self.currentSchedule)-1 and (
+                meal.getEPT() < self.currentSchedule[i].getEnd()+
+                        self.currentSchedule[i].getNextSlack() or
+                meal.getLPT() < self.currentSchedule[i].getEnd()+
+                        self.currentSchedule[i].getNextSlack()):
             j=i+1
             #determining block for delivery :
 
-            while j<len(self.schedule) and (
-            self.schedule[i].getStart()-self.schedule[i].getPrevSlack() < \
+            while j<len(self.currentSchedule) and (
+            self.currentSchedule[i].getStart()-self.currentSchedule[i].getPrevSlack() < \
                 meal.getEDT()  or
-            self.schedule[i].getStart()-self.schedule[i].getPrevSlack() < \
+            self.currentSchedule[i].getStart()-self.currentSchedule[i].getPrevSlack() < \
                 meal.getDPT() ):
                 j+=1
 
@@ -97,13 +87,35 @@ class Car:
 
 
 
-        for i in range(len(self.schedule)-1):
+        for i in range(len(self.currentSchedule)-1):
             #if ?
-            for j in range(i+1,len(self.schedule)):
+            for j in range(i+1,len(self.currentSchedule)):
                 pass
 
 
 
 
-    def case0(self,meal):
-        pass
+    def case0(self,meal,utilityC):
+        """
+        Schedule is empty. if feasible, we add it to the schedule.
+        """
+
+        # if meal.getEPT()< self.start+self.graph.dist(self.depot,meal.getChef())\
+        #     and\
+        #     meal.getEDT() + self.graph.dist(meal.getDestination(),self.depot) <\
+        #     self.end:
+        #pickupT=self.start+self.graph.dist(self.depot,meal.getChef())
+
+
+
+
+
+
+        stop1=Stop(meal.getChef(),
+                   meal.getLDT()-self.graph.dist(meal.getChef(),meal.getDestination()),
+                   meal,
+                   True)
+        stop2=Stop(meal.getDestination(),meal.getLDT(),False)
+        block=Block(stop1,stop2,self.start,self.end)
+        self.feasibleSchedules.append(block)
+

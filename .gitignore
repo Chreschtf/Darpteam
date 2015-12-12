@@ -4,3 +4,4 @@
 *.synctex.gz
 *.run.xml
 .idea/*
+__py*

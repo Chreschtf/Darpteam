@@ -1,15 +1,15 @@
 from Node import *
 from Stop import *
 class Block:
-    def __init__(self,t0,tE):
-        self.start=t0
-        self.end=tE
+    def __init__(self,stop1,stop2,prevTime,nextTime):
+        self.start=stop1.getST()
+        self.end=stop2.getST()
 
 
-        self.stops=[]
+        self.stops=[stop1,stop2]
 
-        self.prevSlack=0
-        self.nextSlack=0
+        self.prevSlack=self.start-prevTime
+        self.nextSlack=self.end-nextTime
 
     def addStop(self,node,time):
         self.stops.append(Stop(node,time))
@@ -19,9 +19,6 @@ class Block:
 
     def getLastStop(self):
         return self.stops[-1]
-
-    def getStopAt(self,i):
-        return self.stops[i]
 
     def getEnd(self):
         return self.end
@@ -43,3 +40,12 @@ class Block:
 
     def getNextSlack(self):
         return self.nextSlack
+
+    def __str__(self):
+        txt="Block : \n"
+        txt+="Start time : {0} , End time : {1}\n".format(self.start,self.end)
+        txt+="Stops : \n["
+        for stop in self.stops:
+            txt+=str(stop)+" "
+        txt=txt[:-1]+"]"
+        return txt
