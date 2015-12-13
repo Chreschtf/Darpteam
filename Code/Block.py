@@ -11,8 +11,22 @@ class Block:
         self.prevSlack=_prevSlack
         self.nextSlack=_nextSlack
 
-    def addStop(self,node,time):
-        self.stops.append(Stop(node,time))
+        self.r=0
+        self.a=float("inf")
+
+        self.a=min(self.a,stop1.getA(),stop2.getA())
+        self.r=max(self.r,stop2.getR(),stop1.getR())
+
+
+        self.shiftSchedule(self.r)
+        self.calcUPnDOWN()
+
+
+    def getA(self):
+        return self.a
+
+    def getR(self):
+        return self.r
 
     def getFirstStop(self):
         return self.stops[0]
@@ -61,6 +75,24 @@ class Block:
             self.stops[r].setAUP(aup)
             self.stops[r].setADOWN(min(adown,self.nextSlack))
 
+    def shiftSchedule(self,shift):
+        self.prevSlack+=shift
+        self.nextSlack-=shift
+        for stop in self.stops:
+            stop.shiftST(shift)
+
+        self.start=self.stops[0].getST()
+        self.end=self.stops[-1].getST()
+
+    def calcDeviation(self):
+        deviation=0
+        for stop in self.stops:
+            deviation+=abs(stop.getST()-stop.getDT())
+
+        return deviation
+
+    def getNbrOfMeals(self):
+        return len(self.stops)/2
 
 
     def __str__(self):

@@ -10,8 +10,11 @@ class Car:
         self.depot=_depot
         self.graph=_graph
 
+        self.meals=[]
+
         self.currentSchedule=[]
         self.feasibleSchedules=[]
+
 
     def getFeasibleSchedules(self):
         return self.feasibleSchedules
@@ -101,17 +104,17 @@ class Car:
         """
 
         stop1=Stop(meal.getChef(),
-                   meal.getLDT()-self.graph.dist(meal.getChef(),meal.getDestination()),
+                   self.graph.dist(meal.getChef(),meal.getDestination()),
                    meal,
                    True)
         stop2=Stop(meal.getDestination(),
-                   meal.getLDT(),
+                   self.graph.dist(meal.getChef(),meal.getDestination()) \
+                   +meal.getDRT(),
                    meal,
                    False)
         prevSlack=stop1.getST()-self.start-\
                   self.graph.dist(self.depot,meal.getChef())
         nextSlack=self.end-stop2.getST()-self.graph.dist(self.depot,meal.getDestination())
         block=Block(stop1,stop2,prevSlack,nextSlack)
-        block.calcUPnDOWN()
-        self.feasibleSchedules.append(block)
+        self.feasibleSchedules.append([block])
 

@@ -15,6 +15,13 @@ class Meal:
         self.drt=_drt   #direct ride time
         self.lpt=self.ldt -self.drt #latest pickup time
 
+
+        self.disutility=0
+        self.newDisutility=0
+
+    def getDisutility(self):
+        return self.disutility
+
     def getDDT(self):
         return self.ddt
 
@@ -38,3 +45,5 @@ class Meal:
 
     def getDestination(self):
         return self.destination
+
+

@@ -10,8 +10,24 @@ class Stop:
         self.aup = 0  # max time following stops can be advanced  [r..d]
         self.adown = 0  # max time following stops can be delayed  [r..d]
 
+        self.r=abs(min(self.st-self.getET(),0))
+        self.a=self.getLT()-self.st
+
+
     def getST(self):
         return self.st
+
+    def getDT(self):
+        if self.pickup:
+            return 0
+        else:
+            return self.meal.getDDT()
+
+    def getR(self):
+        return self.r
+
+    def getA(self):
+        return self.a
 
     def getET(self):
         if self.pickup:
@@ -55,13 +71,21 @@ class Stop:
     def setADOWN(self,newADOWN):
         self.adown=newADOWN
 
-    #def set(self):
+    def getMeal(self):
+        return self.meal
+
+    def shiftST(self,shift):
+        self.st+=shift
+        # self.bup=max(self.bup,abs(self.bup+shift))        #max or min ?
+        # self.bdown=min(self.bdown,abs(self.bdown-shift))
+        # self.aup=max(self.aup,abs(self.aup+shift))
+        # self.adown=min(self.adown,abs(self.adown-shift))
 
 
 
 
     def __str__(self):
-        txt="Coords : {0} ,".format(self.node.coords)
+        txt="Coords : {0} , time : {1} , ".format(self.node.coords,self.st)
         txt+="BUP : {0} , BDOWN : {1} , AUP : {2} , ADOWN : {3}\n".format(
             self.bup,self.bdown,self.aup,self.adown)
         return txt
