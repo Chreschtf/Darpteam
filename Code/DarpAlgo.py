@@ -6,29 +6,21 @@ class DarpAlgo:
         self.cars=_cars
 
         #utilitiy constants :
-        self.utilityC=dict()
-        self.c1=1
-        self.c2=1
-        self.c3=1
-        self.c4=1
-        self.c5=0
-        self.c6=0
-        self.c7=0
-        self.c8=0
-        self.utilityC["c1"]=1
-        self.utilityC["c2"]=1
-        self.utilityC["c3"]=1
-        self.utilityC["c4"]=1
-        self.utilityC["c5"]=0
-        self.utilityC["c6"]=0
-        self.utilityC["c7"]=0
-        self.utilityC["c8"]=0
+        self.constants=dict()
+        self.constants["c1"]=1
+        self.constants["c2"]=1
+        self.constants["c3"]=1
+        self.constants["c4"]=1
+        self.constants["c5"]=0
+        self.constants["c6"]=0
+        self.constants["c7"]=0
+        self.constants["c8"]=0
 
     def createSchedules(self):
         for i in range(len(self.meals)):
             bestSchedules=[]
             for j in range(len(self.cars)):
-                self.addToCar(self.meals[i],self.cars[j],self.utilityC)
+                self.addToCar(self.meals[i],self.cars[j],self)
                 bestSchedule=self.findBestCarSchedule(self.cars[j],self.meals[i])
                 if bestSchedule!=[float("inf")]: #determine best overall schedule
                     bestSchedule.append(j)
@@ -49,7 +41,7 @@ class DarpAlgo:
         for block in schedule:
             deviation=block.calcDeviation()
             meals=block.getNbrOfMeals()
-            min=round(self.c1/(2*self.c2)+deviation/meals)
+            min=round(self.constants["c1"]/(2*self.constants["c2"])+deviation/meals)
             lb=0
             ub=block.getA()-block.getR()
             a=min
@@ -95,9 +87,15 @@ class DarpAlgo:
     def disutilityFuncMeal(self,meal,stop1,stop2):
         x=meal.getDDT() - stop2.getST()
         y=stop2.getST()-stop1.getST() - meal.getDRT()
-        dud=self.c1*x+self.c2*x*x
-        dur=self.c3*y+self.c4*y*y
+        dud=self.constants["c1"]*x+self.constants["c2"]*x*x
+        dur=self.constants["c3"]*y+self.constants["c4"]*y*y
         return dud+dur
+
+    def getConstant(self,const):
+        return self.constants.get(const,0)
+
+    def getUi(self,ept):
+        pass
 
 
 

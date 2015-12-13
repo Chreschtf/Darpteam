@@ -32,7 +32,7 @@ class Car:
             self.currentSchedule[i].setNextSlack(slack)
             self.currentSchedule[i+1].setPrevSlack(slack)
 
-    def addIntoSameBlock(self,meal,utilityC):
+    def addIntoSameBlock(self,meal,scheduler):
         """
         Trying to fit the meal into the existing working schedule while
         pickup and delivery happen in the same block
@@ -45,7 +45,7 @@ class Car:
         if self.currentSchedule!=[]:
             #case1 : pickup and delivery are inserted at the end of the
             # working schedule.
-            self.case1(meal,utilityC)
+            self.case1(meal,scheduler)
 
             #case 2 : pickup and delivery are consecutive stops in a block
             #case 4 : pickup and delivery are separated by at least one stop
@@ -62,7 +62,7 @@ class Car:
 
 
         #case0 : first Block is being created if possible
-        self.case0(meal,utilityC)
+        self.case0(meal,scheduler)
         #return
 
 
@@ -100,7 +100,7 @@ class Car:
 
 
 
-    def case0(self,meal,utilityC):
+    def case0(self,meal,scheduler):
         """
         First insertion to the schedule
         """
@@ -121,7 +121,7 @@ class Car:
         self.feasibleSchedules.append([block])
 
 
-    def case1(self,meal,utilityC):
+    def case1(self,meal,scheduler):
         """
         Following logic of algorithm case 1
         """
@@ -143,22 +143,30 @@ class Car:
                 tpu=meal.getLDT()-meal.getDRT()
                 td=meal.getLDT()
                 w=tpu-block.getEnd()-self.graph.dist(lastNode,meal.getChef())
-                if utilityC["c2"]!=0:
+                if scheduler.getConstant("c2")!=0:
                     #shift=max()
                     shift=min(shift,w,meal.getDeviation())
                     tpu-=shift
                     td-=shift
 
+                else:
+                    if scheduler.getConstant("c1")<scheduler.getConstant("c6")\
+                        +scheduler.getConstant("c8")*scheduler.getUi(meal.getEPT()):
+                        w=max(0,w-meal.getDeviation())
+                        tpu=block.getEnd()+self.graph.dist(lastNode,meal.getChef())+w
+                        td=tpu+meal.getDRT()
+
             else:
                 shift=tpu-meal.getLDT()
-                if shift > block.getLastStop().getBUP:
+                if shift > block.getLastStop().getBUP():
                     return False
                 else:
                     td=meal.getLDT()
                     tpu=td-meal.getDRT()
                     ps=-shift
-                    for stop in block:
-                        stop.shiftST(ps)
+                    block.shiftSchedule(ps)
+                    # for stop in block:
+                    #     stop.shiftST(ps)
 
             stop1=Stop(meal.getChef(),tpu,meal,True)
             stop2=Stop(meal.getDestination(),td,meal,False)
@@ -168,6 +176,12 @@ class Car:
                 block.setNextSlack(w)
                 schedule.append(bb)
                 self.feasibleSchedules.append(schedule)
+                return True
+
+            if block.getNbrOfMeals()<self.maxCharge:
+                block.addLastStop(stop1,self.graph)
+                block.addLastStop(stop2,self.graph)
+
 
 
 

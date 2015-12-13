@@ -46,6 +46,10 @@ class Block:
     def setNextSlack(self,slack):
         self.nextSlack=slack
 
+    def addLastStop(self,stop,graph):
+        self.nextSlack-=graph.dist(self.stops[-1],stop.getNode())
+        self.stops.append(stop)
+
     def case1(self,meal):
         pass
     def case2(self,meal):
