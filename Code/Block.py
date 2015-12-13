@@ -35,10 +35,16 @@ class Block:
         return self.stops[-1]
 
     def getEnd(self):
-        return self.end
+        return self.stops[-1].getST()
 
     def getStart(self):
-        return self.start
+        return self.stops[0].getST()
+
+    def setPrevSlack(self,slack):
+        self.prevSlack=slack
+
+    def setNextSlack(self,slack):
+        self.nextSlack=slack
 
     def case1(self,meal):
         pass
@@ -95,6 +101,13 @@ class Block:
         return len(self.stops)/2
 
 
+    def getCharge(self):
+        charge=0
+        for stop in self.stops:
+            charge+=stop.isPickup()
+        return charge
+
+
     def __str__(self):
         txt="Block : \n"
         txt+="Start time : {0} , End time : {1}\n".format(self.start,self.end)
@@ -105,3 +118,6 @@ class Block:
         txt+="Prev Slack : {0} , Next Slack : {1}".format(self.prevSlack,
                                                           self.nextSlack)
         return txt
+
+    def __lt__(self, other):
+        return len(self.stops)<len(other.stops)

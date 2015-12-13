@@ -81,7 +81,8 @@ class Stop:
         # self.aup=max(self.aup,abs(self.aup+shift))
         # self.adown=min(self.adown,abs(self.adown-shift))
 
-
+    def isPickup(self):
+        return self.pickup
 
 
     def __str__(self):

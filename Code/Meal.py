@@ -46,4 +46,7 @@ class Meal:
     def getDestination(self):
         return self.destination
 
+    def getDeviation(self):
+        return self.deviation
+
 

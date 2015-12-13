@@ -7,38 +7,37 @@ class DarpAlgo:
 
         #utilitiy constants :
         self.utilityC=dict()
-        self.utilityC["c1"]=1
-        self.utilityC["c2"]=1
-        self.utilityC["c3"]=1
-        self.utilityC["c4"]=1
-        self.utilityC["c5"]=1
-        self.utilityC["c6"]=1
-        self.utilityC["c7"]=1
-        self.utilityC["c8"]=1
         self.c1=1
         self.c2=1
         self.c3=1
         self.c4=1
-        self.c5=1
-        self.c6=1
-        self.c7=1
-        self.c8=1
+        self.c5=0
+        self.c6=0
+        self.c7=0
+        self.c8=0
+        self.utilityC["c1"]=1
+        self.utilityC["c2"]=1
+        self.utilityC["c3"]=1
+        self.utilityC["c4"]=1
+        self.utilityC["c5"]=0
+        self.utilityC["c6"]=0
+        self.utilityC["c7"]=0
+        self.utilityC["c8"]=0
 
     def createSchedules(self):
         for i in range(len(self.meals)):
             bestSchedules=[]
             for j in range(len(self.cars)):
                 self.addToCar(self.meals[i],self.cars[j],self.utilityC)
-                #jSchedules=self.cars[i].getFeasibleSchedules()
-                # if jSchedules!=[]: #feasible insertion -> new schedule(s)
-                #     bestSchedule,minCost=self.findOptimalSchedule(jSchedules)
-                #     bestSchedules.append([minCost,j,bestSchedule])
-                bestSchedule=self.findBestCarSchedule(self.cars[j],
-                                                      self.meals[i])
-                bestSchedules.append(j)
-                print(bestSchedule[1][0])
-            if bestSchedules!=[]: #determine best overall schedule
-                pass
+                bestSchedule=self.findBestCarSchedule(self.cars[j],self.meals[i])
+                if bestSchedule!=[float("inf")]: #determine best overall schedule
+                    bestSchedule.append(j)
+                    bestSchedules.append(bestSchedule)
+            if bestSchedules!=[]:
+                bestSchedules.sort()
+                schedule=bestSchedules[0]
+                self.cars[schedule[2]].setCurrentSchedule(schedule[1])
+        i=0
 
 
     def addToCar(self,meal,car,utilityC):
@@ -47,20 +46,19 @@ class DarpAlgo:
 
     def scheduleOptimisation(self,schedule):
 
-        for i in range(len(schedule)):
-            deviation=schedule[i].calcDeviation()
-            meals=schedule[i].getNbrOfMeals()
+        for block in schedule:
+            deviation=block.calcDeviation()
+            meals=block.getNbrOfMeals()
             min=round(self.c1/(2*self.c2)+deviation/meals)
             lb=0
-            ub=schedule[i].getA()-schedule[i].getR()
+            ub=block.getA()-block.getR()
             a=min
             if min<lb:
                 a=lb
             elif min>ub:
                 a=ub
 
-            schedule[i].shiftSchedule(a)
-        #update slack
+            block.shiftSchedule(a)
 
     def findBestCarSchedule(self,car,meal):
 
@@ -81,8 +79,7 @@ class DarpAlgo:
             for stop in block.stops:
                 meals.setdefault(stop.getMeal(),[]).append(stop)
 
-        duNewMeal=self.disutilityFuncMeal(meal,meals[meal][0],
-                                          meals[meal][1])
+        duNewMeal=self.disutilityFuncMeal(meal,meals[meal][0],meals[meal][1])
         meals.pop(meal)
         duOthers=0
         for meal in meals:

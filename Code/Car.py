@@ -2,6 +2,8 @@ from Block import *
 from Meal import *
 from Stop import *
 
+from copy import deepcopy
+
 class Car:
     def __init__(self,_maxCharge,_start,duration,_depot,_graph):
         self.maxCharge=_maxCharge
@@ -19,6 +21,17 @@ class Car:
     def getFeasibleSchedules(self):
         return self.feasibleSchedules
 
+    def setCurrentSchedule(self,schedule):
+        self.currentSchedule=schedule
+        for i in range(len(self.currentSchedule)-1):
+            stop1=self.currentSchedule[i].getLastStop()
+            stop2=self.currentSchedule[i+1].getFirstStop()
+            timeDiff=stop2.getST()- stop1.getST()
+            dist=self.graph.dist(stop1.getNode(),stop2.getNode())
+            slack=timeDiff-dist
+            self.currentSchedule[i].setNextSlack(slack)
+            self.currentSchedule[i+1].setPrevSlack(slack)
+
     def addIntoSameBlock(self,meal,utilityC):
         """
         Trying to fit the meal into the existing working schedule while
@@ -28,20 +41,11 @@ class Car:
         :return:
         """
 
-
+        self.feasibleSchedules=[]
         if self.currentSchedule!=[]:
             #case1 : pickup and delivery are inserted at the end of the
             # working schedule.
-            lastDestination = self.currentSchedule[-1].getLastStop().getNode()
-            if self.currentSchedule[-1].getEnd() \
-                +self.graph.dist(lastDestination,meal.getChef()) < meal.getLPT() \
-                    and \
-                self.currentSchedule[-1].getEnd() \
-                + self.graph.dist(lastDestination,meal.getChef()) \
-                + self.graph.dist(meal.getChef(),meal.getDestination()) \
-                + self.graph.dist(meal.getDestination(),self.depot) <self.end :
-                self.currentSchedule[-1].case1(meal)
-                #optimisation
+            self.case1(meal,utilityC)
 
             #case 2 : pickup and delivery are consecutive stops in a block
             #case 4 : pickup and delivery are separated by at least one stop
@@ -53,19 +57,17 @@ class Car:
             # schedule
             self.currentSchedule[-1].case3(meal)
 
-            #return
+            return True
 
 
 
         #case0 : first Block is being created if possible
         self.case0(meal,utilityC)
-        #optimisation
         #return
 
 
 
     def addIntoDifferentBlocks(self,meal):
-
 
         # pickup and delivery are in different blocks
         i=0
@@ -104,11 +106,11 @@ class Car:
         """
 
         stop1=Stop(meal.getChef(),
-                   self.graph.dist(meal.getChef(),meal.getDestination()),
+                   self.start+meal.getDRT(),
                    meal,
                    True)
         stop2=Stop(meal.getDestination(),
-                   self.graph.dist(meal.getChef(),meal.getDestination()) \
+                   self.start+meal.getDRT() \
                    +meal.getDRT(),
                    meal,
                    False)
@@ -117,4 +119,55 @@ class Car:
         nextSlack=self.end-stop2.getST()-self.graph.dist(self.depot,meal.getDestination())
         block=Block(stop1,stop2,prevSlack,nextSlack)
         self.feasibleSchedules.append([block])
+
+
+    def case1(self,meal,utilityC):
+        """
+        Following logic of algorithm case 1
+        """
+        #vérifier charge
+
+        schedule=deepcopy(self.currentSchedule)
+        block=schedule[-1]
+        lastNode=block.getLastStop().getNode()
+        if block.getEnd()+self.graph.dist(lastNode,meal.getChef())< meal.getLPT() and\
+            block.getEnd()+ self.graph.dist(lastNode,meal.getChef()) \
+            +meal.getDRT() + self.graph.dist(meal.getDestination(),self.depot) < \
+            self.end:
+            tpu=block.getEnd()+self.graph.dist(lastNode,meal.getChef())
+            td=tpu+meal.getDRT()
+            #ddt or dpt
+            shift=0
+            w=0
+            if td <= meal.getLDT():
+                tpu=meal.getLDT()-meal.getDRT()
+                td=meal.getLDT()
+                w=tpu-block.getEnd()-self.graph.dist(lastNode,meal.getChef())
+                if utilityC["c2"]!=0:
+                    #shift=max()
+                    shift=min(shift,w,meal.getDeviation())
+                    tpu-=shift
+                    td-=shift
+
+            else:
+                shift=tpu-meal.getLDT()
+                if shift > block.getLastStop().getBUP:
+                    return False
+                else:
+                    td=meal.getLDT()
+                    tpu=td-meal.getDRT()
+                    ps=-shift
+                    for stop in block:
+                        stop.shiftST(ps)
+
+            stop1=Stop(meal.getChef(),tpu,meal,True)
+            stop2=Stop(meal.getDestination(),td,meal,False)
+            if w!=0: # after the current last stop there will be slack time -> create new block
+                bb=Block(stop1,stop2,w,self.end-stop2.getST()-self.graph.dist(self.depot,
+                                                                          stop2.getNode()))
+                block.setNextSlack(w)
+                schedule.append(bb)
+                self.feasibleSchedules.append(schedule)
+
+
 
