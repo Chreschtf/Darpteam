@@ -19,12 +19,18 @@ L'optimisation de la distribution des repas est un problème qui s'apparente for
     
 Nous allons donc étudier le DARP plus en détail dans la prochaine section.
 \section*{Description d'un DARP}
-Dans un DARP il y a n clients qui requièrent un transport depuis un point de départ jusqu'à une destination désirée. Chaque client doit spécifier une fenêtre de temps de leurs heures désirées de départ ainsi que d'arrivée. Chaque véhicule possède une capacité maximale. Chaque client a un temps de transport maximum (on ne peut pas faire trop attendre un client déjà embarqué).\newline
- Il existe deux types différents de DARP, \textit{statique} et \textit{dynamique}. Un DARP statique part de l'idée que toutes les requêtes sont connues avant qu'un véhicule ne commence sa tournée. Dans un DARP dynamique, les requêtes ont lieu graduellement au cours du temps. Le trajet est donc déterminé en temps réel. 
+Dans un DARP il y a $n$ clients qui requièrent un transport depuis un point de départ jusqu'à une destination désirée et $m$ véhicules qui réalisent les tournées. Un client spécifie soit l'heure de départ désirée (requête \textit{outbound}), soit l'heure d'arrivée désirée (requête \textit{inbound}) avec parfois la déviation maximale de cet instant. À l'aide de ces informations, des fenêtres de temps sont construits dans lesquelles le véhicule doit passer pour respecter ces contraintes. Chaque véhicule possède une capacité maximale et une durée maximale pour sa tournée. Chaque client a un temps de transport maximum (on ne peut pas faire trop attendre un client déjà embarqué).\newline
+ Il existe deux types différents de DARP, \textit{statique} et \textit{dynamique}. Un DARP statique part de l'idée que toutes les requêtes sont connues avant qu'un véhicule ne commence sa tournée. Dans un DARP dynamique, les requêtes ont lieu graduellement au cours du temps. Le trajet de la tournée est donc déterminé en temps réel. 
     Nous allons d'abord considérer un modèle statique dans le cadre de ce projet.
 \subsection*{Notre sujet en tant que DARP}
-Dans notre projet il y a n couples de cuisiniers et de clients dont les repas sont transportés. On peut voir le problème en tant que points de départ et points d'arrivée. Deux fenêtres de temps sont spécifiées, une pour le départ (donnée par le cuisinier) et une pour l'arrivée (donnée par le client). Les véhicules (livreurs) possèdent une capacité maximale et la tournée d’un livreur a une durée limite tout comme le transport d’un repas. Pour notre problème, la notion de Inbound et Outbound requêts ne fais pas beaucoup de sens puisque les répas sont toujours transporté du cuisinier aux clients et jamais dans l'autre direction. Du point de vue du cuisinier il s'agit que des outbound requêtes et du point de vue du client que des inbound requêtes mais les deux notions ne sont pas complètement applicable puisque le cuisinier ne donne pas l'heure d'arrivée du répas chez le client et le client ne donne pas l'heure de départ du répas chez le cuisinier.
+Dans notre projet il y a $n$ repas qui seront transportés de leur cuisinier à leur destinataire et $m$ véhicules qui réalisent les tournées. On peut voir le problème en tant que points de départ et points d'arrivée. Dans notre cas, que les heures d'arrivées sont spécifiées pour les repas, les heures de départ du transport sont calculées à l'aide de celles-ci. Ce ne sont donc que des requêtes \textit{inbound}. Les véhicules (livreurs) possèdent une capacité maximale et la tournée d’un livreur a une durée limite tout comme le transport d’un repas. 
 \section*{Formulation du problème}
+Basé sur le doctorat de Jang-Jei Jaw [1] : "Solving large-scale dial-a-ride vehicle routing and scheduling problems". \newline
+
+L'algorithme heuristique garantie que 
+
+À chaque repas est associé une heure d'arrivée désirée,
+
 Tiré de l'article de référence "A tabu search heuristic for the static multi-vehicle dial-a-ride problem.": \newline
 Le DARP est modélisé par un graphe $G=(V,A)$. $V=\{v\textsubscript{0},v\textsubscript{1},v\textsubscript{2},...,v\textsubscript{2n} \}$ représente l'ensemble des sommets du graphe. 
 $A=\{(v\textsubscript{i},v\textsubscript{j}):v\textsubscript{i},v\textsubscript{j}\in V,i\neq j\}$ représente l'ensemble des arcs du graphe.  $v\textsubscript{0}$ correspond au dépôt et les 2n sommets restants correspondent aux origines et destinations des clients. La paire de sommet $(v\textsubscript{i},v\textsubscript{i+n})$ définit une demande de transport.  
@@ -73,6 +79,10 @@ Dans cet article est décrit la première version d'un Branch-and-cut pour DARP 
 Cet article présente une variante "First Feasible Probabilistic Acceptance" de la méthode appelée Large Neighborhood Search qui fait une recherche de voisinage sans fixer de contrainte d'amélioration des solutions partielles jusqu'à trouver des solutions faisables qui sont choisies sur bases probabilistes. La méthode est dite plus efficace dans l'article pour des recherches à contraintes à temps limité que les méthodes tabu de l'époque (2011), le rendant approprié pour du DARP semi-dynamique, et donne des résultats non-optimaux comparables aux algorithmes état-de-l'art de l'époque. 
 Cet article peut nous donner une autre piste dans la recherche d'un algorithme efficace de résolution de DARP.
 \begin{thebibliography}{10}
+\bibitem{Jaw}
+Jang-Jei Jaw, Solving large-scale dial-a-ride vehicle routing and scheduling problems,  \textit{FTL report (Massachusetts Institute of Technology. Flight Transportation Laboratory)}, R84-3 (1984), 90-131
+
+
 \bibitem{} 
 A tabu search heuristic for the static multi-vehicle
 dial-a-ride problem (Jean-François Cordeau, Gilbert Laporte) 2002
