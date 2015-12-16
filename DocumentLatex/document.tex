@@ -18,12 +18,18 @@
 L'optimisation de la distribution des repas est un problème qui s'apparente fort au \textit{Dial-A-Ride-Problem} (DARP). Il a fortement été étudié dans le but d'optimiser le transport des personnes âgées ou inaptes au déplacement. Dans le cadre de ce projet, ce sont des repas que l'on doit transporter des cuisiniers jusqu'aux clients. Ce problème implique un troisième personnage, le livreur. Le défi ici consiste à prendre en compte les contraintes de chacun et trouver une route de moindre coût qui satisfait les demandes de tous les clients.
     
 Nous allons donc étudier le DARP plus en détail dans la prochaine section.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 \section*{Description d'un DARP}
 Dans un DARP il y a $n$ clients qui requièrent un transport depuis un point de départ jusqu'à une destination désirée et $m$ véhicules qui réalisent les tournées. Un client spécifie soit l'heure de départ désirée (requête \textit{outbound}), soit l'heure d'arrivée désirée (requête \textit{inbound}) avec parfois la déviation maximale de cet instant. À l'aide de ces informations, des fenêtres de temps sont construits dans lesquelles le véhicule doit passer pour respecter ces contraintes. Chaque véhicule possède une capacité maximale et une durée maximale pour sa tournée. Chaque client a un temps de transport maximum (on ne peut pas faire trop attendre un client déjà embarqué).\newline
  Il existe deux types différents de DARP, \textit{statique} et \textit{dynamique}. Un DARP statique part de l'idée que toutes les requêtes sont connues avant qu'un véhicule ne commence sa tournée. Dans un DARP dynamique, les requêtes ont lieu graduellement au cours du temps. Le trajet de la tournée est donc déterminé en temps réel. 
     Nous allons d'abord considérer un modèle statique dans le cadre de ce projet.
 \subsection*{Notre sujet en tant que DARP}
 Dans notre projet il y a $n$ repas qui seront transportés de leur cuisinier à leur destinataire et $m$ véhicules qui réalisent les tournées. On peut voir le problème en tant que points de départ et points d'arrivée. Dans notre cas, que les heures d'arrivées sont spécifiées pour les repas, les heures de départ du transport sont calculées à l'aide de celles-ci. Ce ne sont donc que des requêtes \textit{inbound}. Les véhicules (livreurs) possèdent une capacité maximale et la tournée d’un livreur a une durée limite tout comme le transport d’un repas. 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 \section*{Formulation du problème}
 Basé sur le doctorat de Jang-Jei Jaw [1] : "Solving large-scale dial-a-ride vehicle routing and scheduling problems". \newline
 
@@ -57,6 +63,22 @@ Notre algorithme essaye donc de créer des routes dans le graphe $G$ en respecta
 %    On peut maintenant noter par Li=Bi+n-Di le temps de trajet d'un client ayant fait la requête i. 
 %    S'il n'y a pas de contrainte de temps, le moment d'arrivée du véhicule au sommet vi serait optimal quand Bi=max{ei,Ai}.
 %    Par contre, il ne faut pas oublier le fait que de temps en temps il pourrait être plus avantageux de délayer le commencement du service au sommet vi dans le but de réduire le temps d'attente au sommet vi+n (ou à un autre sommet visité entre vi et vi+n), ce qui aurait comme conséquence de prolonger L (le temps de trajet).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section*{Les différentes approches}
+
+\subsection*{Tabu search}
+Les algorithmes tabu search commence avec une solution initiale qu'il essaye d'améliorer itération par itération. On le nomme 'tabu' parce qu'on doit interdire (ou déclarer 'tabu') les solutions déjà visité pour ne pas rentrer dans un cycle. Les opérations qui sont éffectués pour améliorer une solution sont:
+\begin{itemize}
+\item enlever un couple (départ, destination) d'une route et l'insérer dans une autre route
+\item décaler un noeud soit départ, soit déstination dans sa route
+\item permuter deux couples (départ, destination) de deux routes différentes
+\end{itemize}
+Pour la construction d'une solution initiale les départs des réquêtes sont répartit aléatoirement sur les différentes véhicules et les destinations correspondantes sont ajoutés à la fin de la route de leur départ. Le voisinage d'une solution est l'ensemble des solution qui peuvent être atteint par une simple opération: enlèvement d'un couple (départ, destination) d'une route et insertion dans une autre route. Les nouvelles solutions sont évaulés à l'aide du coût  et des contraintes (la capacité des véhicules, les fénêtres de temps, la durée limite d'un véhicule et la charge maximale d'un véhicule). Plus que une solution viole des contraintes, plus elle est évalué non favorable. Après une certain nombre d'itérations, il faut réarranger les noeuds pour chaque route tel que le coût de la route est réduit le plus possible. ( <- A tabu search heurisitic for ... )
+Dans la récherche actuelle un algorithme qui s'appelle 'Granular Tabu Search' donne des bonnes résultats. Un voisinage granulaire est utilisé. Il s'agit d'un voisinage réduit c'est à dire il ne contient pas des solutions qui sont suspectés d'amener à une aggravation en termes de coûts et de violations des contraintes. Si une solution appartient au voisinage ou pas est décide par un 'threshold', en français une barrière. Le critère de cette barrière est le temps de voyage. Seulement les solutions dont le temps de voyage est en-dessous de la barrière restent dans le voisinage. Il peut arriver qu'on trouve aucune solution qui répond aux éxigences de la barrière, on peut donc augmenter la barrière.(<- Granular Tabu Search )
+
+
 
 \section*{Descriptions d'articles de référence}
 \subsection*{A tabu search heuristic for the static multi-vehicle dial-a-ride problem (Jean-François Cordeau et Gilbert Laporte) 2002}
