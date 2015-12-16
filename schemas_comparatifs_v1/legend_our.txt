@@ -1,0 +1,10 @@
+Basé sur l'énoncé, notre problème de livraison peut être définis par une carte contenant :
+-Un dépôt qui est le point de départ et de retour des tournées. (une tournée est le total de voyages d'un livreur)
+-[A,B] Des Cuisiniers qui sont le point de départ d'une livraison avec une Time Window (dont la définition peut dépendre de la Limite de temps transportation des repas [a,b] et de la Time Window du Client [A',B'] correspondant). (une livraison est le voyage entre un Cuisinier et son Client)
+-[A',B'] -Des Clients qui sont le point d'arrivée d'une livraison avec une Time Window.
+
+Sur cette carte se déplacent des livreurs indépendants ayant :
+-Une contrainte de Capacité.
+-Une limite de temps maximale.
+Le livreur doit visiter un cuisinier avant de visiter le client correspondant.
+Et notre but est de minimiser la distance totale parcourue.

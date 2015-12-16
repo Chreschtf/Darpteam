@@ -1,0 +1,9 @@
+Un Dial-A-Ride-Problem peut se définir de plusieur façons.
+Nous prenons ici la variante Many-to-Many (plusieur points de départ et d'arrivée) avec Advance-Request (les requêtes sont remplies en avance, pas de requêtes en temps réel).
+
+Un DARP contient des éléments similaires à notre problème sur une carte comprenant :
+-[A,B] Des clients points de départ d'un voyage sur-demande.
+-[A',B'] Leur destination point d'arrivée d'un voyage avec un horaire d'arrivée plus-ou-moins strict selon l'algorithme.
+
+Les conducteurs ont une capacité limitée, et doivent visiter le client avant leur destination.
+Des contraintes de temps comme des Time Window supplémentaires peuvent être ajoutées.
