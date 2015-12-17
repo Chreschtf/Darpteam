@@ -31,7 +31,7 @@ Dans notre projet il y a $n$ repas qui seront transportés de leur cuisinier à 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section*{Formulation du problème}
-Basé sur le doctorat de Jang-Jei Jaw [1] : "Solving large-scale dial-a-ride vehicle routing and scheduling problems". \newline
+Basé sur le doctorat de Jang-Jei Jaw \textit{"Solving large-scale dial-a-ride vehicle routing and scheduling problems"}. \newline
 
 À chaque repas est associé une heure d'arrivée désirée, une déviation maximale de cette heure d'arrivée, une durée de transport maximale et les sommets du cuisinier et du client dans le graphe. À chaque véhicule est associé l'heure de départ de sa tournée et la durée de celle-ci, ainsi que la nombre maximale de repas qui peuvent être transportés en même temps et le sommet de départ de sa tournée, qui est aussi le sommet d'arrivée auquel il doit retourner à la fin de sa tournée, nommée dépot. Dans notre cas, les distances sont équivalentes au temps de déplacements, c-à-d pour trouver les meilleures solutions on se base sur les distances entre les sommets du graphe et on essaye donc de minimiser celles-ci.
 
@@ -65,15 +65,18 @@ Basé sur le doctorat de Jang-Jei Jaw [1] : "Solving large-scale dial-a-ride veh
 
 \section*{Les différentes approches}
 
+\subsection*{Insertion}
+Dans un algorithme d'insertion 
 \subsection*{Tabu search}
-Les algorithmes tabu search commence avec une solution initiale qu'il essaye d'améliorer itération par itération. On le nomme 'tabu' parce qu'on doit interdire (ou déclarer 'tabu') les solutions déjà visité pour ne pas rentrer dans un cycle. Les opérations qui sont éffectués pour améliorer une solution sont:
+Un algorithme tabu search commence avec une solution initiale qu'il essaye d'améliorer itération par itération. On le nomme 'tabu' parce qu'on doit interdire (ou déclarer 'tabu') les solutions déjà visité pour ne pas rentrer dans un cycle. Les opérations qui sont effectuées pour améliorer une solution sont:
 \begin{itemize}
-\item enlever un couple (départ, destination) d'une route et l'insérer dans une autre route
-\item décaler un noeud soit départ, soit déstination dans sa route
-\item permuter deux couples (départ, destination) de deux routes différentes
+\item enlever un couple (départ, destination) d'une tournée et l'insérer dans une autre tournée
+\item décaler un noeud de départ ou déstination dans la tournée
+\item permuter deux couples (départ, destination) de deux tournées différentes
 \end{itemize}
-Pour la construction d'une solution initiale les départs des réquêtes sont répartit aléatoirement sur les différentes véhicules et les destinations correspondantes sont ajoutés à la fin de la route de leur départ. Le voisinage d'une solution est l'ensemble des solution qui peuvent être atteint par une simple opération: enlèvement d'un couple (départ, destination) d'une route et insertion dans une autre route. Les nouvelles solutions sont évaulés à l'aide du coût  et des contraintes (la capacité des véhicules, les fénêtres de temps, la durée limite d'un véhicule et la charge maximale d'un véhicule). Plus que une solution viole des contraintes, plus elle est évalué non favorable. Après une certain nombre d'itérations, il faut réarranger les noeuds pour chaque route tel que le coût de la route est réduit le plus possible. ( <- A tabu search heurisitic for ... )
-Dans la récherche actuelle un algorithme qui s'appelle 'Granular Tabu Search' donne des bonnes résultats. Un voisinage granulaire est utilisé. Il s'agit d'un voisinage réduit c'est à dire il ne contient pas des solutions qui sont suspectés d'amener à une aggravation en termes de coûts et de violations des contraintes. Si une solution appartient au voisinage ou pas est décide par un 'threshold', en français une barrière. Le critère de cette barrière est le temps de voyage. Seulement les solutions dont le temps de voyage est en-dessous de la barrière restent dans le voisinage. Il peut arriver qu'on trouve aucune solution qui répond aux éxigences de la barrière, on peut donc augmenter la barrière.(<- Granular Tabu Search )
+Pour la construction d'une solution initiale les point de départs des réquêtes sont répartis aléatoirement sur les différentes véhicules et les destinations correspondantes sont ajoutés à la fin de la tournée. Le voisinage d'une solution est l'ensemble des solutions qui peuvent être atteintes par une simple opération: enlèvement d'un couple (départ, destination) d'une tournée et l'insertion dans une autre tournée. Les nouvelles solutions sont évaulées à l'aide d'un calcul de coûts et des contraintes (la capacité des véhicules, les fénêtres de temps, la durée limite d'un véhicule et la charge maximale d'un véhicule). Plus qu'une solution viole des contraintes, plus elle est évaluée non favorable. Après un certain nombre d'itérations, il faut réarranger les noeuds pour chaque tournée tel que le coût de la route est réduit le plus possible. 
+\newline
+Dans la récherche actuelle, un algorithme qui s'appelle \textit{Granular Tabu Search} donne de bons résultats. Un voisinage granulaire est utilisé. Il s'agit d'un voisinage réduit c'est-à-dire il ne contient pas des solutions qui sont supposées d'amener à une aggravation en termes de coûts et de violations des contraintes. Si une solution appartient au voisinage ou pas est décide par un \textit{threshold}, une barrière. Le critère de cette barrière est le temps de voyage. Seulement les solutions dont le temps de voyage est en-dessous de la barrière restent dans le voisinage. Il peut arriver qu'on trouve aucune solution qui répond aux éxigences de la barrière, on peut donc augmenter la barrière.(<- Granular Tabu Search )
 
 
 
@@ -85,7 +88,7 @@ Il s'agit d'une méthode heuristique, ce qui implique que les solutions proposé
 Cette procédure heuristique permet, en conséquence, de générer des solutions à coût nettement plus faible.% (de l'ordre de 2000 clients et 30 véhicules par exemple).
 Cet algorithme exploite les concepts d'un algorithme à insertion permettant de résoudre des cas plus simples de ce problème. Il va donc chercher à insérer un par un les clients dans les plages horaires de chaque véhicule tout en respectant les contraintes du client ainsi que de chaque autre client présent dans le véhicule au moment de l'insertion.
 S'en suivra une série d'optimisations réalisées de manière à minimiser le coût de l'insertion. Ce coût est quant à lui calculé grâce à une fonction de désutilité. Ici, « les clients sont des repas ». C'est-à-dire qu'au lieu de transporter des clients, ce sont des repas qui doivent être acheminés du cuisinier jusqu'au clients qui les ont commandés.
-Dans le problème original, le client a le choix entre spécifier soit l'heure de départ soit l'heure d'arrivée mais pas les deux. Dans cette version modifiée, le client ne peut que préciser l'heure d'arrivée des repas, ce qui fait de cette requête une requête \textit{outbound}.
+Dans le problème original, le client a le choix entre spécifier soit l'heure de départ soit l'heure d'arrivée mais pas les deux. Dans cette version modifiée, le client ne peut que préciser l'heure d'arrivée des repas, ce qui fait de cette requête une requête \textit{outbound}. 
 \newline
 Nous avons choisi d'implémenter une version de l'algorithme d'insertion de J-J. Jaw 1984, car il s'agit d'une approche heuristique permettant de résoudre de large problèmes en considérant des fenêtres de temps, tout en produisant une bonne solution, bien que non-optimale. Cet algorithme est référencé par un grand nombre d'articles scientifiques traitant le DARP, ce qui en fait une source très fiable.
 
@@ -108,12 +111,12 @@ Dans cet article est décrit la première version d'un Branch-and-cut pour DARP 
 \subsection*{Large Neighborhood Search For Dial-a-Ride Problems (Siddhartha Jain et Pascal Van Hentenryck) 2011}
 Cet article présente une variante "First Feasible Probabilistic Acceptance" de la méthode appelée Large Neighborhood Search qui fait une recherche de voisinage sans fixer de contrainte d'amélioration des solutions partielles jusqu'à trouver des solutions faisables qui sont choisies sur bases probabilistes. La méthode est dite plus efficace dans l'article pour des recherches à contraintes à temps limité que les méthodes tabu de l'époque (2011), le rendant approprié pour du DARP semi-dynamique, et donne des résultats non-optimaux comparables aux algorithmes état-de-l'art de l'époque. 
 Cet article peut nous donner une autre piste dans la recherche d'un algorithme efficace de résolution de DARP.
-\begin{thebibliography}{10}
+\begin{thebibliography}{20}
 \bibitem{Jaw}
 Jang-Jei Jaw, Solving large-scale dial-a-ride vehicle routing and scheduling problems,  \textit{FTL report (Massachusetts Institute of Technology. Flight Transportation Laboratory)}, R84-3 (1984), 90-131
 
 
-\bibitem{} 
+\bibitem{tabu} 
 A tabu search heuristic for the static multi-vehicle
 dial-a-ride problem (Jean-François Cordeau, Gilbert Laporte) 2002
 \bibitem{}
@@ -127,7 +130,7 @@ LaTorre , José-María Peña ) 2014
 \bibitem{}
 The dial-a-ride problem : models and algorithms (Jean-
 François Cordeau et Gilbert Laporte) 2007
-\bibitem{}
+\bibitem{Granular}
 A Granular Tabu Search algorithm for the Dial-a-Ride Problem (Dominik Kirchler, Roberto Wolfer Calvo) 2013
 \bibitem{}
 Recent Models and Algorithms for One-to-One Pickup and
