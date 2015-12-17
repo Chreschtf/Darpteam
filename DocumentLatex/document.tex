@@ -83,6 +83,13 @@ La deuxième étape est un procédé heuristique consistant à identifier les so
 
 Cette technique algorithmique appliqué au DARP a l'avantage d'être très efficace pour résoudre des petites instances du problème. Elle a également l'avantage de tendre vers l'optimum. Pour des plus larges sets de données, elle devient beaucoup moins intéressante. 
 
+\subsection*{Branch-and-cut}
+Branch-and-Cut (BAC) est une approche générique d'optimisation combinatoire. Il a été montré qu'un algorithme de type BAC peut résoudre un DARP ainsi que d'autres problèmes de routage. 
+La première étape consiste à réduire la taille du problème. La seconde utilise un procédé appelé « relaxation continue » pour identifier certaines inégalités encadrant le problème qui seraient violées. Le but étant de transformer ce problème NP-hard en un problème qui est solvable en un temps polynomial. 
+Le rétrécissement du problème effectué lors de la première étape se fait en premier lieu par une contraction de la fenêtre de temps dépendamment d'une requête outbound ou inbound. Deuxièmement, il est possible de supprimer un certain nombre d'arcs du graphe qui à coup sûr ne font pas parti d'une solution correcte. Enfin, il est également possible que certains clients ne soient pas compatibles avec d'autres. Il est important de réduire le problème à sa taille minimale pour éviter des calculs inutiles, atténuant ainsi le phénomène d'explosion combinatoire. 
+La deuxième étape est un procédé heuristique consistant à identifier les solutions qui violent les inégalités précédemment mentionnées suivant une méthode de BAC. 
+
+
 
 \subsection*{Variable Neighborhood Search}
 Un Variable Neighborhood Search part d'une solution initiale faisable et génère des solutions au voisinage. Chaque solution est comparée à la solution initiale et peut la remplacer si les pénalités sont moindres. Le problème est que l'on doit partir d'une solution initiale faisable pour avoir de bon résultats, et générer ce genre de solution peut être lourd pour de gros problèmes (avec beaucoup de requêtes, ~1000). 
