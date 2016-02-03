@@ -13,9 +13,9 @@ class Graph:
         self.nbrChefsCurrent = 0
         self.nbrClientsTotal = nbrClients
         self.nbrClientsCurrent = 0
-        self.nbrEmptyVertices = randint(nbrClients, (3*nbrClients))
+        #self.nbrEmptyVertices = randint(nbrClients, (3*nbrClients))
 
-        self.nbrVertices = self.nbrEmptyVertices + nbrChefs + nbrClients + 1 # +1 == DeliveryDepot
+        self.nbrVertices = nbrChefs + nbrClients + 1 # +1 == DeliveryDepot
         self.nbrEdges = int(  (randint(15,25)/10) * self.nbrVertices  )
 
         self.edges = [] ; self.vertices = [] ; self.chefs = [] ; self.clients = [] ; self.meals = []
