@@ -108,7 +108,7 @@ class DarpAlgo:
                 ept-self.constants["W1"] <=car.getEnd() <= ept+self.constants["W2"]:
                 carsAvailable+=1
 
-        #carsAvailable !=0 because otherwise the initial algo would not proceed in the first place
+        #carsAvailable !=0 because otherwise the initial algorithm would not proceed in the first place
         return custInSys/carsAvailable
 
 
