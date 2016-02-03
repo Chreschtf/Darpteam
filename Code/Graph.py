@@ -1,6 +1,7 @@
 from random import randint, choice
 from enum import Enum
-
+from copy import deepcopy
+# import networkx as nx
 
 class Graph:
 
@@ -20,11 +21,19 @@ class Graph:
         self.clients = []
 
         self.maxDistance = 64
-        self.adjacencyMatrix = [[ 999999 for j in range (self.nbrVertices) ] for i in range (self.nbrVertices)]
+        self.adjacencyMatrix = [[ None for j in range (self.nbrVertices) ] for i in range (self.nbrVertices)]
         #self.predecessors = [[ 0 for j in range (self.nbrVertices) ] for i in range (self.nbrVertices)]
         self.generateGraph()
 
-        self.Floyd_Warshall()
+        self.copyAdjacencyMatrix = deepcopy(self.adjacencyMatrix)
+
+        self.Floyd_Warshall(self.copyAdjacencyMatrix)
+
+        self.assureTriangleInequality()
+
+
+        self.Floyd_Warshall(self.adjacencyMatrix)
+
 
 
     def generateGraph(self):
@@ -33,7 +42,7 @@ class Graph:
         self.vertices.append(Vertex(VertexType.DeliveryDepot, createdVertices))
         createdVertices += 1
 
-        # creating a connected graph with  #vertices = #edges - 1
+        # creating a connected graph with  #edges = #vertices - 1
         while createdVertices < self.nbrVertices:
             # newEdge = Edge(self.maxDistance)
             newVertex = self.getRandomVertex(createdVertices)
@@ -56,25 +65,26 @@ class Graph:
 
             self.connectVertices(vertexA, vertexB)
             createdEdges += 1
-        for vertex in self.vertices:
-            if len(vertex.neighbours) == 0:
-                print('Ups!')
+
 
 
     def getRandomVertex(self, index):
-        if self.nbrChefsCurrent == self.nbrChefsTotal and self.nbrClientsCurrent == self.nbrClientsTotal:
-            print("lolo")
-        if self.nbrChefsCurrent == self.nbrChefsTotal:
+        #if self.nbrChefsCurrent == self.nbrChefsTotal and self.nbrClientsCurrent == self.nbrClientsTotal:
+        #    print("lolo")
+        if self.nbrChefsCurrent == self.nbrChefsTotal: # only Clients left
             self.nbrClientsCurrent += 1
             return Vertex(VertexType.Client, index)
-        elif self.nbrClientsCurrent == self.nbrClientsTotal:
+
+        elif self.nbrClientsCurrent == self.nbrClientsTotal: # only Chefs left
             self.nbrChefsCurrent += 1
             return Vertex(VertexType.Chef, index)
+
         else:
-            randNbr = randint(1, self.nbrVertices-1) # - 1 == DeliveryDepot
+            randNbr = randint(1, self.nbrVertices-1) # choose randomly a Chef or Client |  - 1 == DeliveryDepot
             if randNbr <= self.nbrClientsTotal:
                 self.nbrClientsCurrent += 1
                 return Vertex(VertexType.Client, index)
+
             else:
                 self.nbrChefsCurrent += 1
                 return Vertex(VertexType.Chef, index)
@@ -83,33 +93,42 @@ class Graph:
     def connectVertices(self, vertexA, vertexB):
         vertexA.addNeighbour(vertexB)
         vertexB.addNeighbour(vertexA)
+        weight = randint(1, self.maxDistance)
+        self.adjacencyMatrix[vertexA.index][vertexB.index] = weight
+        self.adjacencyMatrix[vertexB.index][vertexA.index] = weight
         #
         # for line in self.adjacencyMatrix:
         #     for i in line:
         #         print( " | {:2d}".format(i), end="" )
         #     print(" |")
         # print(min(vertexA.index, vertexB.index), max(vertexA.index, vertexB.index))
-        weight = randint(1, self.maxDistance)
-        self.adjacencyMatrix[vertexA.index][vertexB.index] = weight
-        self.adjacencyMatrix[vertexB.index][vertexA.index] = weight
 
 
-    def Floyd_Warshall(self):
+
+    def Floyd_Warshall(self, adjacencyMatrix):
         """
         None is infinity
         """
         for i in range(self.nbrVertices):
-            self.adjacencyMatrix[i][i] = 0
+            adjacencyMatrix[i][i] = 0
         for k in range(self.nbrVertices):
             for i in range(self.nbrVertices):
                 for j in range(self.nbrVertices):
-                    if self.adjacencyMatrix[i][k] is not None and self.adjacencyMatrix[k][j] is not None:
+                    if adjacencyMatrix[i][k] is not None and adjacencyMatrix[k][j] is not None:
 
-                        if self.adjacencyMatrix[i][j] is None:
-                            self.adjacencyMatrix[i][j] = self.adjacencyMatrix[i][k] + self.adjacencyMatrix[k][j]
+                        if adjacencyMatrix[i][j] is None:
+                            adjacencyMatrix[i][j] = adjacencyMatrix[i][k] + adjacencyMatrix[k][j]
 
-                        elif self.adjacencyMatrix[i][j] > self.adjacencyMatrix[i][k] + self.adjacencyMatrix[k][j]:
-                            self.adjacencyMatrix[i][j] = self.adjacencyMatrix[i][k] + self.adjacencyMatrix[k][j]
+                        elif adjacencyMatrix[i][j] > adjacencyMatrix[i][k] + adjacencyMatrix[k][j]:
+                            adjacencyMatrix[i][j] = adjacencyMatrix[i][k] + adjacencyMatrix[k][j]
+
+
+    def assureTriangleInequality(self):
+    	for i in range(self.nbrVertices):
+    		for j in range(self.nbrVertices):
+    			if self.adjacencyMatrix[i][j] is not None:
+    				if self.adjacencyMatrix[i][j] > self.copyAdjacencyMatrix[i][j]:
+    					self.adjacencyMatrix[i][j] = self.copyAdjacencyMatrix[i][j]
 
 
     def dist(self, i, j):
@@ -139,7 +158,7 @@ class Graph:
             path.insert(0, j)
             return self.getPath(i, self.predecessors[i][j], path)
     """
-
+print
 
 
 class VertexType(Enum):
@@ -161,22 +180,19 @@ class Vertex:
         self.neighbours.append(newNeighbour)
 
 
-
-"""
 if __name__ == "__main__":
-    G = Graph(15, 20)
+    G = Graph(2, 5)
     for v in G.vertices:
-       print((v.index, v.type))
+       print((v.index, v.type, len(v.neighbours)))
 
     for Mat in [G.adjacencyMatrix]:
         print("\n---------------------------------------------\n")
         for line in Mat:
            for i in line:
-               print( " | {:3d}".format(i), end="" )
+               print( " | "+str(i), end=" ") #{:3d}".format(i), end="" )
            print(" |")
 
     print("\nNbr Vertices", G.nbrVertices, "| Nbr Edges", G.nbrEdges)
-"""
 
 """
 class Edge:
