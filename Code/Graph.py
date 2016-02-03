@@ -1,28 +1,28 @@
 from random import randint, choice
-from enum import Enum
 from copy import deepcopy
+
+from Meal import *
+from Node import *
+
 # import networkx as nx
 
 class Graph:
 
     def __init__(self, nbrChefs, nbrClients):
-        self.nbrVertices = nbrChefs + nbrClients + 1 # +1 == DeliveryDepot
-        self.nbrEdges = int(  (randint(15,25)/10) * self.nbrVertices  )
-
         self.nbrChefsTotal = nbrChefs
         self.nbrChefsCurrent = 0
         self.nbrClientsTotal = nbrClients
         self.nbrClientsCurrent = 0
-        self.deliveryDepot = False
+        self.nbrEmptyVertices = randint(nbrClients, (3*nbrClients))
 
-        self.edges = []
-        self.vertices = []
-        self.chefs = []
-        self.clients = []
+        self.nbrVertices = self.nbrEmptyVertices + nbrChefs + nbrClients + 1 # +1 == DeliveryDepot
+        self.nbrEdges = int(  (randint(15,25)/10) * self.nbrVertices  )
+
+        self.edges = [] ; self.vertices = [] ; self.chefs = [] ; self.clients = [] ; self.meals = []
+        self.deliveryDepot = False
 
         self.maxDistance = 64
         self.adjacencyMatrix = [[ None for j in range (self.nbrVertices) ] for i in range (self.nbrVertices)]
-        #self.predecessors = [[ 0 for j in range (self.nbrVertices) ] for i in range (self.nbrVertices)]
         self.generateGraph()
 
         self.copyAdjacencyMatrix = deepcopy(self.adjacencyMatrix)
@@ -31,77 +31,115 @@ class Graph:
 
         self.assureTriangleInequality()
 
-
         self.Floyd_Warshall(self.adjacencyMatrix)
+
+        self.createRandomMeals()
+
+
+    def getClients(self):
+    	return self.clients
+
+
+    def getChefs(self):
+    	return self.chefs
+
+
+    def getDeliveryDepot(self):
+    	return self.deliveryDepot
+
+
+    def getMeals(self):
+    	return self.meals
 
 
 
     def generateGraph(self):
         createdVertices = 0
         createdEdges = 0
-        self.vertices.append(Vertex(VertexType.DeliveryDepot, createdVertices))
+        self.deliveryDepot = Node(NodeType.DeliveryDepot, createdVertices)
+        self.vertices.append(self.deliveryDepot)
         createdVertices += 1
 
         # creating a connected graph with  #edges = #vertices - 1
         while createdVertices < self.nbrVertices:
-            # newEdge = Edge(self.maxDistance)
-            newVertex = self.getRandomVertex(createdVertices)
-            self.connectVertices(choice(self.vertices), newVertex)
-            self.vertices.append(newVertex)
+            newNode = self.getRandomNode(createdVertices)
+            self.connectVertices(choice(self.vertices), newNode)
+            self.vertices.append(newNode)
             createdVertices += 1
             createdEdges += 1
 
         # adding the remaining edges
         while createdEdges < self.nbrEdges:
             found = False
-            vertexA = vertexB = None
+            NodeA = NodeB = None
             while not found:
-                vertexA = choice(self.vertices)
-                self.vertices.remove(vertexA)
-                vertexB = choice(self.vertices)
-                self.vertices.append(vertexA)
+                NodeA = choice(self.vertices)
+                self.vertices.remove(NodeA)
+                NodeB = choice(self.vertices)
+                self.vertices.append(NodeA)
 
-                found = (vertexA != vertexB) and (vertexB not in vertexA.neighbours)
+                found = (NodeA != NodeB) and (NodeB not in NodeA.neighbours)
 
-            self.connectVertices(vertexA, vertexB)
+            self.connectVertices(NodeA, NodeB)
             createdEdges += 1
 
 
+    def createRandomMeals(self):
 
-    def getRandomVertex(self, index):
+    	for client in self.clients:
+
+	    	destination = client
+	    	chef = choice(self.chefs)
+	    	drt = self.dist(destination, chef)
+	    	ddt = randint(8,24) # TODO
+	    	deviation = randint(3, max(5,ddt//2))
+
+	    	self.meals.append( Meal(chef, destination, drt, ddt, deviation) )
+    		
+
+
+    def getRandomNode(self, index):
         #if self.nbrChefsCurrent == self.nbrChefsTotal and self.nbrClientsCurrent == self.nbrClientsTotal:
         #    print("lolo")
         if self.nbrChefsCurrent == self.nbrChefsTotal: # only Clients left
             self.nbrClientsCurrent += 1
-            return Vertex(VertexType.Client, index)
+            newClient = Node(NodeType.Client, index)
+            self.clients.append(newClient)
+            return newClient
 
         elif self.nbrClientsCurrent == self.nbrClientsTotal: # only Chefs left
             self.nbrChefsCurrent += 1
-            return Vertex(VertexType.Chef, index)
+            newChef = Node(NodeType.Chef, index)
+            self.chefs.append(newChef)
+            return newChef
 
         else:
             randNbr = randint(1, self.nbrVertices-1) # choose randomly a Chef or Client |  - 1 == DeliveryDepot
             if randNbr <= self.nbrClientsTotal:
                 self.nbrClientsCurrent += 1
-                return Vertex(VertexType.Client, index)
+                newClient = Node(NodeType.Client, index)
+                self.clients.append(newClient)
+                return newClient
 
             else:
                 self.nbrChefsCurrent += 1
-                return Vertex(VertexType.Chef, index)
+                newChef = Node(NodeType.Chef, index)
+                self.chefs.append(newChef)
+                return newChef
 
 
-    def connectVertices(self, vertexA, vertexB):
-        vertexA.addNeighbour(vertexB)
-        vertexB.addNeighbour(vertexA)
+    def connectVertices(self, NodeA, NodeB):
+        NodeA.addNeighbour(NodeB)
+        NodeB.addNeighbour(NodeA)
         weight = randint(1, self.maxDistance)
-        self.adjacencyMatrix[vertexA.index][vertexB.index] = weight
-        self.adjacencyMatrix[vertexB.index][vertexA.index] = weight
+        self.adjacencyMatrix[NodeA.index][NodeB.index] = weight
+        self.adjacencyMatrix[NodeB.index][NodeA.index] = weight
         #
         # for line in self.adjacencyMatrix:
         #     for i in line:
         #         print( " | {:2d}".format(i), end="" )
         #     print(" |")
-        # print(min(vertexA.index, vertexB.index), max(vertexA.index, vertexB.index))
+        # print(min(NodeA.index, NodeB.index), max(NodeA.index, NodeB.index))
 
 
 
@@ -131,55 +169,20 @@ class Graph:
     					self.adjacencyMatrix[i][j] = self.copyAdjacencyMatrix[i][j]
 
 
-    def dist(self, i, j):
-        if (0 <= i < self.nbrVertices) and (0 <= j < self.nbrVertices):
-            return self.adjacencyMatrix[i][j]
-        else:
-            return -1
+    def dist(self, nodeA, nodeB):
+    	#print( "A" + str(type(nodeA)) )
+    	#print( "B" + str(type(nodeB)) )
 
-
-    """
-    def constructPredecessors(self):
-        for i in range(len(self.adjacencyMatrix)):
-            for j in range(len(self.adjacencyMatrix)):
-                if self.adjacencyMatrix[i][j] is not None and self.adjacencyMatrix[i][j] != 0:
-                    self.predecessors[i][j] = i
-                else:
-                    self.predecessors[i][j] = -1
-
-
-    def getPath(self, i, j, path=list()):
-        if i == j:
-            path.insert(0, i)
-            return path
-        elif self.predecessors[i][j] == 0:
-            print(" no predecessor !!")
-        else:
-            path.insert(0, j)
-            return self.getPath(i, self.predecessors[i][j], path)
-    """
-print
-
-
-class VertexType(Enum):
-    Chef = 1
-    Client = 2
-    DeliveryDepot = 3
+    	if (0 <= nodeA.index < self.nbrVertices) and (0 <= nodeB.index < self.nbrVertices):
+    		return self.adjacencyMatrix[nodeA.index][nodeB.index]
+    	else:
+        	return -1
 
 
 
-class Vertex:
-
-    def __init__(self, type, index):
-        self.neighbours = []
-        self.type = type
-        self.index = index
 
 
-    def addNeighbour(self, newNeighbour):
-        self.neighbours.append(newNeighbour)
-
-
+"""
 if __name__ == "__main__":
     G = Graph(2, 5)
     for v in G.vertices:
@@ -193,12 +196,6 @@ if __name__ == "__main__":
            print(" |")
 
     print("\nNbr Vertices", G.nbrVertices, "| Nbr Edges", G.nbrEdges)
-
 """
-class Edge:
-    def __init__(self, maxDistance):
-        self.weight = randint(1, maxDistance)
-"""
-
 
 
