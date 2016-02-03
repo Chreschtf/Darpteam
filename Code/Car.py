@@ -18,6 +18,12 @@ class Car:
         self.feasibleSchedules=[]
 
 
+    def getStart(self):
+        return self.start
+
+    def getEnd(self):
+        return self.end
+
     def getFeasibleSchedules(self):
         return self.feasibleSchedules
 
@@ -125,7 +131,7 @@ class Car:
         """
         Following logic of algorithm case 1
         """
-        #vérifier charge
+        #verifier charge
 
         schedule=deepcopy(self.currentSchedule)
         block=schedule[-1]
@@ -144,7 +150,8 @@ class Car:
                 td=meal.getLDT()
                 w=tpu-block.getEnd()-self.graph.dist(lastNode,meal.getChef())
                 if scheduler.getConstant("c2")!=0:
-                    #shift=max()
+                    shift=max((scheduler.getConstant("c6")+
+                               scheduler.getConstant("c8")*scheduler.getUi(meal.getEPT()))/2*scheduler.getConstant("c2"),0)
                     shift=min(shift,w,meal.getDeviation())
                     tpu-=shift
                     td-=shift

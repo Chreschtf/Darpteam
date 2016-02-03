@@ -15,6 +15,8 @@ class DarpAlgo:
         self.constants["c6"]=0
         self.constants["c7"]=0
         self.constants["c8"]=0
+        self.constants["W1"]=60
+        self.constants["W2"]=60
 
     def createSchedules(self):
         for i in range(len(self.meals)):
@@ -95,7 +97,18 @@ class DarpAlgo:
         return self.constants.get(const,0)
 
     def getUi(self,ept):
-        pass
+        custInSys=0
+        carsAvailable=0
+        for meal in self.meals:
+            if ept-self.constants["W1"] <=meal.getEPT() <= ept+self.constants["W2"] or\
+                ept-self.constants["W1"] <=meal.getLDT() <= ept+self.constants["W2"]:
+                custInSys+=1
+        for car in self.cars:
+            if ept-self.constants["W1"] <=car.getStart() <= ept+self.constants["W2"] or\
+                ept-self.constants["W1"] <=car.getEnd() <= ept+self.constants["W2"]:
+                carsAvailable+=1
 
+        #carsAvailable !=0 because otherwise the initial algo would not proceed in the first place
+        return custInSys/carsAvailable
 
 
