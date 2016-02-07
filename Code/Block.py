@@ -34,6 +34,9 @@ class Block:
     def getLastStop(self):
         return self.stops[-1]
 
+    def getStopAt(self,i):
+        return self.stops[i]
+
     def getEnd(self):
         return self.stops[-1].getST()
 
@@ -46,9 +49,14 @@ class Block:
     def setNextSlack(self,slack):
         self.nextSlack=slack
 
-    def addLastStop(self,stop,graph):
-        self.nextSlack-=graph.dist(self.stops[-1],stop.getNode())
+    def addLastStop(self,stop):
         self.stops.append(stop)
+
+    def setFirstStop(self,stop):
+        self.stops.insert(0,stop)
+
+    def insertStop(self,i,stop):
+        self.stops.insert(i,stop)
 
     def case1(self,meal):
         pass
@@ -94,6 +102,25 @@ class Block:
         self.start=self.stops[0].getST()
         self.end=self.stops[-1].getST()
 
+    def shiftScheduleBefore(self,stop,shift):
+        self.prevSlack+=shift
+        i=0
+        while self.stops[i]!=stop:
+            self.stops[i].shiftST(shift)
+            i+=1
+        self.stops[i+1].shiftST(shift)
+        self.start=self.stops[0].getST()
+
+    def shiftScheduleAfter(self,stop,shift):
+        self.nextSlack-=shift
+        i=len(self.stops)
+        while self.stops[i]!=stop:
+            self.stops[i].shiftST(shift)
+            i-=1
+        self.stops[i-1].shiftST(shift)
+        self.end=self.stops[-1].getST()
+
+
     def calcDeviation(self):
         deviation=0
         for stop in self.stops:
@@ -101,8 +128,25 @@ class Block:
 
         return deviation
 
+    def calcServiceTime(self):
+        return self.stops[0].getST()-self.stops[-1].getST()
+
+
     def getNbrOfMeals(self):
-        return len(self.stops)/2
+        i=0
+        for stop in self.stops:
+            i+=stop.isPickup()
+
+        return i
+
+    def getNbrOfMealsBefore(self,i):
+        charge=0
+        j=0
+        while j<=i:
+            if self.stops[j].isPickup():
+                charge+=1
+            j+=1
+        return charge
 
 
     def getCharge(self):

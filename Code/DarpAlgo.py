@@ -66,9 +66,10 @@ class DarpAlgo:
         return bestInsertion
 
 
-    def calcIncrementalCost(self,schedule,meal):
+    def calcIncrementalCost(self,schedule,meal,car):
 
         meals=dict()
+        #assigning to every meal its pickup and delivery stops:
         for block in schedule:
             for stop in block.stops:
                 meals.setdefault(stop.getMeal(),[]).append(stop)
@@ -83,7 +84,14 @@ class DarpAlgo:
 
         return duNewMeal+duOthers
 
-
+    def disutilityFuncCar(self,schedule,car):
+        #calculating service time change:
+        z=0
+        for block in schedule:
+            z+=block.calcServiceTime()
+        z-=car.getServiceTime()
+        vc=self.constants["c5"]
+        pass
 
 
     def disutilityFuncMeal(self,meal,stop1,stop2):

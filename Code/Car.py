@@ -17,6 +17,7 @@ class Car:
         self.currentSchedule=[]
         self.feasibleSchedules=[]
 
+        self.serviceTime=0
 
     def getStart(self):
         return self.start
@@ -38,6 +39,10 @@ class Car:
             self.currentSchedule[i].setNextSlack(slack)
             self.currentSchedule[i+1].setPrevSlack(slack)
 
+
+    def getServiceTime(self):
+        return self.serviceTime
+
     def addIntoSameBlock(self,meal,scheduler):
         """
         Trying to fit the meal into the existing working schedule while
@@ -54,14 +59,13 @@ class Car:
             self.case1(meal,scheduler)
 
             #case 2 : pickup and delivery are consecutive stops in a block
-            #case 4 : pickup and delivery are separated by at least one stop
-            for block in self.currentSchedule:
-                block.case2(meal)
-                block.case4(meal)
+            self.case2(meal)
 
             #case 3 : pickup in the last block, delivery becomes last stop in
             # schedule
             self.currentSchedule[-1].case3(meal)
+            #case 4 : pickup and delivery are separated by at least one stop
+            self.case4(meal)
 
             return True
 
@@ -77,7 +81,7 @@ class Car:
 
         # pickup and delivery are in different blocks
         i=0
-        #detirmining block for pickup :
+        #choice of block for pickup :
         while i<len(self.currentSchedule)-1 and (
                 meal.getEPT() < self.currentSchedule[i].getEnd()+
                         self.currentSchedule[i].getNextSlack() or
@@ -110,28 +114,29 @@ class Car:
         """
         First insertion to the schedule
         """
-
-        stop1=Stop(meal.getChef(),
-                   self.start+meal.getDRT(),
-                   meal,
-                   True)
-        stop2=Stop(meal.getDestination(),
-                   self.start+meal.getDRT() \
-                   +meal.getDRT(),
-                   meal,
-                   False)
-        prevSlack=stop1.getST()-self.start-\
-                  self.graph.dist(self.depot,meal.getChef())
-        nextSlack=self.end-stop2.getST()-self.graph.dist(self.depot,meal.getDestination())
-        block=Block(stop1,stop2,prevSlack,nextSlack)
-        self.feasibleSchedules.append([block])
+        if self.start+self.graph.dist(self.depot,meal.getChef())+meal.getDRT()+self.graph.dist(
+                meal.getDestination(),self.depot)<=self.end:
+            stop1=Stop(meal.getChef(),
+                       self.start+meal.getDRT(),
+                       meal,
+                       True)
+            stop2=Stop(meal.getDestination(),
+                       self.start+meal.getDRT() \
+                       +meal.getDRT(),
+                       meal,
+                       False)
+            prevSlack=stop1.getST()-self.start-\
+                      self.graph.dist(self.depot,meal.getChef())
+            nextSlack=self.end-stop2.getST()-self.graph.dist(self.depot,meal.getDestination())
+            block=Block(stop1,stop2,prevSlack,nextSlack)
+            self.feasibleSchedules.append([block])
 
 
     def case1(self,meal,scheduler):
         """
         Following logic of algorithm case 1
         """
-        #verifier charge
+        #verify charge
 
         schedule=deepcopy(self.currentSchedule)
         block=schedule[-1]
@@ -186,8 +191,82 @@ class Car:
                 return True
 
             if block.getNbrOfMeals()<self.maxCharge:
-                block.addLastStop(stop1,self.graph)
-                block.addLastStop(stop2,self.graph)
+            # the 2 stops become the last 2 stops in the block and the schedule
+                nextSlack=block.getNextSlack()
+
+                block.addLastStop(stop1)
+                block.addLastStop(stop2)
+
+    def shiftStopsBefore(self,stop,ps):
+        pass
+
+    def shiftStopsAfter(self,stop,ds):
+        pass
+
+
+    def case2(self,meal):
+        """
+
+        """
+        i=0
+        while i<len(self.currentSchedule):
+            schedule=deepcopy(self.currentSchedule)
+            block=schedule[i]
+            for j in range(len(block)-1):
+                p=block.getStopAt(j)
+                q=block.getStopAt(j+1)
+                #checking charge-feasibility before launching the algorithm
+                if block.getNbrOfMealsBefore(j)<self.maxCharge and self.case2Algo(p,q,meal):
+                    schedule=deepcopy(self.currentSchedule)
+                    block=schedule[i]
+            i+=1
+
+
+
+    def case2Algo(self,p,q,meal,j):
+
+        deltaP=self.graph.dist(p.getNode(),meal.getChef())+meal.getDRT()+ \
+               self.graph.dist(meal.getDestination(),q.getNode())-\
+                self.graph.dist(p.getNode(),q.getNode())
+
+        if deltaP <= p.getBUP()+q.getADOWN():
+            tpu=0
+            td=0
+            ps=0
+            ds=0
+            gt=0
+            et=0
+            lt=0
+            shift=0
+            if deltaP>q.getADOWN():
+                ps=0
+                ds=deltaP
+                tpu=p.getST()
+                td=tpu+meal.getDRT()
+            else:
+                ds=q.getADOWN()
+                ps=q.getADOWN()-deltaP
+                tpu=p.getST()+ps+self.graph.dist(p.getNode(),meal.getChef())
+                td=tpu+meal.getDRT()
+            #ddt, so :
+            gt =td
+            et=meal.getEDT()
+            lt=meal.getLDT()
+            if gt<et:
+                shift=et-gt
+                if shift <=(q.getADOWN()-ds) or shift<=p.getBDOWN()-ps:
+                    tpu+=shift
+                    td+=shift
+                    ds+=shift
+                    ps+=shift
+                    stop1=Stop(meal.getChef(),tpu,meal,True)
+                    stop2=Stop(meal.getDestination(),td,meal,False)
+
+
+
+            elif gt>lt:
+                shift=gt-lt
+
 
 
 
