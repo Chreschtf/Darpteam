@@ -83,18 +83,18 @@ class Car:
         i=0
         #choice of block for pickup :
         while i<len(self.currentSchedule)-1 and (
-                meal.getEPT() < self.currentSchedule[i].getEnd()+
+                        meal.getEPT() < self.currentSchedule[i].getEnd()+
                         self.currentSchedule[i].getNextSlack() or
-                meal.getLPT() < self.currentSchedule[i].getEnd()+
+                        meal.getLPT() < self.currentSchedule[i].getEnd()+
                         self.currentSchedule[i].getNextSlack()):
             j=i+1
             #determining block for delivery :
 
             while j<len(self.currentSchedule) and (
-            self.currentSchedule[i].getStart()-self.currentSchedule[i].getPrevSlack() < \
-                meal.getEDT()  or
-            self.currentSchedule[i].getStart()-self.currentSchedule[i].getPrevSlack() < \
-                meal.getDPT() ):
+                                self.currentSchedule[i].getStart()-self.currentSchedule[i].getPrevSlack() < \
+                                meal.getEDT()  or
+                                self.currentSchedule[i].getStart()-self.currentSchedule[i].getPrevSlack() < \
+                                meal.getDPT() ):
                 j+=1
 
 
@@ -125,7 +125,7 @@ class Car:
                        +meal.getDRT(),
                        meal,
                        False)
-            prevSlack=stop1.getST()-self.start-\
+            prevSlack=stop1.getST()-self.start- \
                       self.graph.dist(self.depot,meal.getChef())
             nextSlack=self.end-stop2.getST()-self.graph.dist(self.depot,meal.getDestination())
             block=Block(stop1,stop2,prevSlack,nextSlack)
@@ -141,10 +141,10 @@ class Car:
         schedule=deepcopy(self.currentSchedule)
         block=schedule[-1]
         lastNode=block.getLastStop().getNode()
-        if block.getEnd()+self.graph.dist(lastNode,meal.getChef())< meal.getLPT() and\
-            block.getEnd()+ self.graph.dist(lastNode,meal.getChef()) \
-            +meal.getDRT() + self.graph.dist(meal.getDestination(),self.depot) < \
-            self.end:
+        if block.getEnd()+self.graph.dist(lastNode,meal.getChef())< meal.getLPT() and \
+                                                block.getEnd()+ self.graph.dist(lastNode,meal.getChef()) \
+                                        +meal.getDRT() + self.graph.dist(meal.getDestination(),self.depot) < \
+                        self.end:
             tpu=block.getEnd()+self.graph.dist(lastNode,meal.getChef())
             td=tpu+meal.getDRT()
             #ddt or dpt
@@ -162,8 +162,8 @@ class Car:
                     td-=shift
 
                 else:
-                    if scheduler.getConstant("c1")<scheduler.getConstant("c6")\
-                        +scheduler.getConstant("c8")*scheduler.getUi(meal.getEPT()):
+                    if scheduler.getConstant("c1")<scheduler.getConstant("c6") \
+                            +scheduler.getConstant("c8")*scheduler.getUi(meal.getEPT()):
                         w=max(0,w-meal.getDeviation())
                         tpu=block.getEnd()+self.graph.dist(lastNode,meal.getChef())+w
                         td=tpu+meal.getDRT()
@@ -184,14 +184,14 @@ class Car:
             stop2=Stop(meal.getDestination(),td,meal,False)
             if w!=0: # after the current last stop there will be slack time -> create new block
                 bb=Block(stop1,stop2,w,self.end-stop2.getST()-self.graph.dist(self.depot,
-                                                                          stop2.getNode()))
+                                                                              stop2.getNode()))
                 block.setNextSlack(w)
                 schedule.append(bb)
                 self.feasibleSchedules.append(schedule)
                 return True
 
             if block.getNbrOfMeals()<self.maxCharge:
-            # the 2 stops become the last 2 stops in the block and the schedule
+                # the 2 stops become the last 2 stops in the block and the schedule
                 nextSlack=block.getNextSlack()
 
                 block.addLastStop(stop1)
@@ -216,57 +216,124 @@ class Car:
                 p=block.getStopAt(j)
                 q=block.getStopAt(j+1)
                 #checking charge-feasibility before launching the algorithm
-                if block.getNbrOfMealsBefore(j)<self.maxCharge and self.case2Algo(p,q,meal):
-                    schedule=deepcopy(self.currentSchedule)
-                    block=schedule[i]
+                if block.getNbrOfMealsBefore(j)<self.maxCharge:# and self.case2Algo(p,q,meal,j):
+                    deltaP=self.graph.dist(p.getNode(),meal.getChef())+meal.getDRT()+ \
+                           self.graph.dist(meal.getDestination(),q.getNode())- \
+                           self.graph.dist(p.getNode(),q.getNode())
+
+                    if deltaP <= p.getBUP()+q.getADOWN():
+                        feasible=True
+                        tpu=0
+                        td=0
+                        ps=0
+                        ds=0
+                        gt=0
+                        et=0
+                        lt=0
+                        shift=0
+                        if deltaP>q.getADOWN():
+                            ps=0
+                            ds=deltaP
+                            tpu=p.getST()
+                            td=tpu+meal.getDRT()
+                        else:
+                            ds=q.getADOWN()
+                            ps=q.getADOWN()-deltaP
+                            tpu=p.getST()+ps+self.graph.dist(p.getNode(),meal.getChef())
+                            td=tpu+meal.getDRT()
+                        #ddt, so :
+                        gt =td
+                        et=meal.getEDT()
+                        lt=meal.getLDT()
+                        if gt<et:
+                            shift=et-gt
+                            if shift >(q.getADOWN()-ds) or shift>p.getBDOWN()-ps:
+                                feasible=False
+                            else:
+                                tpu+=shift
+                                td+=shift
+                                ds+=shift
+                                ps+=shift
+
+                        elif gt>lt:
+                            shift=gt-lt
+                            if shift > (q.getAUP()+ds) or shift >(p.getBUP()+ps):
+                                feasible= False
+                            else:
+                                tpu-=shift
+                                td-=shift
+                                ds-=shift
+                                ps-=shift
+
+                        if feasible:
+                            stop1=Stop(meal.getChef(),tpu,meal,True)
+                            stop2=Stop(meal.getDestination(),td,meal,False)
+                            #shifting block schedule:
+                            block.shiftScheduleBefore(p,shift)
+                            block.shiftScheduleAfter(q,shift)
+                            block.insertStop(j,stop1)
+                            block.insertStop(j+1,stop2)
+                            self.feasibleSchedules.append(schedule)
+
+                schedule=deepcopy(self.currentSchedule)
+                block=schedule[i]
             i+=1
 
 
 
-    def case2Algo(self,p,q,meal,j):
-
-        deltaP=self.graph.dist(p.getNode(),meal.getChef())+meal.getDRT()+ \
-               self.graph.dist(meal.getDestination(),q.getNode())-\
-                self.graph.dist(p.getNode(),q.getNode())
-
-        if deltaP <= p.getBUP()+q.getADOWN():
-            tpu=0
-            td=0
-            ps=0
-            ds=0
-            gt=0
-            et=0
-            lt=0
-            shift=0
-            if deltaP>q.getADOWN():
-                ps=0
-                ds=deltaP
-                tpu=p.getST()
-                td=tpu+meal.getDRT()
-            else:
-                ds=q.getADOWN()
-                ps=q.getADOWN()-deltaP
-                tpu=p.getST()+ps+self.graph.dist(p.getNode(),meal.getChef())
-                td=tpu+meal.getDRT()
-            #ddt, so :
-            gt =td
-            et=meal.getEDT()
-            lt=meal.getLDT()
-            if gt<et:
-                shift=et-gt
-                if shift <=(q.getADOWN()-ds) or shift<=p.getBDOWN()-ps:
-                    tpu+=shift
-                    td+=shift
-                    ds+=shift
-                    ps+=shift
-                    stop1=Stop(meal.getChef(),tpu,meal,True)
-                    stop2=Stop(meal.getDestination(),td,meal,False)
-
-
-
-            elif gt>lt:
-                shift=gt-lt
-
+    # def case2Algo(self,p,q,meal,j):
+    #
+    #     deltaP=self.graph.dist(p.getNode(),meal.getChef())+meal.getDRT()+ \
+    #            self.graph.dist(meal.getDestination(),q.getNode())- \
+    #            self.graph.dist(p.getNode(),q.getNode())
+    #
+    #     if deltaP <= p.getBUP()+q.getADOWN():
+    #         feasible=True
+    #         tpu=0
+    #         td=0
+    #         ps=0
+    #         ds=0
+    #         gt=0
+    #         et=0
+    #         lt=0
+    #         shift=0
+    #         if deltaP>q.getADOWN():
+    #             ps=0
+    #             ds=deltaP
+    #             tpu=p.getST()
+    #             td=tpu+meal.getDRT()
+    #         else:
+    #             ds=q.getADOWN()
+    #             ps=q.getADOWN()-deltaP
+    #             tpu=p.getST()+ps+self.graph.dist(p.getNode(),meal.getChef())
+    #             td=tpu+meal.getDRT()
+    #         #ddt, so :
+    #         gt =td
+    #         et=meal.getEDT()
+    #         lt=meal.getLDT()
+    #         if gt<et:
+    #             shift=et-gt
+    #             if shift >(q.getADOWN()-ds) or shift>p.getBDOWN()-ps:
+    #                 feasible=False
+    #             else:
+    #                 tpu+=shift
+    #                 td+=shift
+    #                 ds+=shift
+    #                 ps+=shift
+    #
+    #         elif gt>lt:
+    #             shift=gt-lt
+    #             if shift > (q.getAUP()+ds) or shift >(p.getBUP()+ps):
+    #                 feasible= False
+    #             else:
+    #                 tpu-=shift
+    #                 td-=shift
+    #                 ds-=shift
+    #                 ps-=shift
+    #
+    #         if feasible:
+    #             stop1=Stop(meal.getChef(),tpu,meal,True)
+    #             stop2=Stop(meal.getDestination(),td,meal,False)
 
 
 
