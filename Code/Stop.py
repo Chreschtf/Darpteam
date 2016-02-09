@@ -76,10 +76,6 @@ class Stop:
 
     def shiftST(self,shift):
         self.st+=shift
-        # self.bup=max(self.bup,abs(self.bup+shift))        #max or min ?
-        # self.bdown=min(self.bdown,abs(self.bdown-shift))
-        # self.aup=max(self.aup,abs(self.aup+shift))
-        # self.adown=min(self.adown,abs(self.adown-shift))
 
     def isPickup(self):
         return self.pickup

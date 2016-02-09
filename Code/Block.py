@@ -108,17 +108,22 @@ class Block:
         while self.stops[i]!=stop:
             self.stops[i].shiftST(shift)
             i+=1
-        self.stops[i+1].shiftST(shift)
         self.start=self.stops[0].getST()
 
     def shiftScheduleAfter(self,stop,shift):
         self.nextSlack-=shift
-        i=len(self.stops)
+        i=len(self.stops)-1
         while self.stops[i]!=stop:
             self.stops[i].shiftST(shift)
             i-=1
-        self.stops[i-1].shiftST(shift)
         self.end=self.stops[-1].getST()
+
+    def shiftScheduleBetween(self,stop1,stop2,shift):
+        i=self.stops.index(stop1)+1
+        end=self.stops.index(stop2)
+        while i<end:
+            self.stops[i].shiftST(shift)
+            i+=1
 
 
     def calcDeviation(self):
@@ -169,3 +174,6 @@ class Block:
 
     def __lt__(self, other):
         return len(self.stops)<len(other.stops)
+
+    def __len__(self):
+        return len(self.stops)

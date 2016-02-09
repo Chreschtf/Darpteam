@@ -61,7 +61,7 @@ class DarpAlgo:
         feasInserts=car.getFeasibleSchedules()
         for schedule in feasInserts:
             self.scheduleOptimisation(schedule)
-            incDisutility=self.calcIncrementalCost(schedule,meal)
+            incDisutility=self.calcIncrementalCost(schedule,meal,car)
             bestInsertion=min(bestInsertion,[incDisutility,schedule])
         return bestInsertion
 
