@@ -1,6 +1,7 @@
 from random import randint, choice
 from copy import deepcopy
 from math import hypot
+from Node import *
 
 # import networkx as nx
 
