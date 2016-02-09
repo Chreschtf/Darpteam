@@ -61,24 +61,15 @@ class DarpAlgo:
         feasInserts = car.getFeasibleSchedules()
         for schedule in feasInserts:
             self.scheduleOptimisation(schedule)
-<<<<<<< HEAD
             incDisutility=self.calcIncrementalCost(schedule,meal,car)
             bestInsertion=min(bestInsertion,[incDisutility,schedule])
-=======
-            incDisutility = self.calcIncrementalCost(schedule,meal)
-            bestInsertion = min(bestInsertion,[incDisutility,schedule])
->>>>>>> b97db6b80e4e010de86e01f7075fa835501920c7
         return bestInsertion
 
 
     def calcIncrementalCost(self,schedule,meal,car):
 
-<<<<<<< HEAD
         meals=dict()
         #assigning to every meal its pickup and delivery stops:
-=======
-        meals = dict()
->>>>>>> b97db6b80e4e010de86e01f7075fa835501920c7
         for block in schedule:
             for stop in block.stops:
                 meals.setdefault(stop.getMeal(),[]).append(stop)
