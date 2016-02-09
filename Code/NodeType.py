@@ -5,3 +5,4 @@ class NodeType(Enum):
     Chef = 1
     Client = 2
     DeliveryDepot = 3
+    Emmty = 4

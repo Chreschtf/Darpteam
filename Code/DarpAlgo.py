@@ -41,72 +41,72 @@ class DarpAlgo:
     def scheduleOptimisation(self,schedule):
 
         for block in schedule:
-            deviation=block.calcDeviation()
-            meals=block.getNbrOfMeals()
-            min=round(self.constants["c1"]/(2*self.constants["c2"])+deviation/meals)
-            lb=0
-            ub=block.getA()-block.getR()
-            a=min
+            deviation = block.calcDeviation()
+            meals = block.getNbrOfMeals()
+            min = round(self.constants["c1"]/(2*self.constants["c2"])+deviation/meals)
+            lb = 0
+            ub = block.getA()-block.getR()
+            a = min
             if min<lb:
-                a=lb
+                a = lb
             elif min>ub:
-                a=ub
+                a = ub
 
             block.shiftSchedule(a)
 
     def findBestCarSchedule(self,car,meal):
 
 
-        bestInsertion=[float("inf")]
-        feasInserts=car.getFeasibleSchedules()
+        bestInsertion = [float("inf")]
+        feasInserts = car.getFeasibleSchedules()
         for schedule in feasInserts:
             self.scheduleOptimisation(schedule)
-            incDisutility=self.calcIncrementalCost(schedule,meal)
-            bestInsertion=min(bestInsertion,[incDisutility,schedule])
+            incDisutility = self.calcIncrementalCost(schedule,meal)
+            bestInsertion = min(bestInsertion,[incDisutility,schedule])
         return bestInsertion
 
 
     def calcIncrementalCost(self,schedule,meal):
 
-        meals=dict()
+        meals = dict()
         for block in schedule:
             for stop in block.stops:
                 meals.setdefault(stop.getMeal(),[]).append(stop)
 
-        duNewMeal=self.disutilityFuncMeal(meal,meals[meal][0],meals[meal][1])
+        duNewMeal = self.disutilityFuncMeal(meal,meals[meal][0],meals[meal][1])
         meals.pop(meal)
         duOthers=0
         for meal in meals:
-            duOthers+=self.disutilityFuncMeal(meal,meals[meal][0],
+            duOthers += self.disutilityFuncMeal(meal,meals[meal][0],
                                           meals[meal][1]) \
                         -meal.getDisutility()
 
-        return duNewMeal+duOthers
+        return duNewMeal + duOthers
 
 
 
 
     def disutilityFuncMeal(self,meal,stop1,stop2):
-        x=meal.getDDT() - stop2.getST()
-        y=stop2.getST()-stop1.getST() - meal.getDRT()
-        dud=self.constants["c1"]*x+self.constants["c2"]*x*x
-        dur=self.constants["c3"]*y+self.constants["c4"]*y*y
-        return dud+dur
+        x = meal.getDDT() - stop2.getST()
+        y = stop2.getST() - stop1.getST() - meal.getDRT()
+        dud = self.constants["c1"]*x + self.constants["c2"]*x*x
+        dur = self.constants["c3"]*y + self.constants["c4"]*y*y
+        return dud + dur
 
     def getConstant(self,const):
         return self.constants.get(const,0)
 
     def getUi(self,ept):
-        custInSys=0
-        carsAvailable=0
+        custInSys = 0
+        carsAvailable = 0
         for meal in self.meals:
             if ept-self.constants["W1"] <=meal.getEPT() <= ept+self.constants["W2"] or\
                 ept-self.constants["W1"] <=meal.getLDT() <= ept+self.constants["W2"]:
-                custInSys+=1
+                custInSys += 1
         for car in self.cars:
             if ept-self.constants["W1"] <=car.getStart() <= ept+self.constants["W2"] or\
                 ept-self.constants["W1"] <=car.getEnd() <= ept+self.constants["W2"]:
-                carsAvailable+=1
+                carsAvailable += 1
 
         #carsAvailable !=0 because otherwise the initial algorithm would not proceed in the first place
         return custInSys/carsAvailable

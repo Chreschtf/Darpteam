@@ -1,145 +1,93 @@
 from random import randint, choice
 from copy import deepcopy
-
-from Meal import *
-from Node import *
+from math import hypot
 
 # import networkx as nx
 
 class Graph:
+    def __init__(self, nbrNodes):
+    	self.adjacencyMatrix = [[ None for j in range (nbrNodes) ] for i in range (nbrNodes)]
+    	self.nbrNodes = nbrNodes
+    	self.nbrEdges = int(  (randint(15,25)/10) * self.nbrNodes  )
+    	self.nodes = []
+    	self.generateGraph()
 
-    def __init__(self, nbrChefs, nbrClients):
-        self.nbrChefsTotal = nbrChefs
-        self.nbrChefsCurrent = 0
-        self.nbrClientsTotal = nbrClients
-        self.nbrClientsCurrent = 0
-        #self.nbrEmptyVertices = randint(nbrClients, (3*nbrClients))
-
-        self.nbrVertices = nbrChefs + nbrClients + 1 # +1 == DeliveryDepot
-        self.nbrEdges = int(  (randint(15,25)/10) * self.nbrVertices  )
-
-        self.edges = [] ; self.vertices = [] ; self.chefs = [] ; self.clients = [] ; self.meals = []
-        self.deliveryDepot = False
-
-        self.maxDistance = 64
-        self.adjacencyMatrix = [[ None for j in range (self.nbrVertices) ] for i in range (self.nbrVertices)]
-        self.generateGraph()
-
-        self.copyAdjacencyMatrix = deepcopy(self.adjacencyMatrix)
-
-        self.Floyd_Warshall(self.copyAdjacencyMatrix)
-
-        self.assureTriangleInequality()
-
-        self.Floyd_Warshall(self.adjacencyMatrix)
-
-        self.createRandomMeals()
+    	self.copyAdjacencyMatrix = deepcopy(self.adjacencyMatrix)
+    	self.Floyd_Warshall(self.copyAdjacencyMatrix)
+    	self.assureTriangleInequality()
+    	self.shortestPathMatrix = deepcopy(self.adjacencyMatrix)
+    	self.Floyd_Warshall(self.adjacencyMatrix)
 
 
-    def getClients(self):
-    	return self.clients
+    def randomCoords(self, iOther, jOther):
+    	sum_I_J = randint(4, 14)
+    	i = randint(2,sum_I_J-2)
+    	j = sum_I_J - i
 
+    	r = randint(0,1)
+    	i = -i if r == 1 else i
+    	r = randint(0,1)
+    	j = -j if r == 1 else j
 
-    def getChefs(self):
-    	return self.chefs
+    	while not((0 <= i+iOther <= 50) and (0 <= j+jOther <= 50)):
+    		sum_I_J = randint(4, 14)
+    		i = randint(2,sum_I_J-2)
+    		j = sum_I_J - i
 
-
-    def getDeliveryDepot(self):
-    	return self.deliveryDepot
-
-
-    def getMeals(self):
-    	return self.meals
+    		r = randint(0,1)
+    		i = -i if r == 1 else i
+    		r = randint(0,1)
+    		j = -j if r == 1 else j
+    	i = iOther+i; j = jOther+j
+    	return (i,j)
 
 
 
     def generateGraph(self):
-        createdVertices = 0
+        createdNodes = 0
         createdEdges = 0
-        self.deliveryDepot = Node(NodeType.DeliveryDepot, createdVertices)
-        self.vertices.append(self.deliveryDepot)
-        createdVertices += 1
+        
+        maxCoord = 50
+        i = randint((maxCoord//2)-4,(maxCoord//2)+4); j = randint((maxCoord//2)-4,(maxCoord//2)+4)
+        self.nodes.append(Node(i,j, createdNodes))
+        createdNodes += 1
 
-        # creating a connected graph with  #edges = #vertices - 1
-        while createdVertices < self.nbrVertices:
-            newNode = self.getRandomNode(createdVertices)
-            self.connectVertices(choice(self.vertices), newNode)
-            self.vertices.append(newNode)
-            createdVertices += 1
+        # creating a connected graph with  #edges = #Nodes - 1
+        while createdNodes < self.nbrNodes:
+            nodeA = choice(self.nodes)
+            (i,j) = self.randomCoords(nodeA.i, nodeA.j)
+            nodeB = Node(i,j, createdNodes)
+            self.nodes.append(nodeB)
+            self.connectNodes(nodeA, nodeB)
+            createdNodes += 1
             createdEdges += 1
 
         # adding the remaining edges
         while createdEdges < self.nbrEdges:
             found = False
-            NodeA = NodeB = None
-            while not found:
-                NodeA = choice(self.vertices)
-                self.vertices.remove(NodeA)
-                NodeB = choice(self.vertices)
-                self.vertices.append(NodeA)
+            NodeA = choice(self.nodes)
+            nbrTries = 0
+            while len(nodeA.neighbours) > 4 and nbrTries < self.nbrNodes*2:
+            	NodeA = choice(self.nodes)
+            	nbrTries += 1
+            self.nodes.sort(key=lambda obj: abs(obj.i - NodeA.i)+abs(obj.j - NodeA.j))
 
-                found = (NodeA != NodeB) and (NodeB not in NodeA.neighbours)
+            i = 1 # self.nodes[0] is NodeA itself
+            while i < len(self.nodes) and (self.nodes[i] in NodeA.neighbours):
+            	i += 1
 
-            self.connectVertices(NodeA, NodeB)
-            createdEdges += 1
-
-
-    def createRandomMeals(self):
-
-    	for client in self.clients:
-
-	    	destination = client
-	    	chef = choice(self.chefs)
-	    	drt = self.dist(destination, chef)
-	    	ddt = randint(8,24) # TODO
-	    	deviation = randint(3, max(5,ddt//2))
-
-	    	self.meals.append( Meal(chef, destination, drt, ddt, deviation) )
-    		
+            if i < len(self.nodes):
+            	self.connectNodes(NodeA, self.nodes[i])
+            	createdEdges += 1
 
 
-    def getRandomNode(self, index):
-        #if self.nbrChefsCurrent == self.nbrChefsTotal and self.nbrClientsCurrent == self.nbrClientsTotal:
-        #    print("lolo")
-        if self.nbrChefsCurrent == self.nbrChefsTotal: # only Clients left
-            self.nbrClientsCurrent += 1
-            newClient = Node(NodeType.Client, index)
-            self.clients.append(newClient)
-            return newClient
 
-        elif self.nbrClientsCurrent == self.nbrClientsTotal: # only Chefs left
-            self.nbrChefsCurrent += 1
-            newChef = Node(NodeType.Chef, index)
-            self.chefs.append(newChef)
-            return newChef
-
-        else:
-            randNbr = randint(1, self.nbrVertices-1) # choose randomly a Chef or Client |  - 1 == DeliveryDepot
-            if randNbr <= self.nbrClientsTotal:
-                self.nbrClientsCurrent += 1
-                newClient = Node(NodeType.Client, index)
-                self.clients.append(newClient)
-                return newClient
-
-            else:
-                self.nbrChefsCurrent += 1
-                newChef = Node(NodeType.Chef, index)
-                self.chefs.append(newChef)
-                return newChef
-
-
-    def connectVertices(self, NodeA, NodeB):
+    def connectNodes(self, NodeA, NodeB):
         NodeA.addNeighbour(NodeB)
         NodeB.addNeighbour(NodeA)
-        weight = randint(1, self.maxDistance)
+        weight = hypot(NodeA.i-NodeB.i , NodeA.j-NodeB.j)
         self.adjacencyMatrix[NodeA.index][NodeB.index] = weight
         self.adjacencyMatrix[NodeB.index][NodeA.index] = weight
-        #
-        # for line in self.adjacencyMatrix:
-        #     for i in line:
-        #         print( " | {:2d}".format(i), end="" )
-        #     print(" |")
-        # print(min(NodeA.index, NodeB.index), max(NodeA.index, NodeB.index))
 
 
 
@@ -147,11 +95,11 @@ class Graph:
         """
         None is infinity
         """
-        for i in range(self.nbrVertices):
+        for i in range(self.nbrNodes):
             adjacencyMatrix[i][i] = 0
-        for k in range(self.nbrVertices):
-            for i in range(self.nbrVertices):
-                for j in range(self.nbrVertices):
+        for k in range(self.nbrNodes):
+            for i in range(self.nbrNodes):
+                for j in range(self.nbrNodes):
                     if adjacencyMatrix[i][k] is not None and adjacencyMatrix[k][j] is not None:
 
                         if adjacencyMatrix[i][j] is None:
@@ -161,32 +109,30 @@ class Graph:
                             adjacencyMatrix[i][j] = adjacencyMatrix[i][k] + adjacencyMatrix[k][j]
 
 
+
     def assureTriangleInequality(self):
-    	for i in range(self.nbrVertices):
-    		for j in range(self.nbrVertices):
+    	for i in range(self.nbrNodes):
+    		for j in range(self.nbrNodes):
     			if self.adjacencyMatrix[i][j] is not None:
     				if self.adjacencyMatrix[i][j] > self.copyAdjacencyMatrix[i][j]:
     					self.adjacencyMatrix[i][j] = self.copyAdjacencyMatrix[i][j]
 
 
-    def dist(self, nodeA, nodeB):
-    	#print( "A" + str(type(nodeA)) )
-    	#print( "B" + str(type(nodeB)) )
 
-    	if (0 <= nodeA.index < self.nbrVertices) and (0 <= nodeB.index < self.nbrVertices):
+    def dist(self, nodeA, nodeB):
+    	if (0 <= nodeA.index < self.nbrNodes) and (0 <= nodeB.index < self.nbrNodes):
     		return self.adjacencyMatrix[nodeA.index][nodeB.index]
     	else:
         	return -1
 
 
-
-
-
 """
 if __name__ == "__main__":
-    G = Graph(2, 5)
-    for v in G.vertices:
-       print((v.index, v.type, len(v.neighbours)))
+    G = Graph(8)
+    for v in G.nodes:
+       print((v.index, "	", v.i, v.j, "		"), end="")
+       print([neigh.index for neigh in v.neighbours])
+
 
     for Mat in [G.adjacencyMatrix]:
         print("\n---------------------------------------------\n")
@@ -195,7 +141,7 @@ if __name__ == "__main__":
                print( " | "+str(i), end=" ") #{:3d}".format(i), end="" )
            print(" |")
 
-    print("\nNbr Vertices", G.nbrVertices, "| Nbr Edges", G.nbrEdges)
-"""
+    print("\nNbr Nodes", G.nbrNodes, "| Nbr Edges", G.nbrEdges)
 
+"""
 

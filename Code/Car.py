@@ -77,7 +77,7 @@ class Car:
 
         # pickup and delivery are in different blocks
         i=0
-        #detirmining block for pickup :
+        #determining block for pickup :
         while i<len(self.currentSchedule)-1 and (
                 meal.getEPT() < self.currentSchedule[i].getEnd()+
                         self.currentSchedule[i].getNextSlack() or
