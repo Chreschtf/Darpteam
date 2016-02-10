@@ -6,6 +6,8 @@ import Graph
 import Meal
 import Node
 import os
+#from GraphDrawer import *
+
 
 try:
 	import Tkinter as Tk
@@ -17,19 +19,28 @@ class App:
 	def __init__(self, master):
 		
 		mainFrame = Tk.Frame(master)
-		mainFrame.pack()
+		mainFrame.pack(fill=Tk.BOTH,expand=True)
 		
-		self.parametersFrame = Tk.Frame(mainFrame)
-		self.parametersFrame.pack(side=Tk.RIGHT)
+		self.parametersFrame = Tk.Frame(mainFrame,bg="pink")
+		self.parametersFrame.pack(side=Tk.RIGHT,anchor="n",expand=True,fill=Tk.BOTH)
+		self.mealsFrame = Tk.Frame(self.parametersFrame)
+		self.mealsFrame.pack(side=Tk.TOP,anchor="nw")
+		self.carsFrame = Tk.Frame(self.parametersFrame)
+		self.carsFrame.pack(side=Tk.TOP,anchor="nw")
+		
 		
 		self.displayFrame = Tk.Frame(mainFrame)
 		self.displayFrame.pack(side=Tk.LEFT)
 		
+		self.dupeImage = Tk.PhotoImage(file=os.path.join("GUIELEM","duplicate.gif"))
+		"""
 		self.cooksEntry = Tk.Entry(self.parametersFrame)
 		self.clientsEntry = Tk.Entry(self.parametersFrame)	
 		self.cooksLabel = Tk.Label(self.parametersFrame,text="Amount of Cooks")
 		self.clientsLabel = Tk.Label(self.parametersFrame,text="Amount of Clients")
-
+		"""
+		
+		
 		#e.delete(0, END)
 		#e.insert(0, "a default value")
 
@@ -38,10 +49,12 @@ class App:
 		)
 		self.button.pack(side=Tk.BOTTOM)
 		
-		self.cooksLabel.pack(side=Tk.TOP)
-		self.cooksEntry.pack(side=Tk.TOP)
-		self.clientsLabel.pack(side=Tk.TOP)
-		self.clientsEntry.pack(side=Tk.TOP)
+		#self.cooksLabel.pack(side=Tk.TOP)
+		#self.cooksEntry.pack(side=Tk.TOP)
+		#self.clientsLabel.pack(side=Tk.TOP)
+		#self.clientsEntry.pack(side=Tk.TOP)
+		
+		self.createMeals()
 		self.createCars()
 		
 		
@@ -96,32 +109,75 @@ class App:
 		except ValueError:
 			print("Veuillez entrer un nombre valide")
 		
+	def createMeals(self):
+		self.mealsFrames = []
+		mealHeaderFrame = Tk.Frame(self.mealsFrame)
+		mealHeaderFrame.pack(side=Tk.TOP,anchor="w")
+		mealButton_PLUS = Tk.Button(mealHeaderFrame,text="+",fg="red",command=self.addMeal)
+		mealButton_PLUS.pack(side=Tk.LEFT)
+		label_DEPARTURE = Tk.Label(mealHeaderFrame,text="Departure")
+		label_DEPARTURE.pack(side=Tk.LEFT)
+		label_DEVIATION = Tk.Label(mealHeaderFrame,text="Deviation")
+		label_DEVIATION.pack(side=Tk.LEFT)
+		
+	def addMeal(self):
+		tempMealFrame=Tk.Frame(self.mealsFrame)
+		self.mealsFrames.append(tempMealFrame)
+		tempMealFrame.pack(side=Tk.TOP)
+		
+		tempMealFrame.DEPARTURE = Tk.StringVar()
+		tempMealFrame.DEVIATION = Tk.StringVar()
+		
+		entry_DEPARTURE = Tk.Entry(tempMealFrame,textvariable=tempMealFrame.DEPARTURE,width=12)
+		entry_DEPARTURE.pack(side=Tk.LEFT)
+		entry_DEVIATION = Tk.Entry(tempMealFrame,textvariable=tempMealFrame.DEVIATION,width=12)
+		entry_DEVIATION.pack(side=Tk.LEFT)
+		
+		def duplicateMeal():
+			mymeal = self.addMeal()
+			mymeal.DEPARTURE.set( tempMealFrame.DEPARTURE.get() )
+			mymeal.DEVIATION.set( tempMealFrame.DEVIATION.get() )
+		
+		duplicateButton = Tk.Button(tempMealFrame,image=self.dupeImage,command=duplicateMeal)
+		duplicateButton.pack(side=Tk.LEFT)
+		
+		def removeMeal(): 
+			"""
+			Must be inside this function because otherwise we don't have
+			access to tempCarFrames since it's not an attribute and it 
+			can't be an attribute because it must be a local variable.
+			"""
+			self.mealsFrames.remove(tempMealFrame)
+			tempMealFrame.destroy()
+		
+		deleteCarButton = Tk.Button(tempMealFrame,text="X",fg="red",command=removeMeal)
+		deleteCarButton.pack(side=Tk.LEFT)
+		
+		
+		return tempMealFrame
 			
 	def createCars(self):
 		self.carFrames = []
-		carHeaderFrame = Tk.Frame(self.parametersFrame)
-		carHeaderFrame.pack(side=Tk.TOP)
-		self.button_PLUS = Tk.Button(carHeaderFrame,text="+",fg="red",command=self.addCar)
-		self.button_PLUS.pack(side=Tk.LEFT)
-		self.label_MAXCAPACITY = Tk.Label(carHeaderFrame,text="Capacity",width=10)
-		self.label_MAXCAPACITY.pack(side=Tk.LEFT)
-		self.label_STARTTIME = Tk.Label(carHeaderFrame,text="Start",width=10)
-		self.label_STARTTIME.pack(side=Tk.LEFT)
-		self.label_DURATION = Tk.Label(carHeaderFrame,text="Duration",width=10)
-		self.label_DURATION.pack(side=Tk.LEFT)
-		self.label_DUPE=Tk.Label(carHeaderFrame,width=3,text="")
-		self.label_DUPE.pack(side=Tk.LEFT)
-		self.label_DEL=Tk.Label(carHeaderFrame,width=3,text="")
-		self.label_DEL.pack(side=Tk.LEFT)
+		carHeaderFrame = Tk.Frame(self.carsFrame)
+		carHeaderFrame.pack(side=Tk.TOP,anchor="w",expand=True)
+		carButton_PLUS = Tk.Button(carHeaderFrame,text="+",fg="red",command=self.addCar)
+		carButton_PLUS.pack(side=Tk.LEFT)
+		label_MAXCAPACITY = Tk.Label(carHeaderFrame,text="Capacity",width=10)
+		label_MAXCAPACITY.pack(side=Tk.LEFT)
+		label_STARTTIME = Tk.Label(carHeaderFrame,text="Start",width=10)
+		label_STARTTIME.pack(side=Tk.LEFT)
+		label_DURATION = Tk.Label(carHeaderFrame,text="Duration",width=10)
+		label_DURATION.pack(side=Tk.LEFT)
+		label_DUPE=Tk.Label(carHeaderFrame,width=3,text="")
+		label_DUPE.pack(side=Tk.LEFT)
+		label_DEL=Tk.Label(carHeaderFrame,width=3,text="")
+		label_DEL.pack(side=Tk.LEFT)
 		
-		
-		self.dupeImage = Tk.PhotoImage(file=os.path.join("GUIELEM","duplicate.gif"))
-		self.addCar() #au moins une voiture?
 		
 	def addCar(self):
 		"""Adds a car frame to the list and return the frame"""
 		
-		tempCarFrame=Tk.Frame(self.parametersFrame)
+		tempCarFrame=Tk.Frame(self.carsFrame)
 		self.carFrames.append(tempCarFrame)
 		tempCarFrame.pack(side=Tk.TOP)
 		
@@ -154,15 +210,18 @@ class App:
 			access to tempCarFrames since it's not an attribute and it 
 			can't be an attribute because it must be a local variable.
 			"""
-			if(len(self.carFrames)>1):
-				self.carFrames.remove(tempCarFrame)
-				tempCarFrame.destroy()
+			self.carFrames.remove(tempCarFrame)
+			tempCarFrame.destroy()
 		
 		deleteCarButton = Tk.Button(tempCarFrame,text="X",fg="red",command=removeCar)
 		deleteCarButton.pack(side=Tk.LEFT)
 		
 		
 		return tempCarFrame
+
+	def drawGraph(self):
+		canvas=self.canvas
+		
 		
 		
 root = Tk.Tk()
