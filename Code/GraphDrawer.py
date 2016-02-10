@@ -41,7 +41,8 @@ class NodeLines:
 	def __init__(self,canvas,nodeslist=[],adjacence=[[]]):
 		self.nodes=nodeslist
 		#self.linespos=[]
-		self.lines=[]
+		self.fatLines=[]
+		self.thinLines=[]
 		self.canvas=canvas
 		self.adjacence=adjacence
 		self.generateLines()
@@ -63,7 +64,8 @@ class NodeLines:
 					linespos.append((p1.x,p1.y,p2.x,p2.y))
 				
 		for linepos in linespos:
-			self.lines.append(self.canvas.create_line(linepos))#,width=8,fill="pink"))
+			self.fatLines.append(self.canvas.create_line(linepos,width=8,fill="grey"))
+			self.thinLines.append(self.canvas.create_line(linepos,width=6,fill="pink"))
 	
 	def drawLines(self):
 		
@@ -74,7 +76,8 @@ class NodeLines:
 				p1 = self.nodes[i]
 				p2 = self.nodes[j]
 				if(self.adjacence[i][j]):
-					self.canvas.coords(self.lines[counter],(p1.x,p1.y,p2.x,p2.y))
+					self.canvas.coords(self.fatLines[counter],(p1.x,p1.y,p2.x,p2.y))
+					self.canvas.coords(self.thinLines[counter],(p1.x,p1.y,p2.x,p2.y))
 					counter+=1
 		
 		
