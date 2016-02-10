@@ -9,7 +9,7 @@ class Graph:
     def __init__(self, nbrNodes):
     	self.adjacencyMatrix = [[ None for j in range (nbrNodes) ] for i in range (nbrNodes)]
     	self.nbrNodes = nbrNodes
-    	self.nbrEdges = int(  (randint(15,25)/10) * self.nbrNodes  )
+    	self.nbrEdges = int(  (randint(12,14)/10) * self.nbrNodes  )
     	self.nodes = []
     	self.generateGraph()
     	
