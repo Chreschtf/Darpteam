@@ -40,12 +40,12 @@ class DataFileWriter:
 		tree.write(self.filename)
 		
 		
-		
+"""
 if __name__ == "__main__":
 	filename = "testFile"
 	cars = [("4","5","20"),("1","2","8")]
-	meals = [("2","3","1","2"), ("8", "7", "1", "3")]
-	nodes = [("1", "1", "2", "2|3"), ("2", "4", "2", "1"), ("3", "0", "3", "1")]
+	meals = [("2","3","0","1"), ("8", "7", "0", "2")]
+	nodes = [("0", "1", "2", "1|2"), ("1", "4", "2", "0"), ("2", "0", "3", "0")]
 	depots = [("1")]
 	
 	DFW = DataFileWriter(filename, cars, meals, nodes, depots)
@@ -53,5 +53,8 @@ if __name__ == "__main__":
 	
 	DFP = DataFileParser(DFW.filename)
 	DFP.parseXML_File()
-	
+	print()
+	print()
+
+"""
 	

@@ -15,26 +15,34 @@ class DataFileParser:
 		
 	
 	def parseXML_File(self):
-		data = ElementTree.parse( self.filename )
-		
+		tree = ElementTree.parse( self.filename )
+		root = tree.getroot()
 		
 		neighbours = []
-		for node in data.findall( "nodes/node" ):
-			neighbours.append(  (int(node.attrib["nbr"]), [int(i) for i in node.attrib["neighbours"].split("|")])  )
+		for node in root.iter( "node" ):
+			neighbours.append(  [int(node.attrib["nbr"]), [int(i) for i in node.attrib["neighbours"].split("|")]] )
 			self.nodes.append( Node(int(node.attrib["i"]), int(node.attrib["j"]), int(node.attrib["nbr"])) )
-		G = Graph( self.nodes, neighbours )
+		for elem in neighbours:
+			newList = []
+			for index in elem[1]:
+				newList.append(self.NodeWithIndex(index))
+			elem[0] = self.NodeWithIndex(elem[0])
+			elem[1] = newList
+
+		G = Graph( len(self.nodes), "FromFile", self.nodes, neighbours )
 			
 		
-		for depot in data.findall( "depots/depot" ):
+		for depot in root.iter( "depot" ):
 			self.depots.append( self.NodeWithIndex(int(depot.attrib["node"])) )
 			
 		
-		for meal in data.findall( "meals/meal" ):
-			self.meals.append( Meal(self.NodeWithIndex(int(meal.attrib["chef"])), self.NodeWithIndex(int(meal.attrib["client"])),\
-									 drt, int(meal.attrib["ddt"]), int(meal.attrib["deviation"])) )
+		for meal in root.iter( "meal" ):
+			chef = self.NodeWithIndex(int(meal.attrib["chef"]))
+			client = self.NodeWithIndex(int(meal.attrib["client"]))
+			self.meals.append( Meal(chef, client, G.dist(chef, client), int(meal.attrib["ddt"]), int(meal.attrib["deviation"])) )
 		
 		
-		for car in data.findall( "cars/car" ):
+		for car in root.iter( "car" ):
 			self.cars.append( Car(car.attrib["maxCharge"], car.attrib["start"], car.attrib["duration"], self.depots[0], G) ) # utiliser plusieurs depots ?
 			
 			

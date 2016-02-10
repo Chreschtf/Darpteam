@@ -6,20 +6,34 @@ from Node import *
 # import networkx as nx
 
 class Graph:
-    def __init__(self, nbrNodes):
-    	self.adjacencyMatrix = [[ None for j in range (nbrNodes) ] for i in range (nbrNodes)]
-    	self.nbrNodes = nbrNodes
-    	self.nbrEdges = int(  (randint(15,25)/10) * self.nbrNodes  )
-    	self.nodes = []
-    	self.generateGraph()
-    	
-    	self.finalAdjMatrix = deepcopy(self.adjacencyMatrix)
+    def __init__(self, nbrNodes=5, mode="Random", nodeList=[], neighbours=[]):
+        self.adjacencyMatrix = [[ None for j in range (nbrNodes) ] for i in range (nbrNodes)]
+        self.nbrNodes = nbrNodes
 
-    	self.copyAdjacencyMatrix = deepcopy(self.adjacencyMatrix)
-    	self.Floyd_Warshall(self.copyAdjacencyMatrix)
-    	self.assureTriangleInequality()
-    	self.Floyd_Warshall(self.adjacencyMatrix)
-    	
+        if mode == "Random":
+        	self.nbrEdges = int(  (randint(15,25)/10) * self.nbrNodes  )
+        	self.nodes = []
+        	self.generateGraph()
+
+        else: # mode == "FromFile"
+            self.nodes = nodeList
+            self.connectGraph(neighbours)
+
+            
+        self.finalAdjMatrix = deepcopy(self.adjacencyMatrix)
+        self.copyAdjacencyMatrix = deepcopy(self.adjacencyMatrix)
+        self.Floyd_Warshall(self.copyAdjacencyMatrix)
+        self.assureTriangleInequality()
+        self.Floyd_Warshall(self.adjacencyMatrix)
+
+
+    def connectGraph(self, neighbours):
+        for elem in neighbours:
+            nodeA = elem[0]
+            for nodeB in elem[1]:
+                if not(nodeB in nodeA.neighbours):
+                    self.connectNodes(nodeA, nodeB)
+
     	
     def getAdjMatrix(self):
     	return self.finalAdjMatrix
