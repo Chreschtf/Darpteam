@@ -24,6 +24,13 @@ class App:
 		
 		self.parametersFrame = Tk.Frame(mainFrame,bg="pink")
 		self.parametersFrame.pack(side=Tk.RIGHT,anchor="n",expand=True,fill=Tk.BOTH)
+		
+		#self.nodesLabel = Tk.Label(self.parametersFrame,text="Amount of Nodes")
+		#self.nodesEntry = Tk.Entry(self.parametersFrame)
+		
+		#self.nodesLabel.pack(side=Tk.TOP,anchor="w")
+		#self.nodesEntry.pack(side=Tk.TOP,anchor="w")
+		
 		self.mealsFrame = Tk.Frame(self.parametersFrame)
 		self.mealsFrame.pack(side=Tk.TOP,anchor="nw")
 		self.carsFrame = Tk.Frame(self.parametersFrame)
@@ -34,6 +41,8 @@ class App:
 		self.displayFrame.pack(side=Tk.LEFT)
 		
 		self.dupeImage = Tk.PhotoImage(file=os.path.join("GUIELEM","duplicate.gif"))
+		
+		
 		"""
 		self.cooksEntry = Tk.Entry(self.parametersFrame)
 		self.clientsEntry = Tk.Entry(self.parametersFrame)	
@@ -44,11 +53,14 @@ class App:
 		
 		#e.delete(0, END)
 		#e.insert(0, "a default value")
+		
+		
 
 		self.button = Tk.Button(
 		self.parametersFrame, text="Start", fg="red", command=self.start_darp
 		)
 		self.button.pack(side=Tk.BOTTOM)
+		
 		
 		#self.cooksLabel.pack(side=Tk.TOP)
 		#self.cooksEntry.pack(side=Tk.TOP)
@@ -61,11 +73,14 @@ class App:
 		
 		self.canvas = Tk.Canvas(self.displayFrame, width=480, height=480)
 		self.canvas.pack()
+		self.guiGraph = GUIGraph(self.canvas)
+	
 		
-		self.drawGraph()
+		self.displayGraph()
 
 		#self.hi_there = Tk.Button(self.parametersFrame, text="Hello", command=self.say_hi)
 		#self.parametersFrame.quit est la commande pour quitter
+		
 
 	def start_darp(self):
 		try:
@@ -174,8 +189,7 @@ class App:
 		label_DUPE.pack(side=Tk.LEFT)
 		label_DEL=Tk.Label(carHeaderFrame,width=3,text="")
 		label_DEL.pack(side=Tk.LEFT)
-		
-		
+				
 	def addCar(self):
 		"""Adds a car frame to the list and return the frame"""
 		
@@ -221,50 +235,96 @@ class App:
 		
 		return tempCarFrame
 
-	def drawGraph(self):
-		canvas=self.canvas
-		
-		points = []
-		
-		nodesamount=5
-		for i in range(nodesamount):
-			points.append((randint(-100,100),randint(50,100)))
-		
-		minX = float("inf")
-		minY = float("inf")
-		maxX = -float("inf")
-		maxY = -float("inf")
+	def displayGraph(self):
+		self.guiGraph.generateGraph()
+		self.guiGraph.drawGraph()
 		
 		
-		for (x,y) in points:
-			minX=min(minX,x)
-			minY=min(minY,y)
+class GUIGraph:
+	def __init__(self,canvas):
+		self.nodesAmount = 5
+		self.canvas = canvas
+		self.nodes = []
+		self.positionsInGraph = []
+		self.canvasNodes = []
+		self.margin = 25
+		
+		self.mouseDelta = (None,None)
+		self.currentNode=None
+		
+		self.canvas.bind("<ButtonPress-1>", self.clickObject)
+		self.canvas.bind("<B1-Motion>", self.moveObject)
+		self.canvas.bind("<ButtonRelease-1>", self.releaseObject)
+	
+	def generateGraph(self):
+		for i in range(self.nodesAmount):
+			self.nodes.append((randint(-100,100),randint(50,100)))
+		
+		self.minX = float("inf")
+		self.minY = float("inf")
+		self.maxX = -float("inf")
+		self.maxY = -float("inf")
+		
+		for (x,y) in self.nodes:
+			self.minX=min(self.minX,x)
+			self.minY=min(self.minY,y)
 			
-			maxX=max(maxX,x)
-			maxY=max(maxY,y)
+			self.maxX=max(self.maxX,x)
+			self.maxY=max(self.maxY,y)
 			
-		deltaX= maxX-minX
-		deltaY= maxY-minY
-		
-		margin=25
-		screensize=480-2*margin
-		
-		newpoints = []
-		for (x,y) in points:
-			newpoints.append(((x-minX)/deltaX*screensize+margin,(y-minY)/deltaY*screensize+margin))
-		
-		myNodes = []
-		for j,(x,y) in enumerate(newpoints):
-			myNodes.append(NodeDrawing(x,y,str(j),canvas))
+		self.deltaX= self.maxX-self.minX
+		self.deltaY= self.maxY-self.minY
+
+		self.screensize=int(self.canvas.cget("width"))-2*self.margin
+		for (x,y) in self.nodes:
+			self.positionsInGraph.append(((x-self.minX)/self.deltaX*self.screensize+self.margin,(y-self.minY)/self.deltaY*self.screensize+self.margin))
 			
-		adjacenceMatrix= [[None]*nodesamount for i in range(nodesamount)]
+	def drawGraph(self):	
 			
-		for i in range(nodesamount):
-			for j in range(nodesamount):
+		adjacenceMatrix= [[None]*self.nodesAmount for i in range(self.nodesAmount)]
+			
+		for i in range(self.nodesAmount):
+			for j in range(self.nodesAmount):
 				adjacenceMatrix[i][j]=randint(0,1)
 		
-		linesDrawer = NodeLines(canvas,newpoints,adjacenceMatrix)
 		
+		for j,(x,y) in enumerate(self.positionsInGraph):
+			self.canvasNodes.append(NodeDrawing(x,y,str(j),self.canvas,self.nodes[j],self.margin))
+			
+			
+		self.linesDrawer = NodeLines(self.canvas,self.canvasNodes,adjacenceMatrix)
+		
+		for node in self.canvasNodes:
+			node.generateDrawing()
+	
+	def clickObject(self,event):
+		#self.coords = event.x,event.y
+		self.currentObject = event.widget.find_withtag("current")
+		
+		if(len(self.currentObject)!=0):
+			drawnClickedObject = self.currentObject[0]
+			
+			for node in self.canvasNodes:
+				if node.isMine(drawnClickedObject):
+					self.mouseDelta = node.x-event.x, node.y-event.y
+					break
+					
+	def moveObject(self,event):
+		if(len(self.currentObject)!=0):
+			drawnClickedObject = self.currentObject[0]
+			
+			for node in self.canvasNodes:
+				if node.isMine(drawnClickedObject):
+					node.move(event.x+self.mouseDelta[0],event.y+self.mouseDelta[1])
+					break
+			#clickedNode = drawnClickedObject.parent
+		self.linesDrawer.drawLines()
+			
+	def releaseObject(self,event):
+		pass	
+		
+		
+	
 root = Tk.Tk()
 
 app = App(root)
