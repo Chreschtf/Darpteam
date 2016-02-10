@@ -2,7 +2,7 @@ from Node import *
 
 class Meal:
     def __init__(self,_chef,_destination,_drt,_ddt,_deviation):
-        self.mrt = 5 + 1.5*_drt  #maximal ride time
+        self.mrt = 30  #_drt  #maximal ride time
         self.chef = _chef
         self.destination = _destination
         self.deviation = _deviation   # maximum allowed deviation from desired
@@ -47,5 +47,8 @@ class Meal:
 
     def getDeviation(self):
         return self.deviation
+
+    def __lt__(self, other):
+        return self.ept<other.ept
 
 

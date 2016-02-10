@@ -112,8 +112,8 @@ class DarpAlgo:
                 ept-self.constants["W1"] <=meal.getLDT() <= ept+self.constants["W2"]:
                 custInSys += 1
         for car in self.cars:
-            if ept-self.constants["W1"] <=car.getStart() <= ept+self.constants["W2"] or\
-                ept-self.constants["W1"] <=car.getEnd() <= ept+self.constants["W2"]:
+            if car.getStart() <= ept+self.constants["W2"] or\
+                ept-self.constants["W1"] <=car.getEnd():
                 carsAvailable += 1
 
         #carsAvailable !=0 because otherwise the initial algorithm would not proceed in the first place

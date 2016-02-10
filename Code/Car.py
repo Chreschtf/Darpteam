@@ -63,7 +63,7 @@ class Car:
 
             #case 3 : pickup in the last block, delivery becomes last stop in
             # schedule
-            #self.currentSchedule[-1].case3(meal)
+            self.case3(meal)
             #case 4 : pickup and delivery are separated by at least one stop
             #self.case4(meal)
 
@@ -116,15 +116,8 @@ class Car:
         """
         if self.start+self.graph.dist(self.depot,meal.getChef())+meal.getDRT()+self.graph.dist(
                 meal.getDestination(),self.depot)<=self.end:
-            stop1=Stop(meal.getChef(),
-                       self.start+meal.getDRT(),
-                       meal,
-                       True)
-            stop2=Stop(meal.getDestination(),
-                       self.start+meal.getDRT() \
-                       +meal.getDRT(),
-                       meal,
-                       False)
+            stop1=Stop(meal.getChef(),meal.getDDT()-meal.getDRT(),meal,True)
+            stop2=Stop(meal.getDestination(),meal.getDDT(),meal,False)
             prevSlack=stop1.getST()-self.start- \
                       self.graph.dist(self.depot,meal.getChef())
             nextSlack=self.end-stop2.getST()-self.graph.dist(self.depot,meal.getDestination())
@@ -226,14 +219,14 @@ class Car:
                         lt=0
                         shift=0
                         if deltaP>q.getADOWN():
-                            ps=0
-                            ds=deltaP
-                            tpu=p.getST()
-                            td=tpu+meal.getDRT()
-                        else:
                             ds=q.getADOWN()
                             ps=q.getADOWN()-deltaP
                             tpu=p.getST()+ps+self.graph.dist(p.getNode(),meal.getChef())
+                            td=tpu+meal.getDRT()
+                        else:
+                            ps=0
+                            ds=deltaP
+                            tpu=p.getST()
                             td=tpu+meal.getDRT()
                         #ddt, so :
                         gt =td
@@ -334,7 +327,8 @@ class Car:
         """
         Common code of case 3 and 4
         """
-        deltaP=self.graph.dist(p.getNode(),meal.getChef())+self.graph.dist(meal.getChef(),q) - \
+        deltaP=self.graph.dist(p.getNode(),meal.getChef())+ \
+               self.graph.dist(meal.getChef(),q.getNode()) - \
                self.graph.dist(p.getNode(),q.getNode())
         ps=0
         ms=0

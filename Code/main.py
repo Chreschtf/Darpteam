@@ -7,26 +7,27 @@ from Node import *
 from random import randint
 
 if __name__=="__main__":
-    g=Graph(2,10)
-    #depot=Node([5,5])
-    depot = g.getDeliveryDepot()
-    #chef1=Node([2,2])
-    #chef2=Node([3,3])
-    #client1=Node([4,4])
-    #client2=Node([1,1])
-    car1=Car(3,0,100,depot,g)
-    car2=Car(3,0,100,depot,g)
-    #meal1=Meal(3,chef1,client1,g.dist(chef1,client1),7,2)
-    #meal2=Meal(3,chef2,client2,g.dist(chef2,client2),14,2)
-    #meals=[]
-    #meals.append(meal1)
-    #meals.append(meal2)
+    n=11
+    g=Graph(n)
+    nodes = g.nodes
+    depot = nodes[0]
+    meals=[]
+    i=1
+    while i<n:
+        chef1=nodes[i]
+        client1=nodes[i+1]
+        meal=Meal(chef1,client1,g.dist(chef1,client1),250,200)
+        meals.append(meal)
+        i+=2
+    car1=Car(12,0,800,depot,g)
+    #car2=Car(6,0,900,depot,g)
     cars=[]
     cars.append(car1)
     #cars.append(car2)
-    darp=DarpAlgo (g.getMeals(),cars)
+    meals.sort()
+    darp=DarpAlgo (meals,cars)
     darp.createSchedules()
-
+    i=0
     # cars=[]
     # meals=[]
     # for i in range(10):
