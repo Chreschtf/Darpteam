@@ -301,7 +301,7 @@ class GUIGraph:
 		#	for j in range(self.nodesAmount):
 		#		adjacenceMatrix[i][j]=choice([0,0,0,0,0,1])
 		
-		adjacenceMatrix=self.graph.adjacencyMatrix
+		adjacenceMatrix=self.graph.getAdjMatrix()
 		
 		
 		
