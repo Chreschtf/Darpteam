@@ -12,12 +12,17 @@ class Graph:
     	self.nbrEdges = int(  (randint(15,25)/10) * self.nbrNodes  )
     	self.nodes = []
     	self.generateGraph()
+    	
+    	self.finalAdjMatrix = deepcopy(self.adjacencyMatrix)
 
     	self.copyAdjacencyMatrix = deepcopy(self.adjacencyMatrix)
     	self.Floyd_Warshall(self.copyAdjacencyMatrix)
     	self.assureTriangleInequality()
-    	self.shortestPathMatrix = deepcopy(self.adjacencyMatrix)
     	self.Floyd_Warshall(self.adjacencyMatrix)
+    	
+    	
+    def getAdjMatrix(self):
+    	return self.finalAdjMatrix
 
 
     def randomCoords(self, iOther, jOther):
