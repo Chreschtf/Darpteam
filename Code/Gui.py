@@ -6,7 +6,8 @@ import Graph
 import Meal
 import Node
 import os
-#from GraphDrawer import *
+from GraphDrawer import *
+from random import randint
 
 
 try:
@@ -60,7 +61,8 @@ class App:
 		
 		self.canvas = Tk.Canvas(self.displayFrame, width=480, height=480)
 		self.canvas.pack()
-		self.canvas.create_line(0, 0, 480, 480)
+		
+		self.drawGraph()
 
 		#self.hi_there = Tk.Button(self.parametersFrame, text="Hello", command=self.say_hi)
 		#self.parametersFrame.quit est la commande pour quitter
@@ -222,7 +224,46 @@ class App:
 	def drawGraph(self):
 		canvas=self.canvas
 		
+		points = []
 		
+		nodesamount=5
+		for i in range(nodesamount):
+			points.append((randint(-100,100),randint(50,100)))
+		
+		minX = float("inf")
+		minY = float("inf")
+		maxX = -float("inf")
+		maxY = -float("inf")
+		
+		
+		for (x,y) in points:
+			minX=min(minX,x)
+			minY=min(minY,y)
+			
+			maxX=max(maxX,x)
+			maxY=max(maxY,y)
+			
+		deltaX= maxX-minX
+		deltaY= maxY-minY
+		
+		margin=25
+		screensize=480-2*margin
+		
+		newpoints = []
+		for (x,y) in points:
+			newpoints.append(((x-minX)/deltaX*screensize+margin,(y-minY)/deltaY*screensize+margin))
+		
+		myNodes = []
+		for j,(x,y) in enumerate(newpoints):
+			myNodes.append(NodeDrawing(x,y,str(j),canvas))
+			
+		adjacenceMatrix= [[None]*nodesamount for i in range(nodesamount)]
+			
+		for i in range(nodesamount):
+			for j in range(nodesamount):
+				adjacenceMatrix[i][j]=randint(0,1)
+		
+		linesDrawer = NodeLines(canvas,newpoints,adjacenceMatrix)
 		
 root = Tk.Tk()
 

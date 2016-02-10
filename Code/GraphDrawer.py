@@ -1,3 +1,10 @@
+try:
+	import Tkinter as Tk
+except ImportError:
+	import tkinter as Tk
+
+
+
 class NodeDrawing:
 	def __init__(self,x,y,content,canvas):
 		self.canvas=canvas
@@ -5,8 +12,9 @@ class NodeDrawing:
 		self.y=y 
 		self.content=content
 		self.oval=self.canvas.create_oval(self.ovalCoords())
+		self.text=self.canvas.create_text((x,y),text=content)
 		
-	def move(self,x,y)
+	def move(self,x,y):
 		self.x=x 
 		self.y=y 
 		self.canvas.coords(self.oval,self.ovalCoords())
@@ -16,10 +24,13 @@ class NodeDrawing:
 		
 		
 class NodeLines:
-	def __init__(self,canvas,nodeslist=[]):
+	def __init__(self,canvas,nodeslist=[],adjacence=[[]]):
 		self.nodes=nodeslist
+		#self.linespos=[]
 		self.lines=[]
 		self.canvas=canvas
+		self.adjacence=adjacence
+		self.drawLines()
 		
 	def addNode(self,node):
 		self.nodes.append(node)
@@ -27,24 +38,19 @@ class NodeLines:
 	def removeNode(self,node):
 		self.nodes.remove(node)
 		
-	def redrawNodes(self):
+	def drawLines(self):
 		for line in self.lines:
 			self.canvas.delete(line)
 		
-		linespos = set()
+		linespos = []
 		
-		for node in self.nodes:
-			pass
-			#code to get the node's neighbor
-			p1 = (15,16)
-			p2 = (180,180)
-			
-			if(p1>p2):
-				linespos.add((p1,p2))
-			else:
-				linespos.add((p2,p1))
-			#no repeats
-			
+		for i in range(len(self.nodes)):
+			for j in range(i+1,len(self.nodes)):
+				p1 = self.nodes[i]
+				p2 = self.nodes[j]
+				if(self.adjacence[i][j]):
+					linespos.append((p1+p2))
+				
 		for linepos in linespos:
-			lines.append(self.canvas.create_line(linepos))
+			self.lines.append(self.canvas.create_line(linepos))
 		
