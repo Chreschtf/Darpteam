@@ -34,6 +34,7 @@ class Graph:
                 if not(nodeB in nodeA.neighbours):
                     self.connectNodes(nodeA, nodeB)
 
+
     	
     def getAdjMatrix(self):
     	return self.finalAdjMatrix

@@ -6,6 +6,10 @@ import Graph
 import Meal
 import Node
 import os
+from GraphDrawer import *
+from random import randint
+from random import choice
+
 
 try:
 	import Tkinter as Tk
@@ -17,55 +21,85 @@ class App:
 	def __init__(self, master):
 		
 		mainFrame = Tk.Frame(master)
-		mainFrame.pack()
+		mainFrame.pack(fill=Tk.BOTH,expand=True)
 		
-		self.parametersFrame = Tk.Frame(mainFrame)
-		self.parametersFrame.pack(side=Tk.RIGHT)
+		self.parametersFrame = Tk.Frame(mainFrame,bg="pink")
+		self.parametersFrame.pack(side=Tk.RIGHT,anchor="n",expand=True,fill=Tk.BOTH)
+		
+		self.nodesLabel = Tk.Label(self.parametersFrame,text="Amount of Nodes")
+		self.nodesEntry = Tk.Entry(self.parametersFrame)
+		
+		self.nodesLabel.pack(side=Tk.TOP,anchor="w")
+		self.nodesEntry.pack(side=Tk.TOP,anchor="w")
+		
+		self.mealsFrame = Tk.Frame(self.parametersFrame)
+		self.mealsFrame.pack(side=Tk.TOP,anchor="nw")
+		self.carsFrame = Tk.Frame(self.parametersFrame)
+		self.carsFrame.pack(side=Tk.TOP,anchor="nw")
+		
 		
 		self.displayFrame = Tk.Frame(mainFrame)
 		self.displayFrame.pack(side=Tk.LEFT)
 		
+		self.dupeImage = Tk.PhotoImage(file=os.path.join("GUIELEM","duplicate.gif"))
+		
+		
+		"""
 		self.cooksEntry = Tk.Entry(self.parametersFrame)
 		self.clientsEntry = Tk.Entry(self.parametersFrame)	
 		self.cooksLabel = Tk.Label(self.parametersFrame,text="Amount of Cooks")
 		self.clientsLabel = Tk.Label(self.parametersFrame,text="Amount of Clients")
-
+		"""
+		
+		
 		#e.delete(0, END)
 		#e.insert(0, "a default value")
+		
+		
 
 		self.button = Tk.Button(
 		self.parametersFrame, text="Start", fg="red", command=self.start_darp
 		)
 		self.button.pack(side=Tk.BOTTOM)
 		
-		self.cooksLabel.pack(side=Tk.TOP)
-		self.cooksEntry.pack(side=Tk.TOP)
-		self.clientsLabel.pack(side=Tk.TOP)
-		self.clientsEntry.pack(side=Tk.TOP)
+		
+		#self.cooksLabel.pack(side=Tk.TOP)
+		#self.cooksEntry.pack(side=Tk.TOP)
+		#self.clientsLabel.pack(side=Tk.TOP)
+		#self.clientsEntry.pack(side=Tk.TOP)
+		
+		self.createMeals()
 		self.createCars()
 		
 		
 		self.canvas = Tk.Canvas(self.displayFrame, width=480, height=480)
 		self.canvas.pack()
-		self.canvas.create_line(0, 0, 480, 480)
+		self.guiGraph = GUIGraph(self.canvas)
+	
+		
+		#self.displayGraph()
 
 		#self.hi_there = Tk.Button(self.parametersFrame, text="Hello", command=self.say_hi)
 		#self.parametersFrame.quit est la commande pour quitter
+		
 
 	def start_darp(self):
 		try:
-			cooks=int(self.cooksEntry.get())
-			clients=int(self.clientsEntry.get())
-			print("Lancement de l'algo avec",cooks,"cuisiniers et",clients,"clients")
+			#cooks=int(self.cooksEntry.get())
+			#clients=int(self.clientsEntry.get())
+			#print("Lancement de l'algo avec",cooks,"cuisiniers et",clients,"clients")
 			
-			
-			graphe=Graph.Graph(cooks,clients)
+			nodesAmount=int(self.nodesEntry.get())
+			graphe=Graph.Graph(nodesAmount)
 			#TODO : personalisation (endroit, type de repas etc.)
-			depot = graphe.getDeliveryDepot() #TODO : multidepot
+			depot = graphe.nodes[0] #TODO : multidepot
 			
-			print(len(self.carFrames),"voitures")
+			self.displayGraph(graphe)
+			
+			print(nodesAmount,"noeuds,",len(self.carFrames),"voitures")
 			
 			allCars = []
+			allMeals = []
 			
 			
 			for i in range(len(self.carFrames)):
@@ -86,7 +120,7 @@ class App:
 					print("Veuillez entrer un nombre valide pour la voiture",i)
 					
 			if(len(allCars) == len(self.carFrames)):
-				darp = DarpAlgo.DarpAlgo(graphe.getMeals(),allCars)
+				darp = DarpAlgo.DarpAlgo(allMeals,allCars)
 			
 				print("Starting DARP...")
 				darp.createSchedules()
@@ -96,32 +130,74 @@ class App:
 		except ValueError:
 			print("Veuillez entrer un nombre valide")
 		
+	def createMeals(self):
+		self.mealsFrames = []
+		mealHeaderFrame = Tk.Frame(self.mealsFrame)
+		mealHeaderFrame.pack(side=Tk.TOP,anchor="w")
+		mealButton_PLUS = Tk.Button(mealHeaderFrame,text="+",fg="red",command=self.addMeal)
+		mealButton_PLUS.pack(side=Tk.LEFT)
+		label_DEPARTURE = Tk.Label(mealHeaderFrame,text="Departure")
+		label_DEPARTURE.pack(side=Tk.LEFT)
+		label_DEVIATION = Tk.Label(mealHeaderFrame,text="Deviation")
+		label_DEVIATION.pack(side=Tk.LEFT)
+		
+	def addMeal(self):
+		tempMealFrame=Tk.Frame(self.mealsFrame)
+		self.mealsFrames.append(tempMealFrame)
+		tempMealFrame.pack(side=Tk.TOP)
+		
+		tempMealFrame.DEPARTURE = Tk.StringVar()
+		tempMealFrame.DEVIATION = Tk.StringVar()
+		
+		entry_DEPARTURE = Tk.Entry(tempMealFrame,textvariable=tempMealFrame.DEPARTURE,width=12)
+		entry_DEPARTURE.pack(side=Tk.LEFT)
+		entry_DEVIATION = Tk.Entry(tempMealFrame,textvariable=tempMealFrame.DEVIATION,width=12)
+		entry_DEVIATION.pack(side=Tk.LEFT)
+		
+		def duplicateMeal():
+			mymeal = self.addMeal()
+			mymeal.DEPARTURE.set( tempMealFrame.DEPARTURE.get() )
+			mymeal.DEVIATION.set( tempMealFrame.DEVIATION.get() )
+		
+		duplicateButton = Tk.Button(tempMealFrame,image=self.dupeImage,command=duplicateMeal)
+		duplicateButton.pack(side=Tk.LEFT)
+		
+		def removeMeal(): 
+			"""
+			Must be inside this function because otherwise we don't have
+			access to tempCarFrames since it's not an attribute and it 
+			can't be an attribute because it must be a local variable.
+			"""
+			self.mealsFrames.remove(tempMealFrame)
+			tempMealFrame.destroy()
+		
+		deleteCarButton = Tk.Button(tempMealFrame,text="X",fg="red",command=removeMeal)
+		deleteCarButton.pack(side=Tk.LEFT)
+		
+		
+		return tempMealFrame
 			
 	def createCars(self):
 		self.carFrames = []
-		carHeaderFrame = Tk.Frame(self.parametersFrame)
-		carHeaderFrame.pack(side=Tk.TOP)
-		self.button_PLUS = Tk.Button(carHeaderFrame,text="+",fg="red",command=self.addCar)
-		self.button_PLUS.pack(side=Tk.LEFT)
-		self.label_MAXCAPACITY = Tk.Label(carHeaderFrame,text="Capacity",width=10)
-		self.label_MAXCAPACITY.pack(side=Tk.LEFT)
-		self.label_STARTTIME = Tk.Label(carHeaderFrame,text="Start",width=10)
-		self.label_STARTTIME.pack(side=Tk.LEFT)
-		self.label_DURATION = Tk.Label(carHeaderFrame,text="Duration",width=10)
-		self.label_DURATION.pack(side=Tk.LEFT)
-		self.label_DUPE=Tk.Label(carHeaderFrame,width=3,text="")
-		self.label_DUPE.pack(side=Tk.LEFT)
-		self.label_DEL=Tk.Label(carHeaderFrame,width=3,text="")
-		self.label_DEL.pack(side=Tk.LEFT)
-		
-		
-		self.dupeImage = Tk.PhotoImage(file=os.path.join("GUIELEM","duplicate.gif"))
-		self.addCar() #au moins une voiture?
-		
+		carHeaderFrame = Tk.Frame(self.carsFrame)
+		carHeaderFrame.pack(side=Tk.TOP,anchor="w",expand=True)
+		carButton_PLUS = Tk.Button(carHeaderFrame,text="+",fg="red",command=self.addCar)
+		carButton_PLUS.pack(side=Tk.LEFT)
+		label_MAXCAPACITY = Tk.Label(carHeaderFrame,text="Capacity",width=10)
+		label_MAXCAPACITY.pack(side=Tk.LEFT)
+		label_STARTTIME = Tk.Label(carHeaderFrame,text="Start",width=10)
+		label_STARTTIME.pack(side=Tk.LEFT)
+		label_DURATION = Tk.Label(carHeaderFrame,text="Duration",width=10)
+		label_DURATION.pack(side=Tk.LEFT)
+		label_DUPE=Tk.Label(carHeaderFrame,width=3,text="")
+		label_DUPE.pack(side=Tk.LEFT)
+		label_DEL=Tk.Label(carHeaderFrame,width=3,text="")
+		label_DEL.pack(side=Tk.LEFT)
+				
 	def addCar(self):
 		"""Adds a car frame to the list and return the frame"""
 		
-		tempCarFrame=Tk.Frame(self.parametersFrame)
+		tempCarFrame=Tk.Frame(self.carsFrame)
 		self.carFrames.append(tempCarFrame)
 		tempCarFrame.pack(side=Tk.TOP)
 		
@@ -154,17 +230,118 @@ class App:
 			access to tempCarFrames since it's not an attribute and it 
 			can't be an attribute because it must be a local variable.
 			"""
-			if(len(self.carFrames)>1):
-				self.carFrames.remove(tempCarFrame)
-				tempCarFrame.destroy()
+			self.carFrames.remove(tempCarFrame)
+			tempCarFrame.destroy()
 		
 		deleteCarButton = Tk.Button(tempCarFrame,text="X",fg="red",command=removeCar)
 		deleteCarButton.pack(side=Tk.LEFT)
 		
 		
 		return tempCarFrame
+
+	def displayGraph(self,graph):
+		
+		self.guiGraph.generateGraph(graph)
+		self.guiGraph.drawGraph()
 		
 		
+class GUIGraph:
+	def __init__(self,canvas):
+		#self.nodesAmount = 20
+		self.canvas = canvas
+		self.realNodes = []
+		self.positionsInGraph = []
+		self.canvasNodes = []
+		self.margin = 25
+		
+		self.mouseDelta = (None,None)
+		self.currentNode=None
+		
+		self.canvas.bind("<ButtonPress-1>", self.clickObject)
+		self.canvas.bind("<B1-Motion>", self.moveObject)
+		self.canvas.bind("<ButtonRelease-1>", self.releaseObject)
+	
+	def generateGraph(self,graph):
+		self.graph=graph
+		self.nodesAmount=len(graph.nodes)
+		
+		self.nodes=graph.nodes
+		
+		#for i in range(self.nodesAmount):
+		#	self.nodes.append((randint(-100,100),randint(50,100)))
+		
+		self.minX = float("inf")
+		self.minY = float("inf")
+		self.maxX = -float("inf")
+		self.maxY = -float("inf")
+		
+		for node in self.nodes:
+			#prendre les valeurs min et max pour l'échelle
+			x,y = node.i,node.j
+			self.minX=min(self.minX,x)
+			self.minY=min(self.minY,y)
+			
+			self.maxX=max(self.maxX,x)
+			self.maxY=max(self.maxY,y)
+			
+		self.deltaX= self.maxX-self.minX
+		self.deltaY= self.maxY-self.minY
+
+		self.screensize=int(self.canvas.cget("width"))-2*self.margin
+		
+		for node in self.nodes:
+			#convertir les positions des nodes en nouvelles positions
+			x,y = node.i,node.j
+			self.positionsInGraph.append(((x-self.minX)/self.deltaX*self.screensize+self.margin,(y-self.minY)/self.deltaY*self.screensize+self.margin))
+			
+	def drawGraph(self):	
+			
+		#adjacenceMatrix= [[None]*self.nodesAmount for i in range(self.nodesAmount)]
+		#for i in range(self.nodesAmount):
+		#	for j in range(self.nodesAmount):
+		#		adjacenceMatrix[i][j]=choice([0,0,0,0,0,1])
+		
+		adjacenceMatrix=self.graph.getAdjMatrix()
+		
+		
+		
+		for j,(x,y) in enumerate(self.positionsInGraph):
+			self.canvasNodes.append(NodeDrawing(x,y,str(j),self.canvas,self.nodes[j],self.margin))
+			
+			
+		self.linesDrawer = NodeLines(self.canvas,self.canvasNodes,adjacenceMatrix)
+		
+		for drawNode in self.canvasNodes:
+			drawNode.generateDrawing()
+	
+	def clickObject(self,event):
+		#self.coords = event.x,event.y
+		self.currentObject = event.widget.find_withtag("current")
+		
+		if(len(self.currentObject)!=0):
+			drawnClickedObject = self.currentObject[0]
+			
+			for node in self.canvasNodes:
+				if node.isMine(drawnClickedObject):
+					self.mouseDelta = node.x-event.x, node.y-event.y
+					break
+					
+	def moveObject(self,event):
+		if(len(self.currentObject)!=0):
+			drawnClickedObject = self.currentObject[0]
+			
+			for node in self.canvasNodes:
+				if node.isMine(drawnClickedObject):
+					node.move(event.x+self.mouseDelta[0],event.y+self.mouseDelta[1])
+					break
+			#clickedNode = drawnClickedObject.parent
+		self.linesDrawer.drawLines()
+			
+	def releaseObject(self,event):
+		pass	
+		
+		
+	
 root = Tk.Tk()
 
 app = App(root)
