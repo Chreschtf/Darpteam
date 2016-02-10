@@ -8,6 +8,7 @@ import Node
 import os
 from GraphDrawer import *
 from random import randint
+from random import choice
 
 
 try:
@@ -25,11 +26,11 @@ class App:
 		self.parametersFrame = Tk.Frame(mainFrame,bg="pink")
 		self.parametersFrame.pack(side=Tk.RIGHT,anchor="n",expand=True,fill=Tk.BOTH)
 		
-		#self.nodesLabel = Tk.Label(self.parametersFrame,text="Amount of Nodes")
-		#self.nodesEntry = Tk.Entry(self.parametersFrame)
+		self.nodesLabel = Tk.Label(self.parametersFrame,text="Amount of Nodes")
+		self.nodesEntry = Tk.Entry(self.parametersFrame)
 		
-		#self.nodesLabel.pack(side=Tk.TOP,anchor="w")
-		#self.nodesEntry.pack(side=Tk.TOP,anchor="w")
+		self.nodesLabel.pack(side=Tk.TOP,anchor="w")
+		self.nodesEntry.pack(side=Tk.TOP,anchor="w")
 		
 		self.mealsFrame = Tk.Frame(self.parametersFrame)
 		self.mealsFrame.pack(side=Tk.TOP,anchor="nw")
@@ -76,7 +77,7 @@ class App:
 		self.guiGraph = GUIGraph(self.canvas)
 	
 		
-		self.displayGraph()
+		#self.displayGraph()
 
 		#self.hi_there = Tk.Button(self.parametersFrame, text="Hello", command=self.say_hi)
 		#self.parametersFrame.quit est la commande pour quitter
@@ -84,18 +85,21 @@ class App:
 
 	def start_darp(self):
 		try:
-			cooks=int(self.cooksEntry.get())
-			clients=int(self.clientsEntry.get())
-			print("Lancement de l'algo avec",cooks,"cuisiniers et",clients,"clients")
+			#cooks=int(self.cooksEntry.get())
+			#clients=int(self.clientsEntry.get())
+			#print("Lancement de l'algo avec",cooks,"cuisiniers et",clients,"clients")
 			
-			
-			graphe=Graph.Graph(cooks,clients)
+			nodesAmount=int(self.nodesEntry.get())
+			graphe=Graph.Graph(nodesAmount)
 			#TODO : personalisation (endroit, type de repas etc.)
-			depot = graphe.getDeliveryDepot() #TODO : multidepot
+			depot = graphe.nodes[0] #TODO : multidepot
 			
-			print(len(self.carFrames),"voitures")
+			self.displayGraph(graphe)
+			
+			print(nodesAmount,"noeuds,",len(self.carFrames),"voitures")
 			
 			allCars = []
+			allMeals = []
 			
 			
 			for i in range(len(self.carFrames)):
@@ -116,7 +120,7 @@ class App:
 					print("Veuillez entrer un nombre valide pour la voiture",i)
 					
 			if(len(allCars) == len(self.carFrames)):
-				darp = DarpAlgo.DarpAlgo(graphe.getMeals(),allCars)
+				darp = DarpAlgo.DarpAlgo(allMeals,allCars)
 			
 				print("Starting DARP...")
 				darp.createSchedules()
@@ -235,16 +239,17 @@ class App:
 		
 		return tempCarFrame
 
-	def displayGraph(self):
-		self.guiGraph.generateGraph()
+	def displayGraph(self,graph):
+		
+		self.guiGraph.generateGraph(graph)
 		self.guiGraph.drawGraph()
 		
 		
 class GUIGraph:
 	def __init__(self,canvas):
-		self.nodesAmount = 5
+		#self.nodesAmount = 20
 		self.canvas = canvas
-		self.nodes = []
+		self.realNodes = []
 		self.positionsInGraph = []
 		self.canvasNodes = []
 		self.margin = 25
@@ -256,16 +261,23 @@ class GUIGraph:
 		self.canvas.bind("<B1-Motion>", self.moveObject)
 		self.canvas.bind("<ButtonRelease-1>", self.releaseObject)
 	
-	def generateGraph(self):
-		for i in range(self.nodesAmount):
-			self.nodes.append((randint(-100,100),randint(50,100)))
+	def generateGraph(self,graph):
+		self.graph=graph
+		self.nodesAmount=len(graph.nodes)
+		
+		self.nodes=graph.nodes
+		
+		#for i in range(self.nodesAmount):
+		#	self.nodes.append((randint(-100,100),randint(50,100)))
 		
 		self.minX = float("inf")
 		self.minY = float("inf")
 		self.maxX = -float("inf")
 		self.maxY = -float("inf")
 		
-		for (x,y) in self.nodes:
+		for node in self.nodes:
+			#prendre les valeurs min et max pour l'échelle
+			x,y = node.i,node.j
 			self.minX=min(self.minX,x)
 			self.minY=min(self.minY,y)
 			
@@ -276,16 +288,21 @@ class GUIGraph:
 		self.deltaY= self.maxY-self.minY
 
 		self.screensize=int(self.canvas.cget("width"))-2*self.margin
-		for (x,y) in self.nodes:
+		
+		for node in self.nodes:
+			#convertir les positions des nodes en nouvelles positions
+			x,y = node.i,node.j
 			self.positionsInGraph.append(((x-self.minX)/self.deltaX*self.screensize+self.margin,(y-self.minY)/self.deltaY*self.screensize+self.margin))
 			
 	def drawGraph(self):	
 			
-		adjacenceMatrix= [[None]*self.nodesAmount for i in range(self.nodesAmount)]
-			
-		for i in range(self.nodesAmount):
-			for j in range(self.nodesAmount):
-				adjacenceMatrix[i][j]=randint(0,1)
+		#adjacenceMatrix= [[None]*self.nodesAmount for i in range(self.nodesAmount)]
+		#for i in range(self.nodesAmount):
+		#	for j in range(self.nodesAmount):
+		#		adjacenceMatrix[i][j]=choice([0,0,0,0,0,1])
+		
+		adjacenceMatrix=self.graph.adjacencyMatrix
+		
 		
 		
 		for j,(x,y) in enumerate(self.positionsInGraph):
@@ -294,8 +311,8 @@ class GUIGraph:
 			
 		self.linesDrawer = NodeLines(self.canvas,self.canvasNodes,adjacenceMatrix)
 		
-		for node in self.canvasNodes:
-			node.generateDrawing()
+		for drawNode in self.canvasNodes:
+			drawNode.generateDrawing()
 	
 	def clickObject(self,event):
 		#self.coords = event.x,event.y
