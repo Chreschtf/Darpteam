@@ -30,14 +30,36 @@ class Car:
 
     def setCurrentSchedule(self,schedule):
         self.currentSchedule=schedule
-        for i in range(len(self.currentSchedule)-1):
+        i=0
+        stop1=self.currentSchedule[0].getFirstStop()
+        dist=self.graph.dist(self.depot,stop1.getNode())
+        timeDiff=stop1.getST()-self.start
+        slack=timeDiff-dist
+        self.currentSchedule[0].setPrevSlack(slack)
+        while i<len(self.currentSchedule)-1:
             stop1=self.currentSchedule[i].getLastStop()
             stop2=self.currentSchedule[i+1].getFirstStop()
             timeDiff=stop2.getST()- stop1.getST()
             dist=self.graph.dist(stop1.getNode(),stop2.getNode())
             slack=timeDiff-dist
-            self.currentSchedule[i].setNextSlack(slack)
-            self.currentSchedule[i+1].setPrevSlack(slack)
+            if slack!=0:
+                self.currentSchedule[i].setNextSlack(slack)
+                self.currentSchedule[i+1].setPrevSlack(slack)
+                i+=1
+            else:
+                block=self.currentSchedule[i+1]
+                self.currentSchedule.remove(block)
+                self.currentSchedule[i].blockFusion(block)
+        stop2=self.currentSchedule[-1].getLastStop()
+        dist=self.graph.dist(stop2.getNode(),self.depot)
+        timeDiff=self.end-stop2.getST()
+        slack=timeDiff-dist
+        self.currentSchedule[-1].setNextSlack(slack)
+
+        for block in self.currentSchedule:
+            block.calcUPnDOWN()
+
+
 
 
     def getServiceTime(self):
@@ -65,7 +87,7 @@ class Car:
             # schedule
             self.case3(meal)
             #case 4 : pickup and delivery are separated by at least one stop
-            #self.case4(meal)
+            self.case4(meal)
 
             return True
 
@@ -268,61 +290,6 @@ class Car:
             i+=1
 
 
-
-    # def case2Algo(self,p,q,meal,j):
-    #
-    #     deltaP=self.graph.dist(p.getNode(),meal.getChef())+meal.getDRT()+ \
-    #            self.graph.dist(meal.getDestination(),q.getNode())- \
-    #            self.graph.dist(p.getNode(),q.getNode())
-    #
-    #     if deltaP <= p.getBUP()+q.getADOWN():
-    #         feasible=True
-    #         tpu=0
-    #         td=0
-    #         ps=0
-    #         ds=0
-    #         gt=0
-    #         et=0
-    #         lt=0
-    #         shift=0
-    #         if deltaP>q.getADOWN():
-    #             ps=0
-    #             ds=deltaP
-    #             tpu=p.getST()
-    #             td=tpu+meal.getDRT()
-    #         else:
-    #             ds=q.getADOWN()
-    #             ps=q.getADOWN()-deltaP
-    #             tpu=p.getST()+ps+self.graph.dist(p.getNode(),meal.getChef())
-    #             td=tpu+meal.getDRT()
-    #         #ddt, so :
-    #         gt =td
-    #         et=meal.getEDT()
-    #         lt=meal.getLDT()
-    #         if gt<et:
-    #             shift=et-gt
-    #             if shift >(q.getADOWN()-ds) or shift>p.getBDOWN()-ps:
-    #                 feasible=False
-    #             else:
-    #                 tpu+=shift
-    #                 td+=shift
-    #                 ds+=shift
-    #                 ps+=shift
-    #
-    #         elif gt>lt:
-    #             shift=gt-lt
-    #             if shift > (q.getAUP()+ds) or shift >(p.getBUP()+ps):
-    #                 feasible= False
-    #             else:
-    #                 tpu-=shift
-    #                 td-=shift
-    #                 ds-=shift
-    #                 ps-=shift
-    #
-    #         if feasible:
-    #             stop1=Stop(meal.getChef(),tpu,meal,True)
-    #             stop2=Stop(meal.getDestination(),td,meal,False)
-
     def case3and4(self,p,q,r,meal):
         """
         Common code of case 3 and 4
@@ -394,7 +361,8 @@ class Car:
                     block.addLastStop(stop2)
                     block.shiftScheduleBetween(stop1,stop2,ms)
                     block.shiftScheduleBefore(stop1,ps)
-                    self.feasibleSchedules.append(schedule)
+                    if block.respectCharge(self.maxCharge):
+                        self.feasibleSchedules.append(schedule)
                     schedule=deepcopy(self.currentSchedule)
                     block=schedule[-1]
 
@@ -461,7 +429,8 @@ class Car:
                                 block.shiftScheduleBefore(stop1,ps)
                                 block.shiftScheduleAfter(stop2,ds)
                                 block.shiftScheduleBetween(stop1,stop2,ms)
-                                self.feasibleSchedules.append(schedule)
+                                if block.respectCharge(self.maxCharge):
+                                    self.feasibleSchedules.append(schedule)
                                 schedule=deepcopy(self.currentSchedule)
                                 block=schedule[i]
 
