@@ -6,18 +6,38 @@ from Node import *
 # import networkx as nx
 
 class Graph:
-    def __init__(self, nbrNodes):
-    	self.adjacencyMatrix = [[ None for j in range (nbrNodes) ] for i in range (nbrNodes)]
-    	self.nbrNodes = nbrNodes
-    	self.nbrEdges = int(  (randint(15,25)/10) * self.nbrNodes  )
-    	self.nodes = []
-    	self.generateGraph()
+    def __init__(self, nbrNodes=5, mode="Random", nodeList=[], neighbours=[]):
+        self.adjacencyMatrix = [[ None for j in range (nbrNodes) ] for i in range (nbrNodes)]
+        self.nbrNodes = nbrNodes
 
-    	self.copyAdjacencyMatrix = deepcopy(self.adjacencyMatrix)
-    	self.Floyd_Warshall(self.copyAdjacencyMatrix)
-    	self.assureTriangleInequality()
-    	self.shortestPathMatrix = deepcopy(self.adjacencyMatrix)
-    	self.Floyd_Warshall(self.adjacencyMatrix)
+        if mode == "Random":
+        	self.nbrEdges = int(  (randint(12,13)/10) * self.nbrNodes  )
+        	self.nodes = []
+        	self.generateGraph()
+
+        else: # mode == "FromFile"
+            self.nodes = nodeList
+            self.connectGraph(neighbours)
+
+            
+        self.finalAdjMatrix = deepcopy(self.adjacencyMatrix)
+        self.copyAdjacencyMatrix = deepcopy(self.adjacencyMatrix)
+        self.Floyd_Warshall(self.copyAdjacencyMatrix)
+        self.assureTriangleInequality()
+        self.Floyd_Warshall(self.adjacencyMatrix)
+
+
+    def connectGraph(self, neighbours):
+        for elem in neighbours:
+            nodeA = elem[0]
+            for nodeB in elem[1]:
+                if not(nodeB in nodeA.neighbours):
+                    self.connectNodes(nodeA, nodeB)
+
+
+    	
+    def getAdjMatrix(self):
+    	return self.finalAdjMatrix
 
 
     def randomCoords(self, iOther, jOther):
@@ -30,7 +50,7 @@ class Graph:
     	r = randint(0,1)
     	j = -j if r == 1 else j
 
-    	while not((0 <= i+iOther <= 50) and (0 <= j+jOther <= 50)):
+    	while not(  (abs(i+iOther) <= 25) and (abs(j+jOther) <= 25)  ):
     		sum_I_J = randint(4, 14)
     		i = randint(2,sum_I_J-2)
     		j = sum_I_J - i
@@ -43,34 +63,43 @@ class Graph:
     	return (i,j)
 
 
-
     def generateGraph(self):
         createdNodes = 0
         createdEdges = 0
+        lastConnect = None
         
-        maxCoord = 50
-        i = randint((maxCoord//2)-4,(maxCoord//2)+4); j = randint((maxCoord//2)-4,(maxCoord//2)+4)
+        maxCoord = 25
+        i = randint(-4,4); j = randint(-4,4)
         self.nodes.append(Node(i,j, createdNodes))
         createdNodes += 1
 
         # creating a connected graph with  #edges = #Nodes - 1
         while createdNodes < self.nbrNodes:
-            nodeA = choice(self.nodes)
-            (i,j) = self.randomCoords(nodeA.i, nodeA.j)
-            nodeB = Node(i,j, createdNodes)
-            self.nodes.append(nodeB)
-            self.connectNodes(nodeA, nodeB)
-            createdNodes += 1
-            createdEdges += 1
-
+        	if len(self.nodes) == 1:
+        		nodeA = self.nodes[0]
+        	
+        	else:
+        		self.nodes.remove(lastConnect)
+        		nodeA = choice(self.nodes)
+        		self.nodes.append(lastConnect)
+        		
+        	lastConnect = nodeA
+        	(i,j) = self.randomCoords(nodeA.i, nodeA.j)
+        	nodeB = Node(i,j, createdNodes)
+        	self.nodes.append(nodeB)
+        	self.connectNodes(nodeA, nodeB)
+        	createdNodes += 1
+        	createdEdges += 1
+        	
         # adding the remaining edges
         while createdEdges < self.nbrEdges:
             found = False
-            NodeA = choice(self.nodes)
-            nbrTries = 0
-            while len(nodeA.neighbours) > 4 and nbrTries < self.nbrNodes*2:
-            	NodeA = choice(self.nodes)
-            	nbrTries += 1
+            self.nodes.sort(key=lambda obj: len(obj.neighbours))
+            NodeA = choice( self.nodes[0:(len(self.nodes)//3)] )
+            #nbrTries = 0
+            #while len(nodeA.neighbours) > 4 and nbrTries < self.nbrNodes*2:
+            #	NodeA = choice(self.nodes)
+            #	nbrTries += 1
             self.nodes.sort(key=lambda obj: abs(obj.i - NodeA.i)+abs(obj.j - NodeA.j))
 
             i = 1 # self.nodes[0] is NodeA itself
@@ -80,6 +109,7 @@ class Graph:
             if i < len(self.nodes):
             	self.connectNodes(NodeA, self.nodes[i])
             	createdEdges += 1
+            	
 
 
 
