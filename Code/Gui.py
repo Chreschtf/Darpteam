@@ -29,7 +29,7 @@ class App:
 		
 		#PARAMETERS FRAME on the right    self.parametersFrame
 		self.parametersFrame = Tk.Frame(mainFrame,bg="pink")
-		self.parametersFrame.pack(side=Tk.RIGHT,anchor="n",expand=True,fill=Tk.BOTH)
+		self.parametersFrame.pack(side=Tk.RIGHT,anchor="n",fill=Tk.BOTH)
 		
 		
 		
@@ -37,22 +37,32 @@ class App:
 		self.nodesFrame.pack(side=Tk.TOP,anchor="nw")
 		
 		
-		self.nodesLabel = Tk.Label(self.nodesFrame,text="Amount of Nodes")
-		self.nodesEntry = Tk.Entry(self.nodesFrame)
+		self.nodesLabel = Tk.Label(self.nodesFrame,text="Amount of Nodes: ")
+		self.nodesEntry = Tk.Entry(self.nodesFrame,width=4)
 		self.nodesButton = Tk.Button(self.nodesFrame, text="Generate",command = self.generateGraph)
 		
-		self.nodesLabel.pack(side=Tk.LEFT,anchor="nw")
-		self.nodesEntry.pack(side=Tk.LEFT,anchor="nw")
-		self.nodesButton.pack(side=Tk.LEFT,anchor="nw")
+		self.nodesLabel.pack(side=Tk.LEFT,anchor="w")
+		self.nodesEntry.pack(side=Tk.LEFT,anchor="w")
+		self.nodesButton.pack(side=Tk.LEFT,anchor="w")
+		
+		self.depotFrame = Tk.Frame(self.parametersFrame)
+		self.depotFrame.pack(side=Tk.TOP,anchor="nw")
+		
+		self.depotLabel = Tk.Label(self.depotFrame,text="Depot node: ")
+		self.depotEntry = Tk.Entry(self.depotFrame,width=4)
+		self.depotLabel.pack(side=Tk.LEFT,anchor="w")
+		self.depotEntry.pack(side=Tk.LEFT,anchor="w")
+		
 		
 		self.mealsLabel = Tk.Label(self.parametersFrame,text="Meals:")
 		self.mealsFrame = Tk.Frame(self.parametersFrame)
 		self.mealsLabel.pack(side=Tk.TOP,anchor="nw")
-		self.mealsFrame.pack(side=Tk.TOP,anchor="nw")
+		self.mealsFrame.pack(side=Tk.TOP,anchor="nw",fill=Tk.X)
+		
 		self.carsLabel = Tk.Label(self.parametersFrame,text="Cars:")
 		self.carsFrame = Tk.Frame(self.parametersFrame)
 		self.carsLabel.pack(side=Tk.TOP,anchor="nw")
-		self.carsFrame.pack(side=Tk.TOP,anchor="nw")
+		self.carsFrame.pack(side=Tk.TOP,anchor="nw",fill=Tk.X)
 		
 		
 		
@@ -76,24 +86,22 @@ class App:
 		
 		
 
-		self.button = Tk.Button(
-		self.parametersFrame, text="Start", fg="red", command=self.start_darp
-		)
-		self.button.pack(side=Tk.LEFT,anchor="s")
+		self.parserFrame = Tk.Frame(self.parametersFrame)
+		self.parserFrame.pack(side=Tk.BOTTOM,fill=Tk.X)
 		
-		self.exportButton = Tk.Button(self.parametersFrame, text="Export as", command = self.export_data#command = 
+		self.exportButton = Tk.Button(self.parserFrame, text="Export as", command = self.export_data#command = 
 		)
-		self.exportButton.pack(side=Tk.LEFT,anchor="s")
+		self.exportButton.pack(side=Tk.LEFT)
 		
-		self.exportEntry = Tk.Entry(self.parametersFrame)
+		self.exportEntry = Tk.Entry(self.parserFrame)
 		
 		self.exportEntry.delete(0, Tk.END)
 		self.exportEntry.insert(0, "FilenameTest")
 		
-		self.exportEntry.pack(side=Tk.LEFT,anchor="s")
+		self.exportEntry.pack(side=Tk.LEFT,anchor="e",fill=Tk.X)
 		
-		self.loadButton = Tk.Button(self.parametersFrame, text="Load",command = self.import_data)
-		self.loadButton.pack(side=Tk.LEFT,anchor="s")
+		self.loadButton = Tk.Button(self.parserFrame, text="Load\n[TODO]",command = self.import_data)
+		self.loadButton.pack(side=Tk.RIGHT)
 		
 		#self.cooksLabel.pack(side=Tk.TOP)
 		#self.cooksEntry.pack(side=Tk.TOP)
@@ -107,6 +115,13 @@ class App:
 		self.canvas = Tk.Canvas(self.displayFrame, width=480, height=480)
 		self.canvas.pack()
 	
+	
+	
+		self.button = Tk.Button(
+		self.parametersFrame, text="Start DARP [TODO]", fg="red", command=self.start_darp
+		)
+		self.button.pack(side=Tk.BOTTOM,anchor="w")
+		
 		
 		#self.displayGraph()
 
@@ -168,7 +183,7 @@ class App:
 		
 		meals=[] #dtt, deviation, chef,client
 		for mealFrame in self.mealsFrames:
-			meals.append((mealFrame.DEPARTURE.get(),mealFrame.DEVIATION.get(),"0","0"))
+			meals.append((mealFrame.DEPARTURE.get(),mealFrame.DEVIATION.get(),mealFrame.COOK.get(),mealFrame.CLIENT.get()))
 			
 		nodes=[] #id, i,j , neighbours
 		for node in self.graph.nodes:
@@ -177,7 +192,9 @@ class App:
 				neighbours+="|"+str(neighbour.index)
 			nodes.append( (str(node.index), str(node.i), str(node.j), neighbours[1:])  )
 		
-		depots = [("0")]
+		
+		depot=self.depotEntry.get()
+		depots = [(depot)]
 		
 		print("Exporting as ",filename)
 		print("Data:",filename, cars, meals, nodes, depots)
@@ -196,34 +213,45 @@ class App:
 	def createMeals(self):
 		self.mealsFrames = []
 		mealHeaderFrame = Tk.Frame(self.mealsFrame)
-		mealHeaderFrame.pack(side=Tk.TOP,anchor="w")
-		mealButton_PLUS = Tk.Button(mealHeaderFrame,text="+",fg="red",command=self.addMeal)
-		mealButton_PLUS.pack(side=Tk.LEFT)
-		label_DEPARTURE = Tk.Label(mealHeaderFrame,text="Departure")
+		mealHeaderFrame.pack(side=Tk.TOP,anchor="w",fill=Tk.X)
+		
+		label_COOK = Tk.Label(mealHeaderFrame,text="Cook",width=6)
+		label_COOK.pack(side=Tk.LEFT)
+		label_CLIENT = Tk.Label(mealHeaderFrame,text="Client",width=6)
+		label_CLIENT.pack(side=Tk.LEFT)
+		
+		label_DEPARTURE = Tk.Label(mealHeaderFrame,text="Departure",width=9)
 		label_DEPARTURE.pack(side=Tk.LEFT)
-		label_DEVIATION = Tk.Label(mealHeaderFrame,text="Deviation")
+		label_DEVIATION = Tk.Label(mealHeaderFrame,text="Deviation",width=9)
 		label_DEVIATION.pack(side=Tk.LEFT)
+		
+		empty_label = Tk.Label(mealHeaderFrame,width=4)
+		empty_label.pack(side=Tk.LEFT)
+		
+		mealButton_PLUS = Tk.Button(mealHeaderFrame,text="+",fg="red",command=self.addMeal)
+		mealButton_PLUS.pack(side=Tk.RIGHT)
 		
 	def addMeal(self):
 		tempMealFrame=Tk.Frame(self.mealsFrame)
 		self.mealsFrames.append(tempMealFrame)
-		tempMealFrame.pack(side=Tk.TOP)
+		tempMealFrame.pack(side=Tk.TOP,fill=Tk.X)
 		
 		tempMealFrame.DEPARTURE = Tk.StringVar()
 		tempMealFrame.DEVIATION = Tk.StringVar()
 		
-		entry_DEPARTURE = Tk.Entry(tempMealFrame,textvariable=tempMealFrame.DEPARTURE,width=12)
+		tempMealFrame.COOK = Tk.StringVar()
+		tempMealFrame.CLIENT = Tk.StringVar()
+		
+		entry_COOK = Tk.Entry(tempMealFrame,textvariable=tempMealFrame.COOK,width=6)
+		entry_COOK.pack(side=Tk.LEFT)
+		entry_CLIENT = Tk.Entry(tempMealFrame,textvariable=tempMealFrame.CLIENT,width=6)
+		entry_CLIENT.pack(side=Tk.LEFT)
+		
+		entry_DEPARTURE = Tk.Entry(tempMealFrame,textvariable=tempMealFrame.DEPARTURE,width=9)
 		entry_DEPARTURE.pack(side=Tk.LEFT)
-		entry_DEVIATION = Tk.Entry(tempMealFrame,textvariable=tempMealFrame.DEVIATION,width=12)
+		entry_DEVIATION = Tk.Entry(tempMealFrame,textvariable=tempMealFrame.DEVIATION,width=9)
 		entry_DEVIATION.pack(side=Tk.LEFT)
 		
-		def duplicateMeal():
-			mymeal = self.addMeal()
-			mymeal.DEPARTURE.set( tempMealFrame.DEPARTURE.get() )
-			mymeal.DEVIATION.set( tempMealFrame.DEVIATION.get() )
-		
-		duplicateButton = Tk.Button(tempMealFrame,image=self.dupeImage,command=duplicateMeal)
-		duplicateButton.pack(side=Tk.LEFT)
 		
 		def removeMeal(): 
 			"""
@@ -235,7 +263,16 @@ class App:
 			tempMealFrame.destroy()
 		
 		deleteCarButton = Tk.Button(tempMealFrame,text="X",fg="red",command=removeMeal)
-		deleteCarButton.pack(side=Tk.LEFT)
+		deleteCarButton.pack(side=Tk.RIGHT)
+		
+		def duplicateMeal():
+			mymeal = self.addMeal()
+			mymeal.DEPARTURE.set( tempMealFrame.DEPARTURE.get() )
+			mymeal.DEVIATION.set( tempMealFrame.DEVIATION.get() )
+		
+		duplicateButton = Tk.Button(tempMealFrame,image=self.dupeImage,command=duplicateMeal)
+		duplicateButton.pack(side=Tk.RIGHT)
+		
 		
 		
 		return tempMealFrame
@@ -243,26 +280,28 @@ class App:
 	def createCars(self):
 		self.carFrames = []
 		carHeaderFrame = Tk.Frame(self.carsFrame)
-		carHeaderFrame.pack(side=Tk.TOP,anchor="w",expand=True)
-		carButton_PLUS = Tk.Button(carHeaderFrame,text="+",fg="red",command=self.addCar)
-		carButton_PLUS.pack(side=Tk.LEFT)
+		carHeaderFrame.pack(side=Tk.TOP,anchor="w",fill=Tk.X)
+		
 		label_MAXCAPACITY = Tk.Label(carHeaderFrame,text="Capacity",width=10)
 		label_MAXCAPACITY.pack(side=Tk.LEFT)
 		label_STARTTIME = Tk.Label(carHeaderFrame,text="Start",width=10)
 		label_STARTTIME.pack(side=Tk.LEFT)
 		label_DURATION = Tk.Label(carHeaderFrame,text="Duration",width=10)
 		label_DURATION.pack(side=Tk.LEFT)
-		label_DUPE=Tk.Label(carHeaderFrame,width=3,text="")
+		"""label_DUPE=Tk.Label(carHeaderFrame,width=3,text="")
 		label_DUPE.pack(side=Tk.LEFT)
 		label_DEL=Tk.Label(carHeaderFrame,width=3,text="")
-		label_DEL.pack(side=Tk.LEFT)
+		label_DEL.pack(side=Tk.LEFT)"""
+		
+		carButton_PLUS = Tk.Button(carHeaderFrame,text="+",fg="red",command=self.addCar)
+		carButton_PLUS.pack(side=Tk.RIGHT)
 				
 	def addCar(self):
 		"""Adds a car frame to the list and return the frame"""
 		
 		tempCarFrame=Tk.Frame(self.carsFrame)
 		self.carFrames.append(tempCarFrame)
-		tempCarFrame.pack(side=Tk.TOP)
+		tempCarFrame.pack(side=Tk.TOP,fill=Tk.X)
 		
 		tempCarFrame.CAPACITY=Tk.StringVar()
 		tempCarFrame.STARTTIME=Tk.StringVar()
@@ -271,22 +310,15 @@ class App:
 		
 		#carIcon = Tk.Button(tempCarFrame,text="",width=3)
 		#carIcon.pack(side=Tk.LEFT)
-		entry_MAXCAPACITY = Tk.Entry(tempCarFrame,textvariable=tempCarFrame.CAPACITY,width=12)
+		entry_MAXCAPACITY = Tk.Entry(tempCarFrame,textvariable=tempCarFrame.CAPACITY,width=10)
 		entry_MAXCAPACITY.pack(side=Tk.LEFT)
-		entry_STARTTIME = Tk.Entry(tempCarFrame,textvariable=tempCarFrame.STARTTIME,width=12)
+		entry_STARTTIME = Tk.Entry(tempCarFrame,textvariable=tempCarFrame.STARTTIME,width=10)
 		entry_STARTTIME.pack(side=Tk.LEFT)
-		entry_DURATION = Tk.Entry(tempCarFrame,textvariable=tempCarFrame.DURATION,width=12)
+		entry_DURATION = Tk.Entry(tempCarFrame,textvariable=tempCarFrame.DURATION,width=10)
 		entry_DURATION.pack(side=Tk.LEFT)
 
-		def duplicateCar():
-			mycar = self.addCar()
-			mycar.CAPACITY.set( tempCarFrame.CAPACITY.get() )
-			mycar.STARTTIME.set( tempCarFrame.STARTTIME.get() )
-			mycar.DURATION.set( tempCarFrame.DURATION.get() )
-		
-		duplicateButton = Tk.Button(tempCarFrame,image=self.dupeImage,command=duplicateCar)
-		duplicateButton.pack(side=Tk.LEFT)
-		
+
+
 		def removeCar(): 
 			"""
 			Must be inside this function because otherwise we don't have
@@ -297,7 +329,17 @@ class App:
 			tempCarFrame.destroy()
 		
 		deleteCarButton = Tk.Button(tempCarFrame,text="X",fg="red",command=removeCar)
-		deleteCarButton.pack(side=Tk.LEFT)
+		deleteCarButton.pack(side=Tk.RIGHT)
+
+		def duplicateCar():
+			mycar = self.addCar()
+			mycar.CAPACITY.set( tempCarFrame.CAPACITY.get() )
+			mycar.STARTTIME.set( tempCarFrame.STARTTIME.get() )
+			mycar.DURATION.set( tempCarFrame.DURATION.get() )
+		
+		duplicateButton = Tk.Button(tempCarFrame,image=self.dupeImage,command=duplicateCar)
+		duplicateButton.pack(side=Tk.RIGHT)
+		
 		
 		
 		return tempCarFrame
