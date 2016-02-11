@@ -9,6 +9,7 @@ import os
 import GraphDrawer
 from random import randint
 from random import choice
+import DataFileWriter
 
 
 try:
@@ -19,23 +20,41 @@ except ImportError:
 class App:
 
 	def __init__(self, master):
+		self.graph = None
+		self.guiGraph = None
 		
+		#MAINFRAME
 		mainFrame = Tk.Frame(master)
 		mainFrame.pack(fill=Tk.BOTH,expand=True)
 		
+		#PARAMETERS FRAME on the right    self.parametersFrame
 		self.parametersFrame = Tk.Frame(mainFrame,bg="pink")
 		self.parametersFrame.pack(side=Tk.RIGHT,anchor="n",expand=True,fill=Tk.BOTH)
 		
-		self.nodesLabel = Tk.Label(self.parametersFrame,text="Amount of Nodes")
-		self.nodesEntry = Tk.Entry(self.parametersFrame)
 		
-		self.nodesLabel.pack(side=Tk.TOP,anchor="w")
-		self.nodesEntry.pack(side=Tk.TOP,anchor="w")
 		
+		self.nodesFrame = Tk.Frame(self.parametersFrame)
+		self.nodesFrame.pack(side=Tk.TOP,anchor="nw")
+		
+		
+		self.nodesLabel = Tk.Label(self.nodesFrame,text="Amount of Nodes")
+		self.nodesEntry = Tk.Entry(self.nodesFrame)
+		self.nodesButton = Tk.Button(self.nodesFrame, text="Generate",command = self.generateGraph)
+		
+		self.nodesLabel.pack(side=Tk.LEFT,anchor="nw")
+		self.nodesEntry.pack(side=Tk.LEFT,anchor="nw")
+		self.nodesButton.pack(side=Tk.LEFT,anchor="nw")
+		
+		self.mealsLabel = Tk.Label(self.parametersFrame,text="Meals:")
 		self.mealsFrame = Tk.Frame(self.parametersFrame)
+		self.mealsLabel.pack(side=Tk.TOP,anchor="nw")
 		self.mealsFrame.pack(side=Tk.TOP,anchor="nw")
+		self.carsLabel = Tk.Label(self.parametersFrame,text="Cars:")
 		self.carsFrame = Tk.Frame(self.parametersFrame)
+		self.carsLabel.pack(side=Tk.TOP,anchor="nw")
 		self.carsFrame.pack(side=Tk.TOP,anchor="nw")
+		
+		
 		
 		
 		self.displayFrame = Tk.Frame(mainFrame)
@@ -60,8 +79,21 @@ class App:
 		self.button = Tk.Button(
 		self.parametersFrame, text="Start", fg="red", command=self.start_darp
 		)
-		self.button.pack(side=Tk.BOTTOM)
+		self.button.pack(side=Tk.LEFT,anchor="s")
 		
+		self.exportButton = Tk.Button(self.parametersFrame, text="Export as", command = self.export_data#command = 
+		)
+		self.exportButton.pack(side=Tk.LEFT,anchor="s")
+		
+		self.exportEntry = Tk.Entry(self.parametersFrame)
+		
+		self.exportEntry.delete(0, Tk.END)
+		self.exportEntry.insert(0, "FilenameTest")
+		
+		self.exportEntry.pack(side=Tk.LEFT,anchor="s")
+		
+		self.loadButton = Tk.Button(self.parametersFrame, text="Load",command = self.import_data)
+		self.loadButton.pack(side=Tk.LEFT,anchor="s")
 		
 		#self.cooksLabel.pack(side=Tk.TOP)
 		#self.cooksEntry.pack(side=Tk.TOP)
@@ -74,7 +106,6 @@ class App:
 		
 		self.canvas = Tk.Canvas(self.displayFrame, width=480, height=480)
 		self.canvas.pack()
-		self.guiGraph = GUIGraph(self.canvas)
 	
 		
 		#self.displayGraph()
@@ -89,12 +120,6 @@ class App:
 			#clients=int(self.clientsEntry.get())
 			#print("Lancement de l'algo avec",cooks,"cuisiniers et",clients,"clients")
 			
-			nodesAmount=int(self.nodesEntry.get())
-			graphe=Graph.Graph(nodesAmount)
-			#TODO : personalisation (endroit, type de repas etc.)
-			depot = graphe.nodes[0] #TODO : multidepot
-			
-			self.displayGraph(graphe)
 			
 			print(nodesAmount,"noeuds,",len(self.carFrames),"voitures")
 			
@@ -112,7 +137,7 @@ class App:
 					", a une starttime de ",currentStarttime," et a une durée de shift de ",
 					currentDuration)
 					
-					newCar = Car.Car(currentCapacity,currentStarttime,currentDuration,depot,graphe)
+					newCar = Car.Car(currentCapacity,currentStarttime,currentDuration,self.depot,self.graph)
 					allCars.append(newCar)
 					
 					
@@ -129,6 +154,41 @@ class App:
 			
 		except ValueError:
 			print("Veuillez entrer un nombre valide")
+			
+			
+			
+		
+	def export_data(self):
+		filename = self.exportEntry.get()
+		print("Code here to export to",filename)
+		
+		
+		
+		cars=[]
+		for carFrame in self.carFrames:
+			cars.append((carFrame.CAPACITY.get(),carFrame.STARTTIME.get(),carFrame.DURATION.get()))
+		
+		"""
+		self.mealsFrames.append(tempMealFrame)
+		
+		tempMealFrame.DEPARTURE = Tk.StringVar()
+		tempMealFrame.DEVIATION = Tk.StringVar()"""
+		
+		"""
+		meals = [("2","3","0","1"), ("8", "7", "0", "2")]
+		nodes = [("0", "1", "2", "1|2"), ("1", "4", "2", "0"), ("2", "0", "3", "0")]
+		depots = [("1")]
+		
+		DFW = DataFileWriter(filename, cars, meals, nodes, depots)
+		DFW.writeXML_File()
+		
+		DFP = DataFileParser(DFW.filename)
+		DFP.parseXML_File()"""
+		
+	def import_data(self):
+		filename = self.exportEntry.get()
+		print("Code here to load",filename)
+		
 		
 	def createMeals(self):
 		self.mealsFrames = []
@@ -238,9 +298,22 @@ class App:
 		
 		
 		return tempCarFrame
+		
+	def generateGraph(self):
+		try:
+			nodesAmount=int(self.nodesEntry.get())
+			self.graph=Graph.Graph(nodesAmount)
+			#TODO : personalisation (endroit, type de repas etc.)
+			self.depot = [self.graph.nodes[0]] #TODO : multidepot
+			
+			self.displayGraph(self.graph)
+		except ValueError:
+			print("Veuillez entrer une valeur")
 
 	def displayGraph(self,graph):
-		
+		if(self.guiGraph!=None):
+			self.guiGraph.__init__(self.canvas)
+		self.guiGraph = GUIGraph(self.canvas)
 		self.guiGraph.generateGraph(graph)
 		self.guiGraph.drawGraph()
 		
@@ -260,8 +333,10 @@ class GUIGraph:
 		self.canvas.bind("<ButtonPress-1>", self.clickObject)
 		self.canvas.bind("<B1-Motion>", self.moveObject)
 		self.canvas.bind("<ButtonRelease-1>", self.releaseObject)
+		
 	
 	def generateGraph(self,graph):
+		self.canvas.delete(Tk.ALL)
 		self.graph=graph
 		self.nodesAmount=len(graph.nodes)
 		
