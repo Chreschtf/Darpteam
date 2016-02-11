@@ -7,7 +7,7 @@ from Node import *
 from random import randint
 
 if __name__=="__main__":
-    n=11
+    n=17
     g=Graph(n)
     nodes = g.nodes
     depot = nodes[0]
@@ -16,7 +16,7 @@ if __name__=="__main__":
     while i<n:
         chef1=nodes[i]
         client1=nodes[i+1]
-        meal=Meal(chef1,client1,g.dist(chef1,client1),250,200)
+        meal=Meal(chef1,client1,g.dist(chef1,client1),randint(230,260),200)
         meals.append(meal)
         i+=2
     car1=Car(12,0,800,depot,g)

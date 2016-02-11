@@ -73,6 +73,12 @@ class Block:
     def getNextSlack(self):
         return self.nextSlack
 
+    def blockFusion(self,block):
+        """
+        combining 2 blocks
+        """
+        self.stops.extend(block.stops)
+
     def calcUPnDOWN(self):
 
         #setting BDOWN and BUP
@@ -94,8 +100,8 @@ class Block:
             self.stops[r].setADOWN(min(adown,self.nextSlack))
 
     def shiftSchedule(self,shift):
-        self.prevSlack+=shift
-        self.nextSlack-=shift
+        #self.prevSlack+=shift
+        #self.nextSlack-=shift
         for stop in self.stops:
             stop.shiftST(shift)
 
@@ -103,7 +109,7 @@ class Block:
         self.end=self.stops[-1].getST()
 
     def shiftScheduleBefore(self,stop,shift):
-        self.prevSlack+=shift
+        #self.prevSlack+=shift
         i=0
         while self.stops[i]!=stop:
             self.stops[i].shiftST(shift)
@@ -111,7 +117,7 @@ class Block:
         self.start=self.stops[0].getST()
 
     def shiftScheduleAfter(self,stop,shift):
-        self.nextSlack-=shift
+        #self.nextSlack-=shift
         i=len(self.stops)-1
         while self.stops[i]!=stop:
             self.stops[i].shiftST(shift)
@@ -160,6 +166,18 @@ class Block:
             charge+=stop.isPickup()
         return charge
 
+    def respectCharge(self,maxCharge):
+        charge=0
+        respect=True
+        i=0
+        while i<len(self.stops) and respect:
+            if self.stops[i].isPickup():
+                charge+=1
+            else:
+                charge-=1
+            respect=charge<=maxCharge
+            i+=1
+        return respect
 
     def __str__(self):
         txt="Block : \n"
