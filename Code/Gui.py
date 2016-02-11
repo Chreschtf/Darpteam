@@ -6,7 +6,7 @@ import Graph
 import Meal
 import Node
 import os
-from GraphDrawer import *
+import GraphDrawer
 from random import randint
 from random import choice
 
@@ -306,10 +306,11 @@ class GUIGraph:
 		
 		
 		for j,(x,y) in enumerate(self.positionsInGraph):
-			self.canvasNodes.append(NodeDrawing(x,y,str(j),self.canvas,self.nodes[j],self.margin))
+			self.canvasNodes.append(GraphDrawer.NodeDrawing(x,y,str(j),self.canvas,self.nodes[j],self.margin))
 			
 			
-		self.linesDrawer = NodeLines(self.canvas,self.canvasNodes,adjacenceMatrix)
+		#self.linesDrawer = NodeLines(self.canvas,self.canvasNodes,adjacenceMatrix)
+		GraphDrawer.generateLines(self.canvas,self.canvasNodes,adjacenceMatrix)
 		
 		for drawNode in self.canvasNodes:
 			drawNode.generateDrawing()
@@ -335,7 +336,7 @@ class GUIGraph:
 					node.move(event.x+self.mouseDelta[0],event.y+self.mouseDelta[1])
 					break
 			#clickedNode = drawnClickedObject.parent
-		self.linesDrawer.drawLines()
+		#self.linesDrawer.drawLines() #lines are self-updating now
 			
 	def releaseObject(self,event):
 		pass	
