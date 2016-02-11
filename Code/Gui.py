@@ -10,12 +10,17 @@ import GraphDrawer
 from random import randint
 from random import choice
 import DataFileWriter
+import DataFileParser
+
 
 
 try:
 	import Tkinter as Tk
+	from Tkinter.filedialog import askopenfilename
 except ImportError:
 	import tkinter as Tk
+	from tkinter.filedialog import askopenfilename
+
 
 class App:
 
@@ -38,7 +43,8 @@ class App:
 		
 		
 		self.nodesLabel = Tk.Label(self.nodesFrame,text="Amount of Nodes: ")
-		self.nodesEntry = Tk.Entry(self.nodesFrame,width=4)
+		#self.nodesEntry = Tk.Entry(self.nodesFrame,width=4)
+		self.nodesEntry = Tk.Spinbox(self.nodesFrame, from_=3, to=15, width=4)
 		self.nodesButton = Tk.Button(self.nodesFrame, text="Generate",command = self.generateGraph)
 		
 		self.nodesLabel.pack(side=Tk.LEFT,anchor="w")
@@ -49,7 +55,8 @@ class App:
 		self.depotFrame.pack(side=Tk.TOP,anchor="nw")
 		
 		self.depotLabel = Tk.Label(self.depotFrame,text="Depot node: ")
-		self.depotEntry = Tk.Entry(self.depotFrame,width=4)
+		#self.depotEntry = Tk.Entry(self.depotFrame,width=4)
+		self.depotEntry = Tk.Spinbox(self.depotFrame, from_=1, to=1, width=4)
 		self.depotLabel.pack(side=Tk.LEFT,anchor="w")
 		self.depotEntry.pack(side=Tk.LEFT,anchor="w")
 		
@@ -100,7 +107,7 @@ class App:
 		
 		self.exportEntry.pack(side=Tk.LEFT,anchor="e",fill=Tk.X)
 		
-		self.loadButton = Tk.Button(self.parserFrame, text="Load\n[TODO]",command = self.import_data)
+		self.loadButton = Tk.Button(self.parserFrame, text="Load",command = self.import_data)
 		self.loadButton.pack(side=Tk.RIGHT)
 		
 		#self.cooksLabel.pack(side=Tk.TOP)
@@ -206,9 +213,14 @@ class App:
 		#DFP.parseXML_File()
 		
 	def import_data(self):
-		filename = self.exportEntry.get()
-		print("Code here to load",filename)
-		
+		#filename = self.exportEntry.get()
+		filename = askopenfilename(initialdir="../DataFiles")
+		DFP = DataFileParser.DataFileParser(filename)
+		DFP.parseXML_File()
+		# TODO : give Data to Algo ?
+		self.graph = DFP.getGraph()
+		self.displayGraph(self.graph)
+
 		
 	def createMeals(self):
 		self.mealsFrames = []
@@ -242,15 +254,19 @@ class App:
 		tempMealFrame.COOK = Tk.StringVar()
 		tempMealFrame.CLIENT = Tk.StringVar()
 		
-		entry_COOK = Tk.Entry(tempMealFrame,textvariable=tempMealFrame.COOK,width=6)
+		#entry_COOK = Tk.Entry(tempMealFrame,textvariable=tempMealFrame.COOK,width=6)
+		entry_COOK = Tk.Spinbox(tempMealFrame, from_=0, to=len(self.graph.nodes)-1, textvariable=tempMealFrame.COOK, width=6)
 		entry_COOK.pack(side=Tk.LEFT)
-		entry_CLIENT = Tk.Entry(tempMealFrame,textvariable=tempMealFrame.CLIENT,width=6)
+		#entry_CLIENT = Tk.Entry(tempMealFrame,textvariable=tempMealFrame.CLIENT,width=6)
+		entry_CLIENT = Tk.Spinbox(tempMealFrame, from_=0, to=len(self.graph.nodes)-1, textvariable=tempMealFrame.CLIENT, width=6)
 		entry_CLIENT.pack(side=Tk.LEFT)
 		
-		entry_DEPARTURE = Tk.Entry(tempMealFrame,textvariable=tempMealFrame.DEPARTURE,width=9)
-		entry_DEPARTURE.pack(side=Tk.LEFT)
-		entry_DEVIATION = Tk.Entry(tempMealFrame,textvariable=tempMealFrame.DEVIATION,width=9)
-		entry_DEVIATION.pack(side=Tk.LEFT)
+		#entry_DEPARTURE = Tk.Entry(tempMealFrame,textvariable=tempMealFrame.DEPARTURE,width=9)
+		entry_DEPARTURE = Tk.Spinbox(tempMealFrame, from_=0, to=100, textvariable=tempMealFrame.DEPARTURE, width=9)
+		entry_DEPARTURE.pack(side=Tk.LEFT) # TODO: realTime
+		#entry_DEVIATION = Tk.Entry(tempMealFrame,textvariable=tempMealFrame.DEVIATION,width=9)
+		entry_DEVIATION = Tk.Spinbox(tempMealFrame, from_=0, to=100, textvariable=tempMealFrame.DEVIATION, width=9)
+		entry_DEVIATION.pack(side=Tk.LEFT) # TODO: realTime
 		
 		
 		def removeMeal(): 
@@ -310,11 +326,14 @@ class App:
 		
 		#carIcon = Tk.Button(tempCarFrame,text="",width=3)
 		#carIcon.pack(side=Tk.LEFT)
-		entry_MAXCAPACITY = Tk.Entry(tempCarFrame,textvariable=tempCarFrame.CAPACITY,width=10)
+		#entry_MAXCAPACITY = Tk.Entry(tempCarFrame,textvariable=tempCarFrame.CAPACITY,width=10)
+		entry_MAXCAPACITY = Tk.Spinbox(tempCarFrame, from_=5, to=25, textvariable=tempCarFrame.CAPACITY,width=10)
 		entry_MAXCAPACITY.pack(side=Tk.LEFT)
-		entry_STARTTIME = Tk.Entry(tempCarFrame,textvariable=tempCarFrame.STARTTIME,width=10)
-		entry_STARTTIME.pack(side=Tk.LEFT)
-		entry_DURATION = Tk.Entry(tempCarFrame,textvariable=tempCarFrame.DURATION,width=10)
+		#entry_STARTTIME = Tk.Entry(tempCarFrame,textvariable=tempCarFrame.STARTTIME,width=10)
+		entry_STARTTIME = Tk.Spinbox(tempCarFrame, from_=0, to=100, textvariable=tempCarFrame.STARTTIME,width=10)
+		entry_STARTTIME.pack(side=Tk.LEFT) # TODO : real time
+		#entry_DURATION = Tk.Entry(tempCarFrame,textvariable=tempCarFrame.DURATION,width=10)
+		entry_DURATION = Tk.Spinbox(tempCarFrame, from_=0, to=100, textvariable=tempCarFrame.DURATION,width=10)
 		entry_DURATION.pack(side=Tk.LEFT)
 
 
