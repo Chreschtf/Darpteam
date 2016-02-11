@@ -159,31 +159,34 @@ class App:
 			
 		
 	def export_data(self):
+		
 		filename = self.exportEntry.get()
-		print("Code here to export to",filename)
 		
-		
-		
-		cars=[]
+		cars=[] #maxcap, starttime, duration
 		for carFrame in self.carFrames:
 			cars.append((carFrame.CAPACITY.get(),carFrame.STARTTIME.get(),carFrame.DURATION.get()))
 		
-		"""
-		self.mealsFrames.append(tempMealFrame)
+		meals=[] #dtt, deviation, chef,client
+		for mealFrame in self.mealsFrames:
+			meals.append((mealFrame.DEPARTURE.get(),mealFrame.DEVIATION.get(),"0","0"))
+			
+		nodes=[] #id, i,j , neighbours
+		for node in self.graph.nodes:
+			neighbours = ""
+			for neighbour in node.neighbours:
+				neighbours+="|"+str(neighbour.index)
+			nodes.append( (str(node.index), str(node.i), str(node.j), neighbours[1:])  )
 		
-		tempMealFrame.DEPARTURE = Tk.StringVar()
-		tempMealFrame.DEVIATION = Tk.StringVar()"""
+		depots = [("0")]
 		
-		"""
-		meals = [("2","3","0","1"), ("8", "7", "0", "2")]
-		nodes = [("0", "1", "2", "1|2"), ("1", "4", "2", "0"), ("2", "0", "3", "0")]
-		depots = [("1")]
+		print("Exporting as ",filename)
+		print("Data:",filename, cars, meals, nodes, depots)
 		
-		DFW = DataFileWriter(filename, cars, meals, nodes, depots)
+		DFW = DataFileWriter.DataFileWriter(filename, cars, meals, nodes, depots)
 		DFW.writeXML_File()
 		
-		DFP = DataFileParser(DFW.filename)
-		DFP.parseXML_File()"""
+		#DFP = DataFileParser(DFW.filename)
+		#DFP.parseXML_File()
 		
 	def import_data(self):
 		filename = self.exportEntry.get()
