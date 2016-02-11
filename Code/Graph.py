@@ -11,7 +11,7 @@ class Graph:
         self.nbrNodes = nbrNodes
 
         if mode == "Random":
-        	self.nbrEdges = int(  (randint(10,13)/10) * self.nbrNodes  )
+        	self.nbrEdges = int(  (randint(12,13)/10) * self.nbrNodes  )
         	self.nodes = []
         	self.generateGraph()
 
@@ -63,7 +63,6 @@ class Graph:
     	return (i,j)
 
 
-
     def generateGraph(self):
         createdNodes = 0
         createdEdges = 0
@@ -77,14 +76,13 @@ class Graph:
         # creating a connected graph with  #edges = #Nodes - 1
         while createdNodes < self.nbrNodes:
         	if len(self.nodes) == 1:
-        		
-        		nodeA = choice(self.nodes)
+        		nodeA = self.nodes[0]
         	
         	else:
-        		
         		self.nodes.remove(lastConnect)
         		nodeA = choice(self.nodes)
         		self.nodes.append(lastConnect)
+        		
         	lastConnect = nodeA
         	(i,j) = self.randomCoords(nodeA.i, nodeA.j)
         	nodeB = Node(i,j, createdNodes)
@@ -92,7 +90,7 @@ class Graph:
         	self.connectNodes(nodeA, nodeB)
         	createdNodes += 1
         	createdEdges += 1
-
+        	
         # adding the remaining edges
         while createdEdges < self.nbrEdges:
             found = False
@@ -111,6 +109,7 @@ class Graph:
             if i < len(self.nodes):
             	self.connectNodes(NodeA, self.nodes[i])
             	createdEdges += 1
+            	
 
 
 
