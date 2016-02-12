@@ -103,31 +103,21 @@ class Car:
 
         # pickup and delivery are in different blocks
         i=0
-        #choice of block for pickup :
-        while i<len(self.currentSchedule)-1 and (
-                        meal.getEPT() < self.currentSchedule[i].getEnd()+
-                        self.currentSchedule[i].getNextSlack() or
-                        meal.getLPT() < self.currentSchedule[i].getEnd()+
-                        self.currentSchedule[i].getNextSlack()):
-            j=i+1
-            #determining block for delivery :
+        schedule=deepcopy(self.currentSchedule)
+        while i<len(schedule)-1:
+            block=schedule[i]
+            slack=block.getPrevSlack()+block.getNextSlack()
+            mrts=dict()
+            j=i
+            while j<len(schedule):
+                slack+=schedule[j].getNextSlack()
+                block.blockFusion(schedule[j])
 
-            while j<len(self.currentSchedule) and (
-                                self.currentSchedule[i].getStart()-self.currentSchedule[i].getPrevSlack() < \
-                                meal.getEDT()  or
-                                self.currentSchedule[i].getStart()-self.currentSchedule[i].getPrevSlack() < \
-                                meal.getDPT() ):
+
                 j+=1
 
 
             i+=1
-
-
-
-        for i in range(len(self.currentSchedule)-1):
-            #if ?
-            for j in range(i+1,len(self.currentSchedule)):
-                pass
 
 
 

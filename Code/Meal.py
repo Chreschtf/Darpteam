@@ -24,6 +24,9 @@ class Meal:
     def getDDT(self):
         return self.ddt
 
+    def getMRT(self):
+        return self.ldt-self.ept
+
     def getEPT(self):
         return self.ept
 

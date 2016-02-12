@@ -9,9 +9,10 @@ class Stop:
         self.bdown = 0  # max time preceding stops can be delayed  [0..r]
         self.aup = 0  # max time following stops can be advanced  [r..d]
         self.adown = 0  # max time following stops can be delayed  [r..d]
+        #
+        # self.r=abs(min(self.st-self.getET(),0))
+        # self.a=self.getLT()-self.st
 
-        self.r=abs(min(self.st-self.getET(),0))
-        self.a=self.getLT()-self.st
 
 
     def getST(self):
@@ -24,10 +25,11 @@ class Stop:
             return self.meal.getDDT()
 
     def getR(self):
-        return self.r
+        return abs(min(self.st-self.getET(),0))
 
     def getA(self):
-        return self.a
+        return self.getLT()-self.st
+
 
     def getET(self):
         if self.pickup:
