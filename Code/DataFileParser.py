@@ -12,6 +12,7 @@ class DataFileParser:
 		self.meals = []
 		self.nodes = []
 		self.depots = []
+		self.graph = None
 		
 	
 	def parseXML_File(self):
@@ -29,7 +30,7 @@ class DataFileParser:
 			elem[0] = self.NodeWithIndex(elem[0])
 			elem[1] = newList
 
-		G = Graph( len(self.nodes), "FromFile", self.nodes, neighbours )
+		self.graph = Graph( len(self.nodes), "FromFile", self.nodes, neighbours )
 			
 		
 		for depot in root.iter( "depot" ):
@@ -39,11 +40,11 @@ class DataFileParser:
 		for meal in root.iter( "meal" ):
 			chef = self.NodeWithIndex(int(meal.attrib["chef"]))
 			client = self.NodeWithIndex(int(meal.attrib["client"]))
-			self.meals.append( Meal(chef, client, G.dist(chef, client), int(meal.attrib["ddt"]), int(meal.attrib["deviation"])) )
+			self.meals.append( Meal(chef, client, self.graph.dist(chef, client), int(meal.attrib["ddt"]), int(meal.attrib["deviation"])) )
 		
 		
 		for car in root.iter( "car" ):
-			self.cars.append( Car(car.attrib["maxCharge"], car.attrib["start"], car.attrib["duration"], self.depots[0], G) ) # utiliser plusieurs depots ?
+			self.cars.append( Car(car.attrib["maxCharge"], car.attrib["start"], car.attrib["duration"], self.depots[0], self.graph) ) # utiliser plusieurs depots ?
 			
 			
 			
@@ -66,5 +67,8 @@ class DataFileParser:
 		
 	def getCars(self):
 		return self.cars
+
+	def getGraph(self):
+		return self.graph
 		
 		

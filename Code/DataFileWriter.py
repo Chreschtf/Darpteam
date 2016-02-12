@@ -5,7 +5,7 @@ from xml.etree.ElementTree import Element, SubElement, Comment
 from DataFileParser import *
 
 class DataFileWriter:
-	def __init__(self,filename, cars, meals, nodes, depots):
+	def __init__(self, filename, cars, meals, nodes, depots):
 		self.cars = cars
 		self.meals = meals
 		self.nodes = nodes
