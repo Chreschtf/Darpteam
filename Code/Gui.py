@@ -12,6 +12,8 @@ from random import choice
 import DataFileWriter
 import DataFileParser
 
+#TODO Ajouter les cars et les meals et les mettre à jour quand on load un file.
+#Mettre à jour la valeur maximale des spinbox (depot, meals.cook, meals.client) quand le graphe change de taille (après un load/après un generate)
 
 
 try:
@@ -54,12 +56,23 @@ class App:
 		self.depotFrame = Tk.Frame(self.parametersFrame)
 		self.depotFrame.pack(side=Tk.TOP,anchor="nw")
 		
+		def checkNode(event):
+			event.widget.configure(bg = "#ff6666")
+			try:
+				if(0<=int(event.widget.get())<len(self.graph.nodes)):
+					event.widget.configure(bg = "white")
+				print(event.widget.get())
+			except:
+				pass
+				
+		
 		self.depotLabel = Tk.Label(self.depotFrame,text="Depot node: ")
 		#self.depotEntry = Tk.Entry(self.depotFrame,width=4)
-		self.depotEntry = Tk.Spinbox(self.depotFrame, from_=1, to=1, width=4)
+		self.depotEntry = Tk.Spinbox(self.depotFrame, from_=0, to=1, width=4)
 		self.depotLabel.pack(side=Tk.LEFT,anchor="w")
 		self.depotEntry.pack(side=Tk.LEFT,anchor="w")
-		
+		self.depotEntry.bind("<FocusOut>",checkNode)
+		self.depotEntry.bind("<KeyRelease>",checkNode)
 		
 		self.mealsLabel = Tk.Label(self.parametersFrame,text="Meals:")
 		self.mealsFrame = Tk.Frame(self.parametersFrame)
@@ -182,36 +195,38 @@ class App:
 		
 	def export_data(self):
 		
-		filename = self.exportEntry.get()
-		
-		cars=[] #maxcap, starttime, duration
-		for carFrame in self.carFrames:
-			cars.append((carFrame.CAPACITY.get(),carFrame.STARTTIME.get(),carFrame.DURATION.get()))
-		
-		meals=[] #dtt, deviation, chef,client
-		for mealFrame in self.mealsFrames:
-			meals.append((mealFrame.DEPARTURE.get(),mealFrame.DEVIATION.get(),mealFrame.COOK.get(),mealFrame.CLIENT.get()))
+		if self.verifyEntries():			
+			filename = self.exportEntry.get()
 			
-		nodes=[] #id, i,j , neighbours
-		for node in self.graph.nodes:
-			neighbours = ""
-			for neighbour in node.neighbours:
-				neighbours+="|"+str(neighbour.index)
-			nodes.append( (str(node.index), str(node.i), str(node.j), neighbours[1:])  )
-		
-		
-		depot=self.depotEntry.get()
-		depots = [(depot)]
-		
-		print("Exporting as ",filename)
-		print("Data:",filename, cars, meals, nodes, depots)
-		
-		DFW = DataFileWriter.DataFileWriter(filename, cars, meals, nodes, depots)
-		DFW.writeXML_File()
-		
-		#DFP = DataFileParser(DFW.filename)
-		#DFP.parseXML_File()
-		
+			cars=[] #maxcap, starttime, duration
+			for carFrame in self.carFrames:
+				cars.append((carFrame.CAPACITY.get(),carFrame.STARTTIME.get(),carFrame.DURATION.get()))
+			
+			meals=[] #dtt, deviation, chef,client
+			for mealFrame in self.mealsFrames:
+				meals.append((mealFrame.DEPARTURE.get(),mealFrame.DEVIATION.get(),mealFrame.COOK.get(),mealFrame.CLIENT.get()))
+				
+			nodes=[] #id, i,j , neighbours
+			for node in self.graph.nodes:
+				neighbours = ""
+				for neighbour in node.neighbours:
+					neighbours+="|"+str(neighbour.index)
+				nodes.append( (str(node.index), str(node.i), str(node.j), neighbours[1:])  )
+			
+			
+			depot=self.depotEntry.get()
+			depots = [(depot)]
+			
+			print("Exporting as ",filename)
+			print("Data:",filename, cars, meals, nodes, depots)
+			
+			DFW = DataFileWriter.DataFileWriter(filename, cars, meals, nodes, depots)
+			DFW.writeXML_File()
+			
+			#DFP = DataFileParser(DFW.filename)
+			#DFP.parseXML_File()
+		else:
+			print("error")
 	def import_data(self):
 		#filename = self.exportEntry.get()
 		filename = askopenfilename(initialdir="../DataFiles")
@@ -226,6 +241,9 @@ class App:
 		self.mealsFrames = []
 		mealHeaderFrame = Tk.Frame(self.mealsFrame)
 		mealHeaderFrame.pack(side=Tk.TOP,anchor="w",fill=Tk.X)
+		
+		
+	
 		
 		label_COOK = Tk.Label(mealHeaderFrame,text="Cook",width=6)
 		label_COOK.pack(side=Tk.LEFT)
@@ -254,19 +272,47 @@ class App:
 		tempMealFrame.COOK = Tk.StringVar()
 		tempMealFrame.CLIENT = Tk.StringVar()
 		
+		
+		def checkNode(event):
+			event.widget.configure(bg = "#ff6666")
+			try:
+				if(0<=int(event.widget.get())<len(self.graph.nodes)):
+					event.widget.configure(bg = "white")
+				print(event.widget.get())
+			except:
+				pass
+				
+				
+		def checkValue(event):
+			event.widget.configure(bg = "#ff6666")
+			try:
+				if(int(event.widget.get())>=0):
+					event.widget.configure(bg = "white")
+				print(event.widget.get())
+			except:
+				pass
+		
 		#entry_COOK = Tk.Entry(tempMealFrame,textvariable=tempMealFrame.COOK,width=6)
 		entry_COOK = Tk.Spinbox(tempMealFrame, from_=0, to=len(self.graph.nodes)-1, textvariable=tempMealFrame.COOK, width=6)
 		entry_COOK.pack(side=Tk.LEFT)
+		entry_COOK.bind("<FocusOut>",checkNode)
+		entry_COOK.bind("<KeyRelease>",checkNode)
 		#entry_CLIENT = Tk.Entry(tempMealFrame,textvariable=tempMealFrame.CLIENT,width=6)
 		entry_CLIENT = Tk.Spinbox(tempMealFrame, from_=0, to=len(self.graph.nodes)-1, textvariable=tempMealFrame.CLIENT, width=6)
 		entry_CLIENT.pack(side=Tk.LEFT)
+		entry_CLIENT.bind("<FocusOut>",checkNode)
+		entry_CLIENT.bind("<KeyRelease>",checkNode)
 		
 		#entry_DEPARTURE = Tk.Entry(tempMealFrame,textvariable=tempMealFrame.DEPARTURE,width=9)
 		entry_DEPARTURE = Tk.Spinbox(tempMealFrame, from_=0, to=100, textvariable=tempMealFrame.DEPARTURE, width=9)
 		entry_DEPARTURE.pack(side=Tk.LEFT) # TODO: realTime
+		entry_DEPARTURE.bind("<FocusOut>",checkValue)
+		entry_DEPARTURE.bind("<KeyRelease>",checkValue)
 		#entry_DEVIATION = Tk.Entry(tempMealFrame,textvariable=tempMealFrame.DEVIATION,width=9)
 		entry_DEVIATION = Tk.Spinbox(tempMealFrame, from_=0, to=100, textvariable=tempMealFrame.DEVIATION, width=9)
 		entry_DEVIATION.pack(side=Tk.LEFT) # TODO: realTime
+		entry_DEVIATION.bind("<FocusOut>",checkValue)
+		entry_DEVIATION.bind("<KeyRelease>",checkValue)
 		
 		
 		def removeMeal(): 
@@ -324,17 +370,33 @@ class App:
 		tempCarFrame.DURATION=Tk.StringVar()
 		
 		
+		def checkValue(event):
+			event.widget.configure(bg = "#ff6666")
+			try:
+				if(int(event.widget.get())>=0):
+					event.widget.configure(bg = "white")
+				print(event.widget.get())
+			except:
+				pass
+		
 		#carIcon = Tk.Button(tempCarFrame,text="",width=3)
 		#carIcon.pack(side=Tk.LEFT)
 		#entry_MAXCAPACITY = Tk.Entry(tempCarFrame,textvariable=tempCarFrame.CAPACITY,width=10)
 		entry_MAXCAPACITY = Tk.Spinbox(tempCarFrame, from_=5, to=25, textvariable=tempCarFrame.CAPACITY,width=10)
 		entry_MAXCAPACITY.pack(side=Tk.LEFT)
+		entry_MAXCAPACITY.bind("<FocusOut>",checkValue)
+		entry_MAXCAPACITY.bind("<KeyRelease>",checkValue)
 		#entry_STARTTIME = Tk.Entry(tempCarFrame,textvariable=tempCarFrame.STARTTIME,width=10)
 		entry_STARTTIME = Tk.Spinbox(tempCarFrame, from_=0, to=100, textvariable=tempCarFrame.STARTTIME,width=10)
 		entry_STARTTIME.pack(side=Tk.LEFT) # TODO : real time
+		entry_STARTTIME.bind("<FocusOut>",checkValue)
+		entry_STARTTIME.bind("<KeyRelease>",checkValue)
+		#entry_STARTTIME.bind("<KeyRelease>",checkValue)
 		#entry_DURATION = Tk.Entry(tempCarFrame,textvariable=tempCarFrame.DURATION,width=10)
 		entry_DURATION = Tk.Spinbox(tempCarFrame, from_=0, to=100, textvariable=tempCarFrame.DURATION,width=10)
 		entry_DURATION.pack(side=Tk.LEFT)
+		entry_DURATION.bind("<FocusOut>",checkValue)
+		entry_DURATION.bind("<KeyRelease>",checkValue)
 
 
 
@@ -380,7 +442,27 @@ class App:
 		self.guiGraph = GUIGraph(self.canvas)
 		self.guiGraph.generateGraph(graph)
 		self.guiGraph.drawGraph()
-		
+	
+	def verifyEntries(self):
+		#gérer les float ? 0.5 capacity?
+		try:
+			for carFrame in self.carFrames:	
+				if int(carFrame.CAPACITY.get()) < 0 or int(carFrame.STARTTIME.get()) < 0 or int(carFrame.DURATION.get()) < 0:
+					print("car")
+					return False
+			for mealFrame in self.mealsFrames:
+				if (int(mealFrame.DEPARTURE.get()) < 0 or int(mealFrame.DEVIATION.get()) < 0 or not(0 <= int(mealFrame.COOK.get()) < len(self.graph.nodes)) or not(0 <= int(mealFrame.CLIENT.get()) < len(self.graph.nodes))):
+					print("meal")
+					return False
+			if not(0 <= int(self.depotEntry.get()) < len(self.graph.nodes)):
+				print("depot")
+				return False
+			return True
+		except:
+			print("value")
+			return False
+			
+			
 		
 class GUIGraph:
 	def __init__(self,canvas):
