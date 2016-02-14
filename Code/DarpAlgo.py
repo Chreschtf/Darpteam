@@ -22,7 +22,7 @@ class DarpAlgo:
         for i in range(len(self.meals)):
             bestSchedules=[]
             for j in range(len(self.cars)):
-                self.addToCar(self.meals[i],self.cars[j],self)
+                self.addToCar(self.meals[i],self.cars[j])
                 bestSchedule=self.findBestCarSchedule(self.cars[j],self.meals[i])
                 if bestSchedule!=[float("inf")]: #determine best overall schedule
                     bestSchedule.append(j)
@@ -34,8 +34,9 @@ class DarpAlgo:
         i=0
 
 
-    def addToCar(self,meal,car,utilityC):
-        car.addIntoSameBlock(meal,utilityC)
+    def addToCar(self,meal,car):
+        car.addIntoSameBlock(meal,self)
+        car.addIntoDifferentBlocks(meal)
 
 
     def scheduleOptimisation(self,schedule):
