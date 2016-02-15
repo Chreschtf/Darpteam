@@ -137,7 +137,7 @@ class LineDrawing:
 		self.canvas.coords(self.thinLine,self.lineCoords())
 		
 		if(abs(self.lineDist()-self.distance)>4):
-			self.canvas.itemconfig(self.thinLine,dash=max(1,int(6*self.lineDist()/max(1,self.distance))))
+			self.canvas.itemconfig(self.thinLine,dash=min(255,max(1,int(6*self.lineDist()/max(1,self.distance)))))
 		else:
 			self.canvas.itemconfig(self.thinLine,dash=[])
 		#draw dots
