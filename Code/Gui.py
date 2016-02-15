@@ -55,8 +55,9 @@ class App:
 		#self.nodesEntry = Tk.Entry(self.nodesFrame,width=4)
 		self.nodesAmount = Tk.StringVar()
 		
-		self.nodesEntry = Tk.Spinbox(self.nodesFrame, from_=3, to=15, width=4,textvariable=self.nodesAmount)
+		self.nodesEntry = Tk.Spinbox(self.nodesFrame, from_=3, to=150, width=4,textvariable=self.nodesAmount)
 		self.nodesButton = Tk.Button(self.nodesFrame, text="Generate",command = self.generateGraph)
+		self.nodesAmount.set(15)
 		
 		self.nodesLabel.pack(side=Tk.LEFT,anchor="w")
 		self.nodesEntry.pack(side=Tk.LEFT,anchor="w")
@@ -79,7 +80,10 @@ class App:
 		#self.depotEntry = Tk.Entry(self.depotFrame,width=4)
 		self.depotValue = Tk.StringVar()
 		
-		self.depotEntry = Tk.Spinbox(self.depotFrame, from_=0, to=1, width=4, textvariable=self.depotValue)
+		self.depotEntry = Tk.Spinbox(self.depotFrame, from_=0, to=150, width=4, textvariable=self.depotValue)
+		
+		self.depotValue.set(0)
+		
 		self.depotLabel.pack(side=Tk.LEFT,anchor="w")
 		self.depotEntry.pack(side=Tk.LEFT,anchor="w")
 		self.depotEntry.bind("<FocusOut>",checkNode)
@@ -196,7 +200,7 @@ class App:
 					#print("Veuillez entrer un nombre valide pour le repas",i)
 					canStart=False
 					
-					
+			allMeals.sort(key=lambda obj: obj.ddt)
 			
 			for i in range(len(self.carFrames)):
 				currentFrame = self.carFrames[i]
@@ -377,13 +381,15 @@ class App:
 			except:
 				pass
 		
-		#entry_COOK = Tk.Entry(tempMealFrame,textvariable=tempMealFrame.COOK,width=6)
-		entry_COOK = Tk.Spinbox(tempMealFrame, from_=0, to=len(self.graph.getSortedNodes())-1, textvariable=tempMealFrame.COOK, width=6)
+		#entry_COOK = Tk.Spinbox(tempMealFrame, from_=0, to=len(self.graph.getSortedNodes())-1, textvariable=tempMealFrame.COOK, width=6)
+		entry_COOK = Tk.Spinbox(tempMealFrame, from_=0, to=150, textvariable=tempMealFrame.COOK, width=6)
+		tempMealFrame.COOK.set(len(self.graph.getSortedNodes())-1)
 		entry_COOK.pack(side=Tk.LEFT)
 		entry_COOK.bind("<FocusOut>",checkNode)
 		entry_COOK.bind("<KeyRelease>",checkNode)
 		#entry_CLIENT = Tk.Entry(tempMealFrame,textvariable=tempMealFrame.CLIENT,width=6)
-		entry_CLIENT = Tk.Spinbox(tempMealFrame, from_=0, to=len(self.graph.getSortedNodes())-1, textvariable=tempMealFrame.CLIENT, width=6)
+		entry_CLIENT = Tk.Spinbox(tempMealFrame, from_=0, to=150, textvariable=tempMealFrame.CLIENT, width=6)
+		tempMealFrame.CLIENT.set(int(len(self.graph.getSortedNodes())/2))
 		entry_CLIENT.pack(side=Tk.LEFT)
 		entry_CLIENT.bind("<FocusOut>",checkNode)
 		entry_CLIENT.bind("<KeyRelease>",checkNode)
@@ -398,7 +404,6 @@ class App:
 		entry_DELIVERY.pack(side=Tk.LEFT) # TODO: realTime
 		entry_DELIVERY.bind("<FocusOut>",checkValue)
 		entry_DELIVERY.bind("<KeyRelease>",checkValue)
-		entry_DELIVERY.bind("<<Recolor>>",checkValue)
 		
 		
 		def removeMeal(): 
@@ -466,7 +471,7 @@ class App:
 			event.widget.configure(bg = "#ff6666")
 			try:
 				if(int(event.widget.get())>=0):
-					event.widget.configure(bg = "#F0F0ED")
+					event.widget.configure(bg = "#f0f0ed")
 				print(event.widget.get())
 			except:
 				pass
@@ -491,6 +496,10 @@ class App:
 		entry_DURATION.bind("<KeyRelease>",checkValue)
 
 
+		tempCarFrame.CAPACITY.set(5)
+		tempCarFrame.STARTTIME.set(8)
+		tempCarFrame.DURATION.set(100)
+		
 
 		def removeCar(): 
 			"""
