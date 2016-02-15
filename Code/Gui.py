@@ -18,10 +18,14 @@ import DataFileParser
 
 try:
 	import Tkinter as Tk
-	from Tkinter.filedialog import askopenfilename
 except ImportError:
 	import tkinter as Tk
-	from tkinter.filedialog import askopenfilename
+	
+
+try:
+	from tkinter.filedialog import askopenfilename #python 3
+except ImportError:
+	from Tkinter.filedialog import askopenfilename #ne fonctionne pas en python 2
 
 
 class App:
@@ -154,13 +158,32 @@ class App:
 			#cooks=int(self.cooksEntry.get())
 			#clients=int(self.clientsEntry.get())
 			#print("Lancement de l'algo avec",cooks,"cuisiniers et",clients,"clients")
+			canStart=True
 			
-			
-			print(nodesAmount,"noeuds,",len(self.carFrames),"voitures")
+			print(len(self.graph.nodes),"noeuds,",len(self.carFrames),"voitures",len(self.mealsFrames),"livraisons")
 			
 			allCars = []
 			allMeals = []
 			
+			for i,mealFrame in enumerate(self.mealsFrames):
+				try:
+					currentDelivery=int(mealFrame.DELIVERY.get())
+					currentDeviation=int(mealFrame.DEVIATION.get())
+					currentCook=int(mealFrame.COOK.get())
+					currentClient=int(mealFrame.CLIENT.get())
+					
+					cookNode=self.graph.nodes[currentCook]
+					clientNode=self.graph.nodes[currentClient]
+					
+					distanceNodes=self.graph.dist(cookNode,clientNode)
+					
+					newMeal=Meal.Meal(cookNode,clientNode,distanceNodes,currentDelivery,currentDeviation)
+					allMeals.append(newMeal)
+				except:
+					print("Veuillez entrer un nombre valide pour le repas",i)
+					canStart=False
+					
+					
 			
 			for i in range(len(self.carFrames)):
 				currentFrame = self.carFrames[i]
@@ -178,8 +201,9 @@ class App:
 					
 				except ValueError:
 					print("Veuillez entrer un nombre valide pour la voiture",i)
+					canStart=False
 					
-			if(len(allCars) == len(self.carFrames)):
+			if(canStart):
 				darp = DarpAlgo.DarpAlgo(allMeals,allCars)
 			
 				print("Starting DARP...")
@@ -204,7 +228,7 @@ class App:
 			
 			meals=[] #dtt, deviation, chef,client
 			for mealFrame in self.mealsFrames:
-				meals.append((mealFrame.DEPARTURE.get(),mealFrame.DEVIATION.get(),mealFrame.COOK.get(),mealFrame.CLIENT.get()))
+				meals.append((mealFrame.DELIVERY.get(),mealFrame.DEVIATION.get(),mealFrame.COOK.get(),mealFrame.CLIENT.get()))
 				
 			nodes=[] #id, i,j , neighbours
 			for node in self.graph.nodes:
@@ -250,10 +274,10 @@ class App:
 		label_CLIENT = Tk.Label(mealHeaderFrame,text="Client",width=6)
 		label_CLIENT.pack(side=Tk.LEFT)
 		
-		label_DEPARTURE = Tk.Label(mealHeaderFrame,text="Departure",width=9)
-		label_DEPARTURE.pack(side=Tk.LEFT)
 		label_DEVIATION = Tk.Label(mealHeaderFrame,text="Deviation",width=9)
 		label_DEVIATION.pack(side=Tk.LEFT)
+		label_DELIVERY = Tk.Label(mealHeaderFrame,text="Delivery",width=9)
+		label_DELIVERY.pack(side=Tk.LEFT)
 		
 		empty_label = Tk.Label(mealHeaderFrame,width=4)
 		empty_label.pack(side=Tk.LEFT)
@@ -266,8 +290,8 @@ class App:
 		self.mealsFrames.append(tempMealFrame)
 		tempMealFrame.pack(side=Tk.TOP,fill=Tk.X)
 		
-		tempMealFrame.DEPARTURE = Tk.StringVar()
 		tempMealFrame.DEVIATION = Tk.StringVar()
+		tempMealFrame.DELIVERY = Tk.StringVar()
 		
 		tempMealFrame.COOK = Tk.StringVar()
 		tempMealFrame.CLIENT = Tk.StringVar()
@@ -303,17 +327,16 @@ class App:
 		entry_CLIENT.bind("<FocusOut>",checkNode)
 		entry_CLIENT.bind("<KeyRelease>",checkNode)
 		
-		#entry_DEPARTURE = Tk.Entry(tempMealFrame,textvariable=tempMealFrame.DEPARTURE,width=9)
-		entry_DEPARTURE = Tk.Spinbox(tempMealFrame, from_=0, to=100, textvariable=tempMealFrame.DEPARTURE, width=9)
-		entry_DEPARTURE.pack(side=Tk.LEFT) # TODO: realTime
-		entry_DEPARTURE.bind("<FocusOut>",checkValue)
-		entry_DEPARTURE.bind("<KeyRelease>",checkValue)
 		#entry_DEVIATION = Tk.Entry(tempMealFrame,textvariable=tempMealFrame.DEVIATION,width=9)
 		entry_DEVIATION = Tk.Spinbox(tempMealFrame, from_=0, to=100, textvariable=tempMealFrame.DEVIATION, width=9)
 		entry_DEVIATION.pack(side=Tk.LEFT) # TODO: realTime
 		entry_DEVIATION.bind("<FocusOut>",checkValue)
 		entry_DEVIATION.bind("<KeyRelease>",checkValue)
 		
+		entry_DELIVERY = Tk.Spinbox(tempMealFrame, from_=0, to=100, textvariable=tempMealFrame.DELIVERY, width=9)
+		entry_DELIVERY.pack(side=Tk.LEFT) # TODO: realTime
+		entry_DELIVERY.bind("<FocusOut>",checkValue)
+		entry_DELIVERY.bind("<KeyRelease>",checkValue)
 		
 		def removeMeal(): 
 			"""
@@ -329,8 +352,11 @@ class App:
 		
 		def duplicateMeal():
 			mymeal = self.addMeal()
-			mymeal.DEPARTURE.set( tempMealFrame.DEPARTURE.get() )
+			
+			mymeal.COOK.set( tempMealFrame.DEPARTURE.get() )
+			mymeal.CLIENT.set( tempMealFrame.DEVIATION.get() )
 			mymeal.DEVIATION.set( tempMealFrame.DEVIATION.get() )
+			mymeal.DELIVERY.set( tempMealFrame.DEVIATION.get() )
 		
 		duplicateButton = Tk.Button(tempMealFrame,image=self.dupeImage,command=duplicateMeal)
 		duplicateButton.pack(side=Tk.RIGHT)
@@ -430,7 +456,7 @@ class App:
 			nodesAmount=int(self.nodesEntry.get())
 			self.graph=Graph.Graph(nodesAmount)
 			#TODO : personalisation (endroit, type de repas etc.)
-			self.depot = [self.graph.nodes[0]] #TODO : multidepot
+			self.depot = self.graph.nodes[0] #TODO : multidepot
 			
 			self.displayGraph(self.graph)
 		except ValueError:
