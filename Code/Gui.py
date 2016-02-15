@@ -53,7 +53,9 @@ class App:
 		
 		self.nodesLabel = Tk.Label(self.nodesFrame,text="Amount of Nodes: ")
 		#self.nodesEntry = Tk.Entry(self.nodesFrame,width=4)
-		self.nodesEntry = Tk.Spinbox(self.nodesFrame, from_=3, to=15, width=4)
+		self.nodesAmount = Tk.StringVar()
+		
+		self.nodesEntry = Tk.Spinbox(self.nodesFrame, from_=3, to=15, width=4,textvariable=self.nodesAmount)
 		self.nodesButton = Tk.Button(self.nodesFrame, text="Generate",command = self.generateGraph)
 		
 		self.nodesLabel.pack(side=Tk.LEFT,anchor="w")
@@ -75,7 +77,9 @@ class App:
 		
 		self.depotLabel = Tk.Label(self.depotFrame,text="Depot node: ")
 		#self.depotEntry = Tk.Entry(self.depotFrame,width=4)
-		self.depotEntry = Tk.Spinbox(self.depotFrame, from_=0, to=1, width=4)
+		self.depotValue = Tk.StringVar()
+		
+		self.depotEntry = Tk.Spinbox(self.depotFrame, from_=0, to=1, width=4, textvariable=self.depotValue)
 		self.depotLabel.pack(side=Tk.LEFT,anchor="w")
 		self.depotEntry.pack(side=Tk.LEFT,anchor="w")
 		self.depotEntry.bind("<FocusOut>",checkNode)
@@ -247,7 +251,7 @@ class App:
 				nodes.append( (str(node.index), str(node.i), str(node.j), neighbours[1:])  )
 			
 			
-			depot=self.depotEntry.get()
+			depot=self.depotValue.get()
 			depots = [(depot)]
 			
 			print("Exporting as ",filename)
@@ -266,9 +270,45 @@ class App:
 		DFP = DataFileParser.DataFileParser(filename)
 		DFP.parseXML_File()
 		# TODO : give Data to Algo ?
-		self.graph = DFP.getGraph()
-		self.displayGraph(self.graph)
+		self.updateFromLoad(DFP)
 
+	def updateFromLoad(self,dataFileParser):
+		
+		self.graph = dataFileParser.getGraph()
+		self.displayGraph(self.graph)
+		
+		for mealFrame in self.mealsFrames:
+			mealFrame.destroy()
+		self.mealsFrames=[]
+		
+		for carFrame in self.carFrames:
+			carFrame.destroy()
+		self.carFrames=[]
+		
+		for car in dataFileParser.getCars():
+			carFrame=self.addCar()
+			carFrame.CAPACITY.set(str(car.maxCharge))
+			carFrame.STARTTIME.set(str(car.start))
+			carFrame.DURATION.set(str(int(car.end)-int(car.start)))
+			
+			callFocusOut(carFrame)
+			
+		for meal in dataFileParser.getMeals():
+			mealFrame=self.addMeal()
+			
+			mealFrame.COOK.set(str(meal.chef.index))
+			mealFrame.CLIENT.set(str(meal.destination.index))
+			mealFrame.DEVIATION.set(str(meal.deviation))
+			mealFrame.DELIVERY.set(str(meal.ddt))
+			
+			callFocusOut(mealFrame)
+			
+			
+		self.depotValue.set(str(dataFileParser.getDepots()[0].index)) #multiple dépôts? ...
+		self.nodesAmount.set(str(len(self.graph.nodes)))
+		#TODO nodesamount
+			
+		
 		
 	def createMeals(self):
 		self.mealsFrames = []
@@ -417,7 +457,7 @@ class App:
 			event.widget.configure(bg = "#ff6666")
 			try:
 				if(int(event.widget.get())>=0):
-					event.widget.configure(bg = "white")
+					event.widget.configure(bg = "#F0F0ED")
 				print(event.widget.get())
 			except:
 				pass
@@ -472,7 +512,7 @@ class App:
 		
 	def generateGraph(self):
 		try:
-			nodesAmount=int(self.nodesEntry.get())
+			nodesAmount=int(self.nodesAmount.get())
 			self.graph=Graph.Graph(nodesAmount)
 			#TODO : personalisation (endroit, type de repas etc.)
 			self.depot = self.graph.nodes[0] #TODO : multidepot
@@ -499,7 +539,7 @@ class App:
 				if (int(mealFrame.DELIVERY.get()) < 0 or int(mealFrame.DEVIATION.get()) < 0 or not(0 <= int(mealFrame.COOK.get()) < len(self.graph.nodes)) or not(0 <= int(mealFrame.CLIENT.get()) < len(self.graph.nodes))):
 					print("meal")
 					return False
-			if not(0 <= int(self.depotEntry.get()) < len(self.graph.nodes)):
+			if not(0 <= int(self.depotValue.get()) < len(self.graph.nodes)):
 				print("depot")
 				return False
 			return True
