@@ -67,7 +67,7 @@ class App:
 			event.widget.configure(bg = "#ff6666")
 			try:
 				if(0<=int(event.widget.get())<len(self.graph.nodes)):
-					event.widget.configure(bg = "white")
+					event.widget.configure(bg = "#F0F0ED")
 				print(event.widget.get())
 			except:
 				pass
@@ -295,6 +295,9 @@ class App:
 		mealButton_PLUS.pack(side=Tk.RIGHT)
 		
 	def addMeal(self):
+		if(self.graph==None):
+			Tk.messagebox.showwarning("Add meal","Please generate a graph first")
+			return
 		tempMealFrame=Tk.Frame(self.mealsFrame)
 		self.mealsFrames.append(tempMealFrame)
 		tempMealFrame.pack(side=Tk.TOP,fill=Tk.X)
@@ -310,7 +313,7 @@ class App:
 			event.widget.configure(bg = "#ff6666")
 			try:
 				if(0<=int(event.widget.get())<len(self.graph.nodes)):
-					event.widget.configure(bg = "white")
+					event.widget.configure(bg = "#F0F0ED")
 				print(event.widget.get())
 			except:
 				pass
@@ -320,7 +323,7 @@ class App:
 			event.widget.configure(bg = "#ff6666")
 			try:
 				if(int(event.widget.get())>=0):
-					event.widget.configure(bg = "white")
+					event.widget.configure(bg = "#F0F0ED")
 				print(event.widget.get())
 			except:
 				pass
