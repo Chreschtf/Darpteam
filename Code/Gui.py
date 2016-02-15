@@ -161,6 +161,10 @@ class App:
 		
 
 	def start_darp(self):
+		if(self.graph==None):
+			Tk.messagebox.showwarning("DARP resolution","Veuillez générer un graphe")
+			return
+		
 		try:
 			#cooks=int(self.cooksEntry.get())
 			#clients=int(self.clientsEntry.get())
@@ -200,11 +204,12 @@ class App:
 					currentCapacity = int(currentFrame.CAPACITY.get())
 					currentStarttime = int(currentFrame.STARTTIME.get())
 					currentDuration = int(currentFrame.DURATION.get())
+					currentDepot = self.graph.nodes[int(self.depotValue.get())]
 					print("La voiture ",i,"a un capacité de ",currentCapacity,
 					", a une starttime de ",currentStarttime," et a une durée de shift de ",
 					currentDuration)
 					
-					newCar = Car.Car(currentCapacity,currentStarttime,currentDuration,self.depot,self.graph)
+					newCar = Car.Car(currentCapacity,currentStarttime,currentDuration,currentDepot,self.graph)
 					allCars.append(newCar)
 					
 					
@@ -223,8 +228,7 @@ class App:
 			
 		except ValueError:
 			print("Veuillez entrer un nombre valide")
-		except AttributeError:
-			Tk.messagebox.showwarning("DARP resolution","Veuillez générer un graphe")
+
 		
 		if not canStart:
 			Tk.messagebox.showwarning("DARP resolution",errorMessage)
