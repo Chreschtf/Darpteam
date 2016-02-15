@@ -68,7 +68,7 @@ class App:
 		def checkNode(event):
 			event.widget.configure(bg = "#ff6666")
 			try:
-				if(0<=int(event.widget.get())<len(self.graph.nodes)):
+				if(0<=int(event.widget.get())<len(self.graph.getSortedNodes())):
 					event.widget.configure(bg = "#F0F0ED")
 				print(event.widget.get())
 			except:
@@ -172,7 +172,7 @@ class App:
 			canStart=True
 			errorMessage=""
 			
-			print(len(self.graph.nodes),"noeuds,",len(self.carFrames),"voitures",len(self.mealsFrames),"livraisons")
+			print(len(self.graph.getSortedNodes()),"noeuds,",len(self.carFrames),"voitures",len(self.mealsFrames),"livraisons")
 			
 			allCars = []
 			allMeals = []
@@ -184,8 +184,8 @@ class App:
 					currentCook=int(mealFrame.COOK.get())
 					currentClient=int(mealFrame.CLIENT.get())
 					
-					cookNode=self.graph.nodes[currentCook]
-					clientNode=self.graph.nodes[currentClient]
+					cookNode=self.graph.getSortedNodes()[currentCook]
+					clientNode=self.graph.getSortedNodes()[currentClient]
 					
 					distanceNodes=self.graph.dist(cookNode,clientNode)
 					
@@ -204,7 +204,7 @@ class App:
 					currentCapacity = int(currentFrame.CAPACITY.get())
 					currentStarttime = int(currentFrame.STARTTIME.get())
 					currentDuration = int(currentFrame.DURATION.get())
-					currentDepot = self.graph.nodes[int(self.depotValue.get())]
+					currentDepot = self.graph.getSortedNodes()[int(self.depotValue.get())]
 					print("La voiture ",i,"a un capacité de ",currentCapacity,
 					", a une starttime de ",currentStarttime," et a une durée de shift de ",
 					currentDuration)
@@ -223,7 +223,12 @@ class App:
 			
 				print("Starting DARP...")
 				darp.createSchedules()
-			
+				for i,car in enumerate(allCars):
+					print("Car numéro",i)
+					for block in car.currentSchedule:
+						print(block)
+					print("\n")
+					
 				print("The program has not crashed")
 			
 		except ValueError:
@@ -248,7 +253,7 @@ class App:
 				meals.append((mealFrame.DELIVERY.get(),mealFrame.DEVIATION.get(),mealFrame.COOK.get(),mealFrame.CLIENT.get()))
 				
 			nodes=[] #id, i,j , neighbours
-			for node in self.graph.nodes:
+			for node in self.graph.getSortedNodes():
 				neighbours = ""
 				for neighbour in node.neighbours:
 					neighbours+="|"+str(neighbour.index)
@@ -309,7 +314,7 @@ class App:
 			
 			
 		self.depotValue.set(str(dataFileParser.getDepots()[0].index)) #multiple dépôts? ...
-		self.nodesAmount.set(str(len(self.graph.nodes)))
+		self.nodesAmount.set(str(len(self.graph.getSortedNodes())))
 		#TODO nodesamount
 			
 		
@@ -356,7 +361,7 @@ class App:
 		def checkNode(event):
 			event.widget.configure(bg = "#ff6666")
 			try:
-				if(0<=int(event.widget.get())<len(self.graph.nodes)):
+				if(0<=int(event.widget.get())<len(self.graph.getSortedNodes())):
 					event.widget.configure(bg = "#F0F0ED")
 				print(event.widget.get())
 			except:
@@ -373,12 +378,12 @@ class App:
 				pass
 		
 		#entry_COOK = Tk.Entry(tempMealFrame,textvariable=tempMealFrame.COOK,width=6)
-		entry_COOK = Tk.Spinbox(tempMealFrame, from_=0, to=len(self.graph.nodes)-1, textvariable=tempMealFrame.COOK, width=6)
+		entry_COOK = Tk.Spinbox(tempMealFrame, from_=0, to=len(self.graph.getSortedNodes())-1, textvariable=tempMealFrame.COOK, width=6)
 		entry_COOK.pack(side=Tk.LEFT)
 		entry_COOK.bind("<FocusOut>",checkNode)
 		entry_COOK.bind("<KeyRelease>",checkNode)
 		#entry_CLIENT = Tk.Entry(tempMealFrame,textvariable=tempMealFrame.CLIENT,width=6)
-		entry_CLIENT = Tk.Spinbox(tempMealFrame, from_=0, to=len(self.graph.nodes)-1, textvariable=tempMealFrame.CLIENT, width=6)
+		entry_CLIENT = Tk.Spinbox(tempMealFrame, from_=0, to=len(self.graph.getSortedNodes())-1, textvariable=tempMealFrame.CLIENT, width=6)
 		entry_CLIENT.pack(side=Tk.LEFT)
 		entry_CLIENT.bind("<FocusOut>",checkNode)
 		entry_CLIENT.bind("<KeyRelease>",checkNode)
@@ -519,7 +524,7 @@ class App:
 			nodesAmount=int(self.nodesAmount.get())
 			self.graph=Graph.Graph(nodesAmount)
 			#TODO : personalisation (endroit, type de repas etc.)
-			self.depot = self.graph.nodes[0] #TODO : multidepot
+			self.depot = self.graph.getSortedNodes()[0] #TODO : multidepot
 			
 			self.displayGraph(self.graph)
 		except ValueError:
@@ -540,10 +545,10 @@ class App:
 					print("car")
 					return False
 			for mealFrame in self.mealsFrames:
-				if (int(mealFrame.DELIVERY.get()) < 0 or int(mealFrame.DEVIATION.get()) < 0 or not(0 <= int(mealFrame.COOK.get()) < len(self.graph.nodes)) or not(0 <= int(mealFrame.CLIENT.get()) < len(self.graph.nodes))):
+				if (int(mealFrame.DELIVERY.get()) < 0 or int(mealFrame.DEVIATION.get()) < 0 or not(0 <= int(mealFrame.COOK.get()) < len(self.graph.getSortedNodes())) or not(0 <= int(mealFrame.CLIENT.get()) < len(self.graph.getSortedNodes()))):
 					print("meal")
 					return False
-			if not(0 <= int(self.depotValue.get()) < len(self.graph.nodes)):
+			if not(0 <= int(self.depotValue.get()) < len(self.graph.getSortedNodes())):
 				print("depot")
 				return False
 			return True
@@ -577,9 +582,9 @@ class GUIGraph:
 	def generateGraph(self,graph):
 		self.canvas.delete(Tk.ALL)
 		self.graph=graph
-		self.nodesAmount=len(graph.nodes)
+		self.nodesAmount=len(graph.getSortedNodes())
 		
-		self.nodes=graph.nodes
+		self.nodes=graph.getSortedNodes()
 		
 		#for i in range(self.nodesAmount):
 		#	self.nodes.append((randint(-100,100),randint(50,100)))

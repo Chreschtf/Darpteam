@@ -84,7 +84,7 @@ class Stop:
 
 
     def __str__(self):
-        txt="Coords : {0} , time : {1} , ".format(self.node.coords,self.st)
+        txt="Noeud : {0}, Coords : {1} , time : {2} , ".format(self.node.index,(self.node.i,self.node.j),self.st)
         txt+="BUP : {0} , BDOWN : {1} , AUP : {2} , ADOWN : {3}\n".format(
             self.bup,self.bdown,self.aup,self.adown)
         return txt
