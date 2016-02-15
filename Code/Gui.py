@@ -20,12 +20,15 @@ try:
 	import Tkinter as Tk
 except ImportError:
 	import tkinter as Tk
-	
+
+from tkinter import messagebox
 
 try:
 	from tkinter.filedialog import askopenfilename #python 3
 except ImportError:
 	from Tkinter.filedialog import askopenfilename #ne fonctionne pas en python 2
+
+
 
 
 class App:
@@ -142,7 +145,7 @@ class App:
 	
 	
 		self.button = Tk.Button(
-		self.parametersFrame, text="Start DARP [TODO]", fg="red", command=self.start_darp
+		self.parametersFrame, text="Start DARP", fg="red", command=self.start_darp
 		)
 		self.button.pack(side=Tk.BOTTOM,anchor="w")
 		
@@ -159,6 +162,7 @@ class App:
 			#clients=int(self.clientsEntry.get())
 			#print("Lancement de l'algo avec",cooks,"cuisiniers et",clients,"clients")
 			canStart=True
+			errorMessage=""
 			
 			print(len(self.graph.nodes),"noeuds,",len(self.carFrames),"voitures",len(self.mealsFrames),"livraisons")
 			
@@ -180,7 +184,8 @@ class App:
 					newMeal=Meal.Meal(cookNode,clientNode,distanceNodes,currentDelivery,currentDeviation)
 					allMeals.append(newMeal)
 				except:
-					print("Veuillez entrer un nombre valide pour le repas",i)
+					errorMessage+="\nVeuillez entrer un nombre valide pour le repas"+str(i)
+					#print("Veuillez entrer un nombre valide pour le repas",i)
 					canStart=False
 					
 					
@@ -200,7 +205,8 @@ class App:
 					
 					
 				except ValueError:
-					print("Veuillez entrer un nombre valide pour la voiture",i)
+					errorMessage+="\nVeuillez entrer un nombre valide pour la voiture"+str(i)
+					#print("Veuillez entrer un nombre valide pour la voiture",i)
 					canStart=False
 					
 			if(canStart):
@@ -213,8 +219,11 @@ class App:
 			
 		except ValueError:
 			print("Veuillez entrer un nombre valide")
-			
-			
+		except AttributeError:
+			Tk.messagebox.showwarning("DARP resolution","Veuillez générer un graphe")
+		
+		if not canStart:
+			Tk.messagebox.showwarning("DARP resolution",errorMessage)
 			
 		
 	def export_data(self):
@@ -337,6 +346,8 @@ class App:
 		entry_DELIVERY.pack(side=Tk.LEFT) # TODO: realTime
 		entry_DELIVERY.bind("<FocusOut>",checkValue)
 		entry_DELIVERY.bind("<KeyRelease>",checkValue)
+		entry_DELIVERY.bind("<<Recolor>>",checkValue)
+		
 		
 		def removeMeal(): 
 			"""
@@ -353,10 +364,13 @@ class App:
 		def duplicateMeal():
 			mymeal = self.addMeal()
 			
-			mymeal.COOK.set( tempMealFrame.DEPARTURE.get() )
-			mymeal.CLIENT.set( tempMealFrame.DEVIATION.get() )
+			mymeal.COOK.set( tempMealFrame.COOK.get() )
+			mymeal.CLIENT.set( tempMealFrame.CLIENT.get() )
 			mymeal.DEVIATION.set( tempMealFrame.DEVIATION.get() )
-			mymeal.DELIVERY.set( tempMealFrame.DEVIATION.get() )
+			mymeal.DELIVERY.set( tempMealFrame.DELIVERY.get() )
+			
+			
+			callFocusOut(mymeal)
 		
 		duplicateButton = Tk.Button(tempMealFrame,image=self.dupeImage,command=duplicateMeal)
 		duplicateButton.pack(side=Tk.RIGHT)
@@ -443,6 +457,8 @@ class App:
 			mycar.CAPACITY.set( tempCarFrame.CAPACITY.get() )
 			mycar.STARTTIME.set( tempCarFrame.STARTTIME.get() )
 			mycar.DURATION.set( tempCarFrame.DURATION.get() )
+			
+			callFocusOut(mycar)
 		
 		duplicateButton = Tk.Button(tempCarFrame,image=self.dupeImage,command=duplicateCar)
 		duplicateButton.pack(side=Tk.RIGHT)
@@ -477,7 +493,7 @@ class App:
 					print("car")
 					return False
 			for mealFrame in self.mealsFrames:
-				if (int(mealFrame.DEPARTURE.get()) < 0 or int(mealFrame.DEVIATION.get()) < 0 or not(0 <= int(mealFrame.COOK.get()) < len(self.graph.nodes)) or not(0 <= int(mealFrame.CLIENT.get()) < len(self.graph.nodes))):
+				if (int(mealFrame.DELIVERY.get()) < 0 or int(mealFrame.DEVIATION.get()) < 0 or not(0 <= int(mealFrame.COOK.get()) < len(self.graph.nodes)) or not(0 <= int(mealFrame.CLIENT.get()) < len(self.graph.nodes))):
 					print("meal")
 					return False
 			if not(0 <= int(self.depotEntry.get()) < len(self.graph.nodes)):
@@ -488,7 +504,11 @@ class App:
 			print("value")
 			return False
 			
-			
+def callFocusOut(parent):
+	#set the focus on the childrens of a frame
+	#the focus is lost, calling FocusOut (recoloring our widgets)
+	for widget in parent.winfo_children():
+		widget.focus_set()
 		
 class GUIGraph:
 	def __init__(self,canvas):
