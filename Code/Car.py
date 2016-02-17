@@ -56,9 +56,10 @@ class Car:
         timeDiff = self.end - stop2.getST()
         slack = timeDiff - dist
         self.currentSchedule[-1].setNextSlack(slack)
-
+        self.serviceTime=0
         for block in self.currentSchedule:
             block.calcUPnDOWN()
+            self.serviceTime+=block.calcServiceTime()
 
     def getServiceTime(self):
         return self.serviceTime
@@ -175,6 +176,7 @@ class Car:
             else:
                 feasible= False
             r +=1
+        block.shiftSchedule(Rmin)
 
 
 
@@ -477,3 +479,9 @@ class Car:
                                     self.feasibleSchedules.append(schedule)
                                 schedule = deepcopy(self.currentSchedule)
                                 block = schedule[i]
+
+    def removePastStops(self,time):
+        i=0
+        while i<len(self.currentSchedule) and self.currentSchedule[i].getStart()<time:
+            self.currentSchedule[i].removePastStops(time)
+            i+=1

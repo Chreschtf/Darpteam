@@ -21,6 +21,14 @@ class Block:
         self.shiftSchedule(self.r)
         self.calcUPnDOWN()
 
+    def calcAandR(self):
+        r=0
+        a=float("inf")
+        for stop in self.stops:
+            r=max(stop.getR(),r)
+            a=min(stop.getA(),a)
+        self.r=r
+        self.a=a
 
     def getA(self):
         return self.a
@@ -57,15 +65,6 @@ class Block:
 
     def insertStop(self,i,stop):
         self.stops.insert(i,stop)
-
-    def case1(self,meal):
-        pass
-    def case2(self,meal):
-        pass
-    def case3(self,meal):
-        pass
-    def case4(self,meal):
-        pass
 
     def getPrevSlack(self):
         return self.prevSlack
@@ -140,15 +139,11 @@ class Block:
         return deviation
 
     def calcServiceTime(self):
-        return self.stops[0].getST()-self.stops[-1].getST()
+        return self.stops[-1].getST()-self.stops[0].getST()
 
 
     def getNbrOfMeals(self):
-        i=0
-        for stop in self.stops:
-            i+=stop.isPickup()
-
-        return i
+        return len(self.stops)//2
 
     def getNbrOfMealsBefore(self,i):
         charge=0
@@ -159,12 +154,15 @@ class Block:
             j+=1
         return charge
 
+    def removePastStops(self,time):
+        i=0
+        while i<len(self.stops) and self.stops[i].getST()<time:
+            i += 1
+        self.stops=self.stops[i:]
+
 
     def getCharge(self):
-        charge=0
-        for stop in self.stops:
-            charge+=stop.isPickup()
-        return charge
+        return self.getNbrOfMeals()
 
     def respectCharge(self,maxCharge):
         charge=0
