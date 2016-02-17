@@ -134,4 +134,7 @@ class DarpAlgo:
             car.removePastStops(time)
         self.createSchedules()
 
+    def getNotInsertedMeals(self):
+        return self.mealsNotInserted
+
 
