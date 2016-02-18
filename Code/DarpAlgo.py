@@ -13,10 +13,10 @@ class DarpAlgo:
         self.constants["c2"]=1
         self.constants["c3"]=1
         self.constants["c4"]=1
-        self.constants["c5"]=0
-        self.constants["c6"]=0
-        self.constants["c7"]=0
-        self.constants["c8"]=0
+        self.constants["c5"]=1
+        self.constants["c6"]=2
+        self.constants["c7"]=1
+        self.constants["c8"]=2
         self.constants["W1"]=60
         self.constants["W2"]=60
 
@@ -64,15 +64,15 @@ class DarpAlgo:
             deviation += block.calcDeviation()
             nbrOfCustomers += block.getNbrOfMeals()
         ui=self.getUi(meal.getEPT())
-        min = round(-(-self.constants["c1"]*nbrOfCustomers-2*self.constants["c2"]*deviation +\
+        aStar = round(-(-self.constants["c1"]*nbrOfCustomers-2*self.constants["c2"]*deviation +\
                       (self.constants["c6"]+self.constants["c8"]*ui)*I)/ \
                     (2*self.constants["c2"])*nbrOfCustomers)
         lb = 0
         ub = Amax-Rmin
-        a = min
-        if min<lb:
+        a = aStar
+        if aStar<lb:
             a = lb
-        elif min>ub:
+        elif aStar>ub:
             a = ub
         for block in schedule:
             block.shiftSchedule(a)
@@ -103,10 +103,10 @@ class DarpAlgo:
         for meal in meals:
             duOthers += self.disutilityFuncMeal(meal,meals[meal][0],meals[meal][1]) \
                         -meal.getDisutility()
-        duOperator=self.disutilityFuncCar(meal,car)
+        duOperator=self.disutilityFuncCar(schedule,meal,car)
         return duNewMeal + duOthers+duOperator
 
-    def disutilityFuncCar(self,meal,car):
+    def disutilityFuncCar(self,schedule,meal,car):
         #VCi = C5*z + C6*w + Ui*( C7*z + C8*w)
         #in our case : vc =z(c5-c6)+ui*z*(c7-c8) since change in service time z = - change in vehicle slack time w
 
