@@ -43,21 +43,37 @@ class DarpAlgo:
         car.addIntoDifferentBlocks(meal)
 
 
-    def scheduleOptimisation(self,schedule):
+    def scheduleOptimisation(self,schedule,meal):
+        I=0
+        if len(schedule)==1:
+            I=0
+        elif meal in schedule[0]:
+            I=-1
+        elif meal in schedule[-1]:
+            I=1
 
+        Rmin=0
+        Amax=float("inf")
+        deviation=0
+        nbrOfCustomers=0
         for block in schedule:
             block.calcAandR()
-            deviation = block.calcDeviation()
-            meals = block.getNbrOfMeals()
-            min = round(self.constants["c1"]/(2*self.constants["c2"])+deviation/meals)
-            lb = 0
-            ub = block.getA()-block.getR()
-            a = min
-            if min<lb:
-                a = lb
-            elif min>ub:
-                a = ub
-
+            Rmin=max(block.getR(),Rmin)
+            Amax=min(block.getA(),Amax)
+            deviation += block.calcDeviation()
+            nbrOfCustomers += block.getNbrOfMeals()
+        ui=self.getUi(meal.getEPT())
+        min = round(-(-self.constants["c1"]*nbrOfCustomers-2*self.constants["c2"]*deviation +\
+                      (self.constants["c6"]+self.constants["c8"]*ui)*I)/ \
+                    (2*self.constants["c2"])*nbrOfCustomers)
+        lb = 0
+        ub = Amax-Rmin
+        a = min
+        if min<lb:
+            a = lb
+        elif min>ub:
+            a = ub
+        for block in schedule:
             block.shiftSchedule(a)
 
     def findBestCarSchedule(self,car,meal):
@@ -66,7 +82,7 @@ class DarpAlgo:
         bestInsertion = [float("inf")]
         feasInserts = car.getFeasibleSchedules()
         for schedule in feasInserts:
-            self.scheduleOptimisation(schedule)
+            self.scheduleOptimisation(schedule,meal)
             incDisutility=self.calcIncrementalCost(schedule,meal,car)
             bestInsertion=min(bestInsertion,[incDisutility,schedule])
         return bestInsertion
@@ -86,21 +102,21 @@ class DarpAlgo:
         for meal in meals:
             duOthers += self.disutilityFuncMeal(meal,meals[meal][0],meals[meal][1]) \
                         -meal.getDisutility()
-        duOperator=self.disutilityFuncCar(meal)
+        duOperator=self.disutilityFuncCar(meal,car)
         return duNewMeal + duOthers+duOperator
 
-    def disutilityFuncCar(self,meal):
+    def disutilityFuncCar(self,meal,car):
         #VCi = C5*z + C6*w + Ui*( C7*z + C8*w)
-        #in our case : vc =c5-c6+ui*(c7-c8) since change in service time = - change in vehicle slack time
+        #in our case : vc =z(c5-c6)+ui*z*(c7-c8) since change in service time z = - change in vehicle slack time w
 
         #calculating service time change:
         #
-        # z=0
-        # for block in schedule:
-        #     z+=block.calcServiceTime()
-        # z-=car.getServiceTime()
+        z=0
+        for block in schedule:
+            z+=block.calcServiceTime()
+        z-=car.getServiceTime()
         ui=self.getUi(meal.getEPT())
-        return self.constants["c5"]-self.constants["c6"]+ui*(self.constants["c7"]-self.constants["c8"])
+        return z*(self.constants["c5"]-self.constants["c6"])+ui*z*(self.constants["c7"]-self.constants["c8"])
 
 
     def disutilityFuncMeal(self, meal, pickup, delivery):

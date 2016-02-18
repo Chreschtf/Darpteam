@@ -156,9 +156,14 @@ class Block:
 
     def removePastStops(self,time):
         i=0
+        meals=dict()
         while i<len(self.stops) and self.stops[i].getST()<time:
             i += 1
-        self.stops=self.stops[i:]
+            meals.setdefault(stop.getMeal(),[]).append(stop)
+        for meal in meals:
+            if len(meals[meal])==2:
+                self.stops.remove(meals[meal][0])
+                self.stops.remove(meals[meal][1])
 
 
     def getCharge(self):
@@ -193,3 +198,12 @@ class Block:
 
     def __len__(self):
         return len(self.stops)
+
+    def __contains__(self, meal):
+        contains=False
+        i=0
+        while not contains and i<len(self.stops):
+            if stop.getMeal()==meal:
+                contains=True
+            i+=1
+        return contains
