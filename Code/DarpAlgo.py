@@ -2,7 +2,8 @@ from Car import *
 
 class DarpAlgo:
     def __init__(self,_meals,_cars):
-        self.meals=_meals.sort()
+        _meals.sort()
+        self.meals=_meals
         self.cars=_cars
         self.mealsNotInserted=[]
 
