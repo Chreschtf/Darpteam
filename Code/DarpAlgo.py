@@ -36,7 +36,7 @@ class DarpAlgo:
                 self.cars[schedule[2]].setCurrentSchedule(schedule[1])
             else:
                 self.mealsNotInserted.append(self.meals[i])
-        #i=0
+                #i=0
 
 
     def addToCar(self,meal,car):
@@ -64,9 +64,9 @@ class DarpAlgo:
             deviation += block.calcDeviation()
             nbrOfCustomers += block.getNbrOfMeals()
         ui=self.getUi(meal.getEPT())
-        aStar = round(-(-self.constants["c1"]*nbrOfCustomers-2*self.constants["c2"]*deviation +\
-                      (self.constants["c6"]+self.constants["c8"]*ui)*I)/ \
-                    (2*self.constants["c2"])*nbrOfCustomers)
+        aStar = round(-(-self.constants["c1"]*nbrOfCustomers-2*self.constants["c2"]*deviation + \
+                        (self.constants["c6"]+self.constants["c8"]*ui)*I)/ \
+                      (2*self.constants["c2"])*nbrOfCustomers)
         lb = 0
         ub = Amax-Rmin
         a = aStar
@@ -145,11 +145,15 @@ class DarpAlgo:
         #carsAvailable !=0 because otherwise the initial algorithm would not proceed in the first place
         return custInSys/carsAvailable
 
-    def dynamicInsertion(self,time,meals):
-        self.meals=meals
+    def removePastStops(self,time):
         for car in self.cars:
             car.removePastStops(time)
+
+    def dynamicInsertion(self,time,meals):
+        self.meals=meals
+        self.removePastStops(time)
         self.createSchedules()
+
 
     def getNotInsertedMeals(self):
         return self.mealsNotInserted

@@ -484,4 +484,7 @@ class Car:
         i=0
         while i<len(self.currentSchedule) and self.currentSchedule[i].getStart()<time:
             self.currentSchedule[i].removePastStops(time)
+            if len(self.currentSchedule[i])==0:
+                self.currentSchedule.remove(self.currentSchedule[i])
+                i-=1
             i+=1
