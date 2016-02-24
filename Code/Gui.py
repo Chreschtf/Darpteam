@@ -142,11 +142,13 @@ class App:
 		self.parametersFrame, text="Start DARP", fg="red", command=self.start_darp)
 		self.button.pack(side=Tk.BOTTOM,anchor="w")
 		
+		
+		
+		self.generateGraph()
 		self.createMeals()
 		self.createCars()
 		self.bring_forth_parameters()
 		#self.bring_forth_schedules()
-		
 		
 		
 
