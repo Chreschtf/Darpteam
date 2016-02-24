@@ -106,6 +106,7 @@ class App:
 		self.graph = None
 		self.availableCars= []
 		self.availableMeals= []
+		self.remainingMeals= []
 		
 		self.guiGraph = None
 		
@@ -179,15 +180,43 @@ class App:
 		self.depotEntry.bind("<FocusOut>",self.checkNode)
 		self.depotEntry.bind("<KeyRelease>",self.checkNode)
 		
+		
+		miniFrame = Tk.Frame(parametersFrame)
+		miniFrame.pack(anchor="nw",side=Tk.TOP)
+		
+		scrollbar = Tk.Scrollbar(miniFrame)
+		scrollbar.pack(side=Tk.RIGHT, fill=Tk.Y)
+		
+		scrollingCanvas = Tk.Canvas(miniFrame,yscrollcommand=scrollbar.set,height=480-100)
+		scrollbar.config(command=scrollingCanvas.yview)
+		
+		scrollingCanvas.pack(side=Tk.LEFT, fill=Tk.BOTH, expand=Tk.TRUE)
+		scrollingFrame = Tk.Frame(scrollingCanvas)
+		interior_id = scrollingCanvas.create_window(0, 0, window=scrollingFrame,anchor=Tk.NW)
+		def _configure_interior(event):
+			# update the scrollbars to match the size of the inner frame
+			size = (scrollingFrame.winfo_reqwidth(), scrollingFrame.winfo_reqheight())
+			scrollingCanvas.config(scrollregion="0 0 %s %s" % size)
+			if scrollingFrame.winfo_reqwidth() != scrollingCanvas.winfo_width():
+				# update the canvas's width to fit the inner frame
+				scrollingCanvas.config(width=scrollingFrame.winfo_reqwidth())
+		scrollingFrame.bind('<Configure>', _configure_interior)     
+
+		def _configure_canvas(event):
+			if scrollingFrame.winfo_reqwidth() != scrollingCanvas.winfo_width():
+				# update the inner frame's width to fill the canvas
+				scrollingCanvas.itemconfigure(interior_id, width=scrollingCanvas.winfo_width())  
+		scrollingCanvas.bind('<Configure>', _configure_canvas)           
+
 		#Add meals
-		self.mealsLabel = Tk.Label(parametersFrame,text="Meals:")
-		self.mealsFrame = Tk.Frame(parametersFrame)
+		self.mealsLabel = Tk.Label(scrollingFrame,text="Meals:")
+		self.mealsFrame = Tk.Frame(scrollingFrame)
 		self.mealsLabel.pack(side=Tk.TOP,anchor="nw")
 		self.mealsFrame.pack(side=Tk.TOP,anchor="nw",fill=Tk.X)
 		
 		#Add cars
-		self.carsLabel = Tk.Label(parametersFrame,text="Cars:")
-		self.carsFrame = Tk.Frame(parametersFrame)
+		self.carsLabel = Tk.Label(scrollingFrame,text="Cars:")
+		self.carsFrame = Tk.Frame(scrollingFrame)
 		self.carsLabel.pack(side=Tk.TOP,anchor="nw")
 		self.carsFrame.pack(side=Tk.TOP,anchor="nw",fill=Tk.X)
 		
@@ -368,9 +397,10 @@ class App:
 			
 				print("Starting DARP...")
 				darp.createSchedules()
+				self.remainingMeals=darp.getNotInsertedMeals()
+				print(self.remainingMeals)
 				
 				self.availableCars=allCars[:]
-				
 				self.bring_forth_schedules()
 				self.updateSchedules()
 	
@@ -529,6 +559,7 @@ class App:
 		entry_DELIVERY.bind("<FocusOut>",self.checkHour)
 		entry_DELIVERY.bind("<KeyRelease>",self.checkHour)
 		
+		tempMealFrame.DELIVERY.set("10:00")
 		
 		def removeMeal(): 
 			"""
@@ -612,9 +643,9 @@ class App:
 		entry_DURATION.bind("<KeyRelease>",self.checkValue)
 
 
-		tempCarFrame.STARTTIME.set("8:00")
+		tempCarFrame.STARTTIME.set("00:00")
 		tempCarFrame.CAPACITY.set("5")
-		tempCarFrame.DURATION.set(8*60)
+		tempCarFrame.DURATION.set(24*60)
 		
 
 		def removeCar(): 
