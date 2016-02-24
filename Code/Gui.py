@@ -243,6 +243,11 @@ class App:
 		self.scheduleContainer.pack(side=Tk.TOP,anchor="nw")
 		self.updateSchedules()
 		
+		self.backToParamButton = Tk.Button(schedulesFrame,text="Retour aux paramètres",command=self.bring_forth_parameters)
+		self.backToParamButton.pack(side=Tk.BOTTOM,anchor="s")
+		
+		
+		
 	def updateSchedules(self):
 		self.scheduleContainer.destroy()
 		self.scheduleContainer = Tk.Frame(self.schedulesFrame)
