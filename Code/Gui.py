@@ -102,6 +102,16 @@ class App:
 		else:
 			event.widget.configure(bg = "#ff6666")
 			
+	def colorCheck(self,widget,testValue):
+		if(not testValue):
+			widget.configure(bg = "#ff6666")
+		elif(widget.cget('bg')!="#ff6666"):
+			widget.configure(bg = "#F0F0ED")
+			
+			
+	def getCarFrameDuration(self,carFrame):
+		return self.timestring_to_minutes(carFrame.ENDTIME.get())-self.timestring_to_minutes(carFrame.STARTTIME.get())
+			
 	def __init__(self, master):
 		self.graph = None
 		self.availableCars= []
@@ -284,6 +294,25 @@ class App:
 		scheduleText.pack(side=Tk.TOP,anchor="s")
 		
 		
+		if(len(self.remainingMeals)>0):
+			remainingMealsText = Tk.Label(self.scheduleContainer, text="Les repas suivants n'ont pas pu être livrés:\n"+self.remainingMealsString())
+			remainingMealsText.pack(side=Tk.TOP,anchor="s")
+		
+		
+	def remainingMealsString(self):
+		answer  = ""
+		
+		for meal in self.remainingMeals:
+			smeal = "Livraison de "
+			smeal+=self.minutes_to_timestring(meal.ddt)
+			smeal+=" (au plus tôt "
+			smeal+=self.minutes_to_timestring(meal.edt)
+			smeal+= ") du noeud "+str(meal.chef.index)
+			smeal+= " au noeud "+str(meal.destination.index)
+			answer+=smeal+"\n"
+			
+		return answer
+		
 	def generate_schedule_list(self,car):
 		
 		if(len(car.currentSchedule)==0):
@@ -391,11 +420,15 @@ class App:
 				try:
 					currentCapacity = int(currentFrame.CAPACITY.get())
 					currentStarttime = self.timestring_to_minutes(currentFrame.STARTTIME.get())
-					currentDuration = int(currentFrame.DURATION.get())
+					currentDuration = self.getCarFrameDuration(currentFrame)
+					if(currentDuration<=0):
+						raise ValueError("Car's currentDuration<=0")
+					
+					currentEndtime = self.timestring_to_minutes(currentFrame.ENDTIME.get())
 					currentDepot = self.graph.getSortedNodes()[int(self.depotValue.get())]
-					print("La voiture ",i,"a un capacité de ",currentCapacity,
-					", a une starttime de ",currentStarttime," et a une durée de shift de ",
-					currentDuration)
+					#print("La voiture ",i,"a un capacité de ",currentCapacity,
+					#", a une starttime de ",currentStarttime," et a une durée de shift de ",
+					#currentDuration)
 					
 					newCar = Car.Car(currentCapacity,currentStarttime,currentDuration,currentDepot,self.graph)
 					allCars.append(newCar)
@@ -433,7 +466,13 @@ class App:
 			
 			cars=[] #maxcap, starttime, duration
 			for carFrame in self.carFrames:
-				cars.append((carFrame.CAPACITY.get(),str(self.timestring_to_minutes(carFrame.STARTTIME.get())),carFrame.DURATION.get()))
+				cars.append(
+					(
+					carFrame.CAPACITY.get(),
+					str(self.timestring_to_minutes( carFrame.STARTTIME.get() )),
+					str(self.getCarFrameDuration(carFrame))
+					)
+				)
 			
 			meals=[] #dtt, deviation, chef,client
 			for mealFrame in self.mealsFrames:
@@ -486,8 +525,7 @@ class App:
 			carFrame=self.addCar()
 			carFrame.CAPACITY.set(str(car.maxCharge))
 			carFrame.STARTTIME.set(self.minutes_to_timestring(int(car.start)))
-			carFrame.DURATION.set(str(int(car.end)-int(car.start)))
-			
+			carFrame.ENDTIME.set(self.minutes_to_timestring(int(car.end)))
 			callFocusOut(carFrame)
 			
 		for meal in dataFileParser.getMeals():
@@ -613,8 +651,8 @@ class App:
 		label_MAXCAPACITY.pack(side=Tk.LEFT)
 		label_STARTTIME = Tk.Label(carHeaderFrame,text="Start",width=10)
 		label_STARTTIME.pack(side=Tk.LEFT)
-		label_DURATION = Tk.Label(carHeaderFrame,text="Duration",width=10)
-		label_DURATION.pack(side=Tk.LEFT)
+		label_ENDTIME = Tk.Label(carHeaderFrame,text="End",width=10)
+		label_ENDTIME.pack(side=Tk.LEFT)
 		"""label_DUPE=Tk.Label(carHeaderFrame,width=3,text="")
 		label_DUPE.pack(side=Tk.LEFT)
 		label_DEL=Tk.Label(carHeaderFrame,width=3,text="")
@@ -632,8 +670,7 @@ class App:
 		
 		tempCarFrame.CAPACITY=Tk.StringVar()
 		tempCarFrame.STARTTIME=Tk.StringVar()
-		tempCarFrame.DURATION=Tk.StringVar()
-		
+		tempCarFrame.ENDTIME=Tk.StringVar()
 		
 		
 		#carIcon = Tk.Button(tempCarFrame,text="",width=3)
@@ -650,15 +687,25 @@ class App:
 		entry_STARTTIME.bind("<KeyRelease>",self.checkHour)
 		#entry_STARTTIME.bind("<KeyRelease>",checkValue)
 		#entry_DURATION = Tk.Entry(tempCarFrame,textvariable=tempCarFrame.DURATION,width=10)
-		entry_DURATION = Tk.Spinbox(tempCarFrame, from_=0, to=100, textvariable=tempCarFrame.DURATION,width=9)
-		entry_DURATION.pack(side=Tk.LEFT)
-		entry_DURATION.bind("<FocusOut>",self.checkValue)
-		entry_DURATION.bind("<KeyRelease>",self.checkValue)
+		entry_ENDTIME = Tk.Spinbox(tempCarFrame, values=self.hoursInDay , textvariable=tempCarFrame.ENDTIME,width=9)
+		entry_ENDTIME.pack(side=Tk.LEFT)
+		entry_ENDTIME.bind("<FocusOut>",self.checkHour)
+		entry_ENDTIME.bind("<KeyRelease>",self.checkHour)
+		
+		
+		def check_hourdiff(event):
+			self.colorCheck(entry_ENDTIME,self.getCarFrameDuration(tempCarFrame)>0)
+			
+		entry_ENDTIME.bind("<FocusOut>", check_hourdiff, add="+")
+		entry_ENDTIME.bind("<KeyRelease>", check_hourdiff, add="+")
+		entry_STARTTIME.bind("<FocusOut>", check_hourdiff, add="+")
+		entry_STARTTIME.bind("<KeyRelease>", check_hourdiff, add="+")
+
 
 
 		tempCarFrame.STARTTIME.set("00:00")
+		tempCarFrame.ENDTIME.set("23:00")
 		tempCarFrame.CAPACITY.set("5")
-		tempCarFrame.DURATION.set(24*60)
 		
 
 		def removeCar(): 
@@ -677,7 +724,7 @@ class App:
 			mycar = self.addCar()
 			mycar.CAPACITY.set( tempCarFrame.CAPACITY.get() )
 			mycar.STARTTIME.set( tempCarFrame.STARTTIME.get() )
-			mycar.DURATION.set( tempCarFrame.DURATION.get() )
+			mycar.ENDTIME.set( tempCarFrame.ENDTIME.get() )
 			
 			callFocusOut(mycar)
 		
@@ -709,10 +756,12 @@ class App:
 	def verifyEntries(self):
 		#gérer les float ? 0.5 capacity?
 		for index,carFrame in enumerate(self.carFrames):	
+			print(index)
 			#if int(carFrame.CAPACITY.get()) < 0 or int(carFrame.STARTTIME.get()) < 0 or int(carFrame.DURATION.get()) < 0:
 			if not(self.is_amountstring_ok(carFrame.CAPACITY.get())
 			and self.is_timestring_ok(carFrame.STARTTIME.get())
-			and self.is_amountstring_ok(carFrame.DURATION.get())):
+			and self.is_timestring_ok(carFrame.ENDTIME.get())
+			and self.getCarFrameDuration(carFrame)>0):
 				Tk.messagebox.showwarning("DARP export","Cannot export: Bad CAR values for car "+str(index))
 				return False
 		for index,mealFrame in enumerate(self.mealsFrames):
