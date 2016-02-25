@@ -103,9 +103,7 @@ class App:
 			event.widget.configure(bg = "#ff6666")
 			
 	def colorCheck(self,widget,testValue):
-		if(testValue):
-			widget.configure(bg = "#F0F0ED")
-		else:
+		if(not testValue):
 			widget.configure(bg = "#ff6666")
 			
 	def getCarFrameDuration(self,carFrame):
