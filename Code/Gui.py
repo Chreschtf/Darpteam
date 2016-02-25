@@ -105,6 +105,9 @@ class App:
 	def colorCheck(self,widget,testValue):
 		if(not testValue):
 			widget.configure(bg = "#ff6666")
+		elif(widget.cget('bg')!="#ff6666"):
+			widget.configure(bg = "#F0F0ED")
+			
 			
 	def getCarFrameDuration(self,carFrame):
 		return self.timestring_to_minutes(carFrame.ENDTIME.get())-self.timestring_to_minutes(carFrame.STARTTIME.get())
@@ -676,6 +679,9 @@ class App:
 			
 		entry_ENDTIME.bind("<FocusOut>", check_hourdiff, add="+")
 		entry_ENDTIME.bind("<KeyRelease>", check_hourdiff, add="+")
+		entry_STARTTIME.bind("<FocusOut>", check_hourdiff, add="+")
+		entry_STARTTIME.bind("<KeyRelease>", check_hourdiff, add="+")
+
 
 
 		tempCarFrame.STARTTIME.set("00:00")
