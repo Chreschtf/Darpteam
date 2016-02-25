@@ -133,7 +133,7 @@ class App:
 		self.canvas = Tk.Canvas(self.displayFrame, width=480, height=480)
 		self.canvas.pack()
 	
-		self.schedulesFrame.grid(row=0, column=1, sticky="nsew")
+		self.schedulesFrame.grid(row=0, column=1, sticky="nsew",)
 		self.parametersFrame.grid(row=0, column=1, sticky="nsew")
 		self.displayFrame.grid(row=0, column=0, sticky="nsew")
 		
@@ -163,10 +163,10 @@ class App:
 		self.nodesButton = Tk.Button(self.nodesFrame, text="Generate",command = self.generateGraph)
 		self.nodesAmount.set(15)
 		
-		self.nodesFrame.pack(side=Tk.TOP,anchor="nw")
-		self.nodesLabel.pack(side=Tk.LEFT,anchor="w")
-		self.nodesEntry.pack(side=Tk.LEFT,anchor="w")
-		self.nodesButton.pack(side=Tk.LEFT,anchor="w")
+		self.nodesFrame.pack(side=Tk.TOP,anchor="nw",fill=Tk.BOTH, expand=Tk.YES)
+		self.nodesLabel.pack(side=Tk.LEFT,anchor="w",fill=Tk.BOTH, expand=Tk.YES)
+		self.nodesEntry.pack(side=Tk.LEFT,anchor="w",fill=Tk.BOTH, expand=Tk.YES)
+		self.nodesButton.pack(side=Tk.LEFT,anchor="w",fill=Tk.BOTH, expand=Tk.YES)
 		
 		#Select depot
 		self.depotFrame = Tk.Frame(parametersFrame)
@@ -288,7 +288,7 @@ class App:
 		
 		if(len(car.currentSchedule)==0):
 			return "Cette voiture n'a pas de schedule"
-		scheduleTitles="Heure ","Noeud ","Pick/Del ","Distance "
+		scheduleTitles="Heure ","Noeud ","Pick/Del ","Heure requ. "
 		scheduleLenghts=tuple(len(elem) for elem in scheduleTitles)
 		scheduleElements=[]
 		allSchedules=""
@@ -304,16 +304,18 @@ class App:
 		schedule+=str(car.depot.index).ljust(scheduleLenghts[1])
 		schedule+="|"
 		schedule+="Depot".ljust(scheduleLenghts[2])
-		schedule+="|"+"0".ljust(scheduleLenghts[3])
+		schedule+="|"
 		
 		scheduleElements.append(schedule)
 		allSchedules+=schedule+"\n"
 		
+		temps=car.start
 		
 		prevnode = car.depot
 		for block in car.currentSchedule:
 			
-			schedule = "Temps vide de " + self.minutes_to_timestring(block.getPrevSlack()) + " minutes"
+			schedule = self.minutes_to_timestring(temps+block.getPrevSlack()).ljust(scheduleLenghts[0])
+			schedule +="|Temps vide de " +  self.minutes_to_timestring(block.getPrevSlack()) 
 			scheduleElements.append(schedule)
 			allSchedules+=schedule+"\n"
 			
@@ -325,10 +327,14 @@ class App:
 				schedule+="|"
 				schedule+=((stop.isPickup() and "Pickup") or ("Delivery")).ljust(scheduleLenghts[2])
 				schedule+="|"
-				schedule+=str(self.graph.dist(prevnode,stop.node)).ljust(scheduleLenghts[3])[:scheduleLenghts[3]]
+				schedule+=self.minutes_to_timestring(stop.meal.ddt)
+				#schedule+=str(self.graph.dist(prevnode,stop.node)).ljust(scheduleLenghts[3])[:scheduleLenghts[3]]
 				prevnode=stop.node
 				scheduleElements.append(schedule)
 				allSchedules+=schedule+"\n"
+				
+				temps=stop.st
+		
 			
 		return allSchedules
 			
