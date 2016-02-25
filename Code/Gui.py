@@ -38,6 +38,7 @@ class App:
 		
 		
 	def minutes_to_timestring(self,minutes):
+		minutes=round(minutes)
 		return str(int(minutes/60)).zfill(2)+":"+str(int(minutes%60)).zfill(2)
 
 	def is_amountstring_ok(self,astring):	
@@ -129,12 +130,12 @@ class App:
 		mainFrame.pack(fill=Tk.BOTH,expand=True)
 		
 		#PARAMETERS FRAME on the right    self.parametersFrame
-		self.parametersFrame = Tk.Frame(mainFrame,bg="pink")
+		self.parametersFrame = Tk.Frame(mainFrame)#,bg="pink")
 		self.fill_parametersFrame(self.parametersFrame)
 		
 		
 		#SHEDULES FRAME on the right    self.schedulesFrame
-		self.schedulesFrame = Tk.Frame(mainFrame,bg="pink")
+		self.schedulesFrame = Tk.Frame(mainFrame)#,bg="pink")
 		self.fill_schedulesFrame(self.schedulesFrame)
 
 		
@@ -251,12 +252,13 @@ class App:
 		
 	def fill_schedulesFrame(self,schedulesFrame):
 		
+		self.backToParamButton = Tk.Button(schedulesFrame,text="Retour aux paramètres",command=self.bring_forth_parameters)
+		self.backToParamButton.pack(side=Tk.TOP,anchor="s")
+		
 		self.scheduleContainer = Tk.Frame(schedulesFrame)
 		self.scheduleContainer.pack(side=Tk.TOP,anchor="nw")
 		self.updateSchedules()
 		
-		self.backToParamButton = Tk.Button(schedulesFrame,text="Retour aux paramètres",command=self.bring_forth_parameters)
-		self.backToParamButton.pack(side=Tk.BOTTOM,anchor="s")
 		
 		
 		
@@ -324,7 +326,7 @@ class App:
 		
 		if(len(car.currentSchedule)==0):
 			return "Cette voiture n'a pas de schedule"
-		scheduleTitles="Heure ","Noeud ","Pick/Del ","Heure requ. "
+		scheduleTitles="Heure ","Noeud ","Pick/Del "," Heure permise "
 		scheduleLenghts=tuple(len(elem) for elem in scheduleTitles)
 		scheduleElements=[]
 		allSchedules=""
@@ -353,7 +355,7 @@ class App:
 			#temps au dépôt + slack
 			schedule = ""+self.minutes_to_timestring(temps+block.getPrevSlack()).ljust(scheduleLenghts[0])
 			#prevslack
-			schedule +="|Temps vide de " + str(round(block.getPrevSlack())) 
+			schedule +="|Temps vide de " + str(round(block.getPrevSlack())) +" (+"+self.minutes_to_timestring(round(block.getPrevSlack()))+")"
 			scheduleElements.append(schedule)
 			allSchedules+=schedule+"\n"
 			
@@ -364,15 +366,15 @@ class App:
 				schedule+=str(stop.node.index).ljust(scheduleLenghts[1])
 				schedule+="|"
 				schedule+=((stop.isPickup() and "Pickup") or ("Delivery")).ljust(scheduleLenghts[2])
-				schedule+="|"
+				schedule+="| "
 				if(stop.isPickup()):
 					#afficher l'heure à aquelle il doit Pickup AU PLUS TARD
 					#afficher de combien de minutes il pourrait être en avance (earliest - latest)
-					schedule+=self.minutes_to_timestring(stop.meal.lpt) + " (" + str(round(stop.meal.ept-stop.meal.lpt))+")"
+					schedule+=self.minutes_to_timestring(stop.meal.getEPT())+" ~ "+self.minutes_to_timestring(stop.meal.getLPT())
 				else:
 					#afficher l'heure à aquelle il doit Dropoff AU PLUS TARD
 					#afficher de combien de minutes il pourrait être en avance (deviation)
-					schedule+=self.minutes_to_timestring(stop.meal.ldt) + " (-" + str(stop.meal.deviation)+")"
+					schedule+=self.minutes_to_timestring(stop.meal.getEDT())+" ~ "+self.minutes_to_timestring(stop.meal.getLDT())
 					
 				#schedule+=str(self.graph.dist(prevnode,stop.node)).ljust(scheduleLenghts[3])[:scheduleLenghts[3]]
 				prevnode=stop.node
@@ -605,13 +607,11 @@ class App:
 		
 		#entry_COOK = Tk.Spinbox(tempMealFrame, from_=0, to=len(self.graph.getSortedNodes())-1, textvariable=tempMealFrame.COOK, width=6)
 		entry_COOK = Tk.Spinbox(tempMealFrame, from_=0, to=150, textvariable=tempMealFrame.COOK, width=5)
-		tempMealFrame.COOK.set(len(self.graph.getSortedNodes())-1)
 		entry_COOK.pack(side=Tk.LEFT)
 		entry_COOK.bind("<FocusOut>",self.checkNode)
 		entry_COOK.bind("<KeyRelease>",self.checkNode)
 		#entry_CLIENT = Tk.Entry(tempMealFrame,textvariable=tempMealFrame.CLIENT,width=6)
 		entry_CLIENT = Tk.Spinbox(tempMealFrame, from_=0, to=150, textvariable=tempMealFrame.CLIENT, width=5)
-		tempMealFrame.CLIENT.set(int(len(self.graph.getSortedNodes())/2))
 		entry_CLIENT.pack(side=Tk.LEFT)
 		entry_CLIENT.bind("<FocusOut>",self.checkNode)
 		entry_CLIENT.bind("<KeyRelease>",self.checkNode)
@@ -628,6 +628,9 @@ class App:
 		entry_DELIVERY.bind("<KeyRelease>",self.checkHour)
 		
 		tempMealFrame.DELIVERY.set("10:00")
+		tempMealFrame.DEVIATION.set("10")
+		tempMealFrame.COOK.set(len(self.graph.getSortedNodes())-1)
+		tempMealFrame.CLIENT.set(int(len(self.graph.getSortedNodes())/2))
 		
 		def removeMeal(): 
 			"""
