@@ -173,10 +173,10 @@ class App:
 		self.nodesButton = Tk.Button(self.nodesFrame, text="Generate",command = self.generateGraph)
 		self.nodesAmount.set(15)
 		
-		self.nodesFrame.pack(side=Tk.TOP,anchor="nw",fill=Tk.BOTH, expand=Tk.YES)
-		self.nodesLabel.pack(side=Tk.LEFT,anchor="w",fill=Tk.BOTH, expand=Tk.YES)
-		self.nodesEntry.pack(side=Tk.LEFT,anchor="w",fill=Tk.BOTH, expand=Tk.YES)
-		self.nodesButton.pack(side=Tk.LEFT,anchor="w",fill=Tk.BOTH, expand=Tk.YES)
+		self.nodesFrame.pack(side=Tk.TOP,anchor="nw")#,fill=Tk.BOTH, expand=Tk.YES)
+		self.nodesLabel.pack(side=Tk.LEFT,anchor="w")#,fill=Tk.BOTH, expand=Tk.YES)
+		self.nodesEntry.pack(side=Tk.LEFT,anchor="w")#,fill=Tk.BOTH, expand=Tk.YES)
+		self.nodesButton.pack(side=Tk.LEFT,anchor="w")#,fill=Tk.BOTH, expand=Tk.YES)
 		
 		#Select depot
 		self.depotFrame = Tk.Frame(parametersFrame)
@@ -365,7 +365,15 @@ class App:
 				schedule+="|"
 				schedule+=((stop.isPickup() and "Pickup") or ("Delivery")).ljust(scheduleLenghts[2])
 				schedule+="|"
-				schedule+=self.minutes_to_timestring(stop.meal.ddt)
+				if(stop.isPickup()):
+					#afficher l'heure à aquelle il doit Pickup AU PLUS TARD
+					#afficher de combien de minutes il pourrait être en avance (earliest - latest)
+					schedule+=self.minutes_to_timestring(stop.meal.lpt) + " (" + str(round(stop.meal.ept-stop.meal.lpt))+")"
+				else:
+					#afficher l'heure à aquelle il doit Dropoff AU PLUS TARD
+					#afficher de combien de minutes il pourrait être en avance (deviation)
+					schedule+=self.minutes_to_timestring(stop.meal.ldt) + " (-" + str(stop.meal.deviation)+")"
+					
 				#schedule+=str(self.graph.dist(prevnode,stop.node)).ljust(scheduleLenghts[3])[:scheduleLenghts[3]]
 				prevnode=stop.node
 				scheduleElements.append(schedule)
@@ -848,8 +856,8 @@ class GUIGraph:
 			
 		width=int(self.canvas.cget("width"))
 		
-		self.canvas.create_line(1, width, 1, width-(1/self.deltaY*self.screensize))
-		self.canvas.create_line(1, width, (1/self.deltaX*self.screensize), width)
+		self.canvas.create_line(4, width-4, 4, width-4-(1/self.deltaY*self.screensize))
+		self.canvas.create_line(4, width-4, 4+(1/self.deltaX*self.screensize), width-4)
 		
 	def drawGraph(self):	
 			
