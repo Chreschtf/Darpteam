@@ -294,6 +294,25 @@ class App:
 		scheduleText.pack(side=Tk.TOP,anchor="s")
 		
 		
+		if(len(self.remainingMeals)>0):
+			remainingMealsText = Tk.Label(self.scheduleContainer, text="Les repas suivants n'ont pas pu être livrés:\n"+self.remainingMealsString())
+			remainingMealsText.pack(side=Tk.TOP,anchor="s")
+		
+		
+	def remainingMealsString(self):
+		answer  = ""
+		
+		for meal in self.remainingMeals:
+			smeal = "Livraison de "
+			smeal+=self.minutes_to_timestring(meal.ddt)
+			smeal+=" (au plus tôt "
+			smeal+=self.minutes_to_timestring(meal.edt)
+			smeal+= ") du noeud "+str(meal.chef.index)
+			smeal+= " au noeud "+str(meal.destination.index)
+			answer+=smeal+"\n"
+			
+		return answer
+		
 	def generate_schedule_list(self,car):
 		
 		if(len(car.currentSchedule)==0):
