@@ -252,19 +252,51 @@ class App:
 		
 	def fill_schedulesFrame(self,schedulesFrame):
 		
-		self.backToParamButton = Tk.Button(schedulesFrame,text="Retour aux paramètres",command=self.bring_forth_parameters)
-		self.backToParamButton.pack(side=Tk.TOP,anchor="s")
 		
-		self.scheduleContainer = Tk.Frame(schedulesFrame)
+		miniFrame = Tk.Frame(schedulesFrame)
+		miniFrame.pack(anchor="nw",side=Tk.TOP)
+		
+		scrollbar = Tk.Scrollbar(miniFrame)
+		scrollbar.pack(side=Tk.RIGHT, fill=Tk.Y)
+		
+		scrollingCanvas = Tk.Canvas(miniFrame,yscrollcommand=scrollbar.set,height=480-50)
+		scrollbar.config(command=scrollingCanvas.yview)
+		
+		scrollingCanvas.pack(side=Tk.LEFT, fill=Tk.BOTH, expand=Tk.TRUE)
+		scrollingFrame = Tk.Frame(scrollingCanvas)
+		interior_id = scrollingCanvas.create_window(0, 0, window=scrollingFrame,anchor=Tk.NW)
+		def _configure_interior(event):
+			# update the scrollbars to match the size of the inner frame
+			size = (scrollingFrame.winfo_reqwidth(), scrollingFrame.winfo_reqheight())
+			scrollingCanvas.config(scrollregion="0 0 %s %s" % size)
+			if scrollingFrame.winfo_reqwidth() != scrollingCanvas.winfo_width():
+				# update the canvas's width to fit the inner frame
+				scrollingCanvas.config(width=scrollingFrame.winfo_reqwidth())
+		scrollingFrame.bind('<Configure>', _configure_interior)     
+
+		def _configure_canvas(event):
+			if scrollingFrame.winfo_reqwidth() != scrollingCanvas.winfo_width():
+				# update the inner frame's width to fill the canvas
+				scrollingCanvas.itemconfigure(interior_id, width=scrollingCanvas.winfo_width())  
+		scrollingCanvas.bind('<Configure>', _configure_canvas)           
+
+		
+		self.scheduleContainer = Tk.Frame(scrollingFrame)
+		self.scheduleScrollingFrame = scrollingFrame
 		self.scheduleContainer.pack(side=Tk.TOP,anchor="nw")
 		self.updateSchedules()
+		
+		
+		self.backToParamButton = Tk.Button(schedulesFrame,text="Retour aux paramètres",command=self.bring_forth_parameters)
+		self.backToParamButton.pack(side=Tk.BOTTOM,anchor="s")
+		
 		
 		
 		
 		
 	def updateSchedules(self):
 		self.scheduleContainer.destroy()
-		self.scheduleContainer = Tk.Frame(self.schedulesFrame)
+		self.scheduleContainer = Tk.Frame(self.scheduleScrollingFrame)
 		self.scheduleContainer.pack(side=Tk.TOP,anchor="nw")
 		
 		testSched = Tk.Label(self.scheduleContainer, text="Affichage des schedules du car:")
