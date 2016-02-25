@@ -142,11 +142,13 @@ class App:
 		self.parametersFrame, text="Start DARP", fg="red", command=self.start_darp)
 		self.button.pack(side=Tk.BOTTOM,anchor="w")
 		
+		
+		
+		self.generateGraph()
 		self.createMeals()
 		self.createCars()
 		self.bring_forth_parameters()
 		#self.bring_forth_schedules()
-		
 		
 		
 
@@ -242,6 +244,11 @@ class App:
 		self.scheduleContainer = Tk.Frame(schedulesFrame)
 		self.scheduleContainer.pack(side=Tk.TOP,anchor="nw")
 		self.updateSchedules()
+		
+		self.backToParamButton = Tk.Button(schedulesFrame,text="Retour aux paramètres",command=self.bring_forth_parameters)
+		self.backToParamButton.pack(side=Tk.BOTTOM,anchor="s")
+		
+		
 		
 	def updateSchedules(self):
 		self.scheduleContainer.destroy()

@@ -205,7 +205,7 @@ class Block:
         contains=False
         i=0
         while not contains and i<len(self.stops):
-            if stop.getMeal()==meal:
+            if self.stops[i].getMeal()==meal:
                 contains=True
             i+=1
         return contains
