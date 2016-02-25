@@ -173,10 +173,10 @@ class App:
 		self.nodesButton = Tk.Button(self.nodesFrame, text="Generate",command = self.generateGraph)
 		self.nodesAmount.set(15)
 		
-		self.nodesFrame.pack(side=Tk.TOP,anchor="nw",fill=Tk.BOTH, expand=Tk.YES)
-		self.nodesLabel.pack(side=Tk.LEFT,anchor="w",fill=Tk.BOTH, expand=Tk.YES)
-		self.nodesEntry.pack(side=Tk.LEFT,anchor="w",fill=Tk.BOTH, expand=Tk.YES)
-		self.nodesButton.pack(side=Tk.LEFT,anchor="w",fill=Tk.BOTH, expand=Tk.YES)
+		self.nodesFrame.pack(side=Tk.TOP,anchor="nw")#,fill=Tk.BOTH, expand=Tk.YES)
+		self.nodesLabel.pack(side=Tk.LEFT,anchor="w")#,fill=Tk.BOTH, expand=Tk.YES)
+		self.nodesEntry.pack(side=Tk.LEFT,anchor="w")#,fill=Tk.BOTH, expand=Tk.YES)
+		self.nodesButton.pack(side=Tk.LEFT,anchor="w")#,fill=Tk.BOTH, expand=Tk.YES)
 		
 		#Select depot
 		self.depotFrame = Tk.Frame(parametersFrame)
@@ -275,6 +275,10 @@ class App:
 		carsOptionsFrame = Tk.Frame(self.scheduleContainer)
 		carsOptionsFrame.pack(side=Tk.TOP,anchor="n")
 		
+		if(len(self.availableCars)==0):
+			varSched.set("Pas de voiture disponible!")
+			
+		
 		for i,car in enumerate(self.availableCars):
 			def switchSchedule(car=car):
 				scheduleText=self.generate_schedule_list(car)
@@ -295,7 +299,9 @@ class App:
 		
 		
 		if(len(self.remainingMeals)>0):
-			remainingMealsText = Tk.Label(self.scheduleContainer, text="Les repas suivants n'ont pas pu être livrés:\n"+self.remainingMealsString())
+			remainingMealsText = Tk.Label(self.scheduleContainer, 
+			text="Les repas suivants n'ont pas pu être livrés:\n"+self.remainingMealsString(),
+			justify=Tk.LEFT,font="monospace 10")
 			remainingMealsText.pack(side=Tk.TOP,anchor="s")
 		
 		
@@ -303,11 +309,12 @@ class App:
 		answer  = ""
 		
 		for meal in self.remainingMeals:
-			smeal = "Livraison de "
+			smeal = "\n-Livraison de "
 			smeal+=self.minutes_to_timestring(meal.ddt)
-			smeal+=" (au plus tôt "
+			smeal+=" ("
 			smeal+=self.minutes_to_timestring(meal.edt)
-			smeal+= ") du noeud "+str(meal.chef.index)
+			smeal+=" au plus tôt"
+			smeal+= ")\n           du noeud "+str(meal.chef.index)
 			smeal+= " au noeud "+str(meal.destination.index)
 			answer+=smeal+"\n"
 			
@@ -343,8 +350,10 @@ class App:
 		prevnode = car.depot
 		for block in car.currentSchedule:
 			
-			schedule = self.minutes_to_timestring(temps+block.getPrevSlack()).ljust(scheduleLenghts[0])
-			schedule +="|Temps vide de " +  self.minutes_to_timestring(block.getPrevSlack()) 
+			#temps au dépôt + slack
+			schedule = ""+self.minutes_to_timestring(temps+block.getPrevSlack()).ljust(scheduleLenghts[0])
+			#prevslack
+			schedule +="|Temps vide de " + str(round(block.getPrevSlack())) 
 			scheduleElements.append(schedule)
 			allSchedules+=schedule+"\n"
 			
@@ -356,7 +365,15 @@ class App:
 				schedule+="|"
 				schedule+=((stop.isPickup() and "Pickup") or ("Delivery")).ljust(scheduleLenghts[2])
 				schedule+="|"
-				schedule+=self.minutes_to_timestring(stop.meal.ddt)
+				if(stop.isPickup()):
+					#afficher l'heure à aquelle il doit Pickup AU PLUS TARD
+					#afficher de combien de minutes il pourrait être en avance (earliest - latest)
+					schedule+=self.minutes_to_timestring(stop.meal.lpt) + " (" + str(round(stop.meal.ept-stop.meal.lpt))+")"
+				else:
+					#afficher l'heure à aquelle il doit Dropoff AU PLUS TARD
+					#afficher de combien de minutes il pourrait être en avance (deviation)
+					schedule+=self.minutes_to_timestring(stop.meal.ldt) + " (-" + str(stop.meal.deviation)+")"
+					
 				#schedule+=str(self.graph.dist(prevnode,stop.node)).ljust(scheduleLenghts[3])[:scheduleLenghts[3]]
 				prevnode=stop.node
 				scheduleElements.append(schedule)
@@ -444,7 +461,7 @@ class App:
 				print("Starting DARP...")
 				darp.createSchedules()
 				self.remainingMeals=darp.getNotInsertedMeals()
-				print(self.remainingMeals)
+				#print(self.remainingMeals)
 				
 				self.availableCars=allCars[:]
 				self.bring_forth_schedules()
@@ -835,6 +852,13 @@ class GUIGraph:
 			x,y = node.i,node.j
 			self.positionsInGraph.append(((x-self.minX)/self.deltaX*self.screensize+self.margin,(y-self.minY)/self.deltaY*self.screensize+self.margin))
 			
+			
+			
+		width=int(self.canvas.cget("width"))
+		
+		self.canvas.create_line(4, width-4, 4, width-4-(1/self.deltaY*self.screensize))
+		self.canvas.create_line(4, width-4, 4+(1/self.deltaX*self.screensize), width-4)
+		
 	def drawGraph(self):	
 			
 		#adjacenceMatrix= [[None]*self.nodesAmount for i in range(self.nodesAmount)]
