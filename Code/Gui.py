@@ -102,6 +102,12 @@ class App:
 		else:
 			event.widget.configure(bg = "#ff6666")
 			
+	def colorCheck(self,widget,testValue):
+		if(testValue):
+			widget.configure(bg = "#F0F0ED")
+		else:
+			widget.configure(bg = "#ff6666")
+			
 	def getCarFrameDuration(self,carFrame):
 		return self.timestring_to_minutes(carFrame.ENDTIME.get())-self.timestring_to_minutes(carFrame.STARTTIME.get())
 			
@@ -395,6 +401,9 @@ class App:
 					currentCapacity = int(currentFrame.CAPACITY.get())
 					currentStarttime = self.timestring_to_minutes(currentFrame.STARTTIME.get())
 					currentDuration = self.getCarFrameDuration(currentFrame)
+					if(currentDuration<=0):
+						raise ValueError("Car's currentDuration<=0")
+					
 					currentEndtime = self.timestring_to_minutes(currentFrame.ENDTIME.get())
 					currentDepot = self.graph.getSortedNodes()[int(self.depotValue.get())]
 					#print("La voiture ",i,"a un capacité de ",currentCapacity,
@@ -644,7 +653,6 @@ class App:
 		tempCarFrame.ENDTIME=Tk.StringVar()
 		
 		
-		
 		#carIcon = Tk.Button(tempCarFrame,text="",width=3)
 		#carIcon.pack(side=Tk.LEFT)
 		#entry_MAXCAPACITY = Tk.Entry(tempCarFrame,textvariable=tempCarFrame.CAPACITY,width=10)
@@ -663,6 +671,13 @@ class App:
 		entry_ENDTIME.pack(side=Tk.LEFT)
 		entry_ENDTIME.bind("<FocusOut>",self.checkHour)
 		entry_ENDTIME.bind("<KeyRelease>",self.checkHour)
+		
+		
+		def check_hourdiff(event):
+			self.colorCheck(entry_ENDTIME,self.getCarFrameDuration(tempCarFrame)>0)
+			
+		entry_ENDTIME.bind("<FocusOut>", check_hourdiff, add="+")
+		entry_ENDTIME.bind("<KeyRelease>", check_hourdiff, add="+")
 
 
 		tempCarFrame.STARTTIME.set("00:00")
@@ -686,7 +701,7 @@ class App:
 			mycar = self.addCar()
 			mycar.CAPACITY.set( tempCarFrame.CAPACITY.get() )
 			mycar.STARTTIME.set( tempCarFrame.STARTTIME.get() )
-			mycar.DURATION.set( tempCarFrame.DURATION.get() )
+			mycar.ENDTIME.set( tempCarFrame.ENDTIME.get() )
 			
 			callFocusOut(mycar)
 		
@@ -718,10 +733,12 @@ class App:
 	def verifyEntries(self):
 		#gérer les float ? 0.5 capacity?
 		for index,carFrame in enumerate(self.carFrames):	
+			print(index)
 			#if int(carFrame.CAPACITY.get()) < 0 or int(carFrame.STARTTIME.get()) < 0 or int(carFrame.DURATION.get()) < 0:
 			if not(self.is_amountstring_ok(carFrame.CAPACITY.get())
 			and self.is_timestring_ok(carFrame.STARTTIME.get())
-			and self.is_timestring_ok(carFrame.ENDTIME.get())):
+			and self.is_timestring_ok(carFrame.ENDTIME.get())
+			and self.getCarFrameDuration(carFrame)>0):
 				Tk.messagebox.showwarning("DARP export","Cannot export: Bad CAR values for car "+str(index))
 				return False
 		for index,mealFrame in enumerate(self.mealsFrames):
