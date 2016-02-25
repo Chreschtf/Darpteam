@@ -384,12 +384,13 @@ class App:
 		prevnode = car.depot
 		for block in car.currentSchedule:
 			
-			#temps au dépôt + slack
-			schedule = ""+self.minutes_to_timestring(temps+block.getPrevSlack()).ljust(scheduleLenghts[0])
 			#prevslack
-			schedule +="|Temps vide de " + str(round(block.getPrevSlack())) +" (+"+self.minutes_to_timestring(round(block.getPrevSlack()))+")"
+			schedule ="(Temps mort de " + str(round(block.getPrevSlack())) +" (+"+self.minutes_to_timestring(round(block.getPrevSlack()))+") )"
 			scheduleElements.append(schedule)
 			allSchedules+=schedule+"\n"
+			#temps au dépôt + slack
+			#schedule = ""+self.minutes_to_timestring(temps+block.getPrevSlack()).ljust(scheduleLenghts[0])
+			#allSchedules+=schedule+"\n"
 			
 			for stop in block.stops:
 				schedule = ""
@@ -856,6 +857,8 @@ class GUIGraph:
 	def generateGraph(self,graph):
 		self.canvas.delete(Tk.ALL)
 		self.graph=graph
+		
+		
 		self.nodesAmount=len(graph.getSortedNodes())
 		
 		self.nodes=graph.getSortedNodes()
