@@ -187,8 +187,8 @@ class Car:
         """
         First insertion to the schedule
         """
-        if self.start + self.graph.dist(self.depot, meal.getChef()) + meal.getDRT() + self.graph.dist(
-                meal.getDestination(), self.depot) <= self.end:
+        if self.start<=meal.getEPT() and (self.start + self.graph.dist(self.depot, meal.getChef()) + meal.getDRT() + self.graph.dist(
+                meal.getDestination(), self.depot) )<= self.end:
             stop1 = Stop(meal.getChef(), meal.getDDT() - meal.getDRT(), meal, True)
             stop2 = Stop(meal.getDestination(), meal.getDDT(), meal, False)
             prevSlack = stop1.getST() - self.start - \
