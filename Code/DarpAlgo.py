@@ -14,9 +14,9 @@ class DarpAlgo:
         self.constants["c3"]=1
         self.constants["c4"]=1
         self.constants["c5"]=1
-        self.constants["c6"]=2
+        self.constants["c6"]=1
         self.constants["c7"]=1
-        self.constants["c8"]=2
+        self.constants["c8"]=1
         self.constants["W1"]=60
         self.constants["W2"]=60
 
@@ -36,7 +36,7 @@ class DarpAlgo:
                 self.cars[schedule[2]].setCurrentSchedule(schedule[1])
             else:
                 self.mealsNotInserted.append(self.meals[i])
-                #i=0
+
 
 
     def addToCar(self,meal,car):

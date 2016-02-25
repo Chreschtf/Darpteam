@@ -145,12 +145,14 @@ class Block:
     def getNbrOfMeals(self):
         return len(self.stops)//2
 
-    def getNbrOfMealsBefore(self,i):
+    def getChargeBefore(self,i):
         charge=0
         j=0
         while j<=i:
             if self.stops[j].isPickup():
                 charge+=1
+            else:
+                charge-=1
             j+=1
         return charge
 

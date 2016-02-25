@@ -275,7 +275,7 @@ class Car:
                 p = block.getStopAt(j)
                 q = block.getStopAt(j + 1)
                 # checking charge-feasibility before launching the algorithm
-                if block.getNbrOfMealsBefore(j) < self.maxCharge:  # and self.case2Algo(p,q,meal,j):
+                if block.getChargeBefore(j) < self.maxCharge:  # and self.case2Algo(p,q,meal,j):
                     deltaP = self.graph.dist(p.getNode(), meal.getChef()) + meal.getDRT() + \
                              self.graph.dist(meal.getDestination(), q.getNode()) - \
                              self.graph.dist(p.getNode(), q.getNode())
@@ -298,7 +298,7 @@ class Car:
                         else:
                             ps = 0
                             ds = deltaP
-                            tpu = p.getST()
+                            tpu = p.getST() +self.graph.dist(p.getNode(),meal.getChef())
                             td = tpu + meal.getDRT()
                         # ddt, so :
                         gt = td
@@ -471,7 +471,7 @@ class Car:
                                 stop1 = Stop(meal.getChef(), tpu, meal, True)
                                 stop2 = Stop(meal.getDestination(), td, meal, False)
                                 block.insertStop(j + 1, stop1)
-                                block.insertStop(k + 1, stop2)
+                                block.insertStop(k + 2, stop2)
                                 block.shiftScheduleBefore(stop1, ps)
                                 block.shiftScheduleAfter(stop2, ds)
                                 block.shiftScheduleBetween(stop1, stop2, ms)
