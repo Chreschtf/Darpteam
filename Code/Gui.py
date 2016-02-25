@@ -844,6 +844,13 @@ class GUIGraph:
 			x,y = node.i,node.j
 			self.positionsInGraph.append(((x-self.minX)/self.deltaX*self.screensize+self.margin,(y-self.minY)/self.deltaY*self.screensize+self.margin))
 			
+			
+			
+		width=int(self.canvas.cget("width"))
+		
+		self.canvas.create_line(1, width, 1, width-(1/self.deltaY*self.screensize))
+		self.canvas.create_line(1, width, (1/self.deltaX*self.screensize), width)
+		
 	def drawGraph(self):	
 			
 		#adjacenceMatrix= [[None]*self.nodesAmount for i in range(self.nodesAmount)]
