@@ -44,7 +44,7 @@ class DataFileParser:
 		
 		
 		for car in root.iter( "car" ):
-			self.cars.append( Car(car.attrib["maxCharge"], car.attrib["start"], car.attrib["duration"], self.depots[0], self.graph) ) # utiliser plusieurs depots ?
+			self.cars.append( Car(int(car.attrib["maxCharge"]), int(car.attrib["start"]), int(car.attrib["duration"]), self.depots[0], self.graph) ) # utiliser plusieurs depots ?
 			
 			
 			

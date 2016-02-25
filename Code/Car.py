@@ -56,9 +56,10 @@ class Car:
         timeDiff = self.end - stop2.getST()
         slack = timeDiff - dist
         self.currentSchedule[-1].setNextSlack(slack)
-
+        self.serviceTime=0
         for block in self.currentSchedule:
             block.calcUPnDOWN()
+            self.serviceTime+=block.calcServiceTime()
 
     def getServiceTime(self):
         return self.serviceTime
@@ -175,6 +176,7 @@ class Car:
             else:
                 feasible= False
             r +=1
+        block.shiftSchedule(Rmin)
 
 
 
@@ -185,8 +187,8 @@ class Car:
         """
         First insertion to the schedule
         """
-        if self.start + self.graph.dist(self.depot, meal.getChef()) + meal.getDRT() + self.graph.dist(
-                meal.getDestination(), self.depot) <= self.end:
+        if self.start<=meal.getEPT() and (self.start + self.graph.dist(self.depot, meal.getChef()) + meal.getDRT() + self.graph.dist(
+                meal.getDestination(), self.depot) )<= self.end:
             stop1 = Stop(meal.getChef(), meal.getDDT() - meal.getDRT(), meal, True)
             stop2 = Stop(meal.getDestination(), meal.getDDT(), meal, False)
             prevSlack = stop1.getST() - self.start - \
@@ -273,7 +275,7 @@ class Car:
                 p = block.getStopAt(j)
                 q = block.getStopAt(j + 1)
                 # checking charge-feasibility before launching the algorithm
-                if block.getNbrOfMealsBefore(j) < self.maxCharge:  # and self.case2Algo(p,q,meal,j):
+                if block.getChargeBefore(j) < self.maxCharge:  # and self.case2Algo(p,q,meal,j):
                     deltaP = self.graph.dist(p.getNode(), meal.getChef()) + meal.getDRT() + \
                              self.graph.dist(meal.getDestination(), q.getNode()) - \
                              self.graph.dist(p.getNode(), q.getNode())
@@ -296,7 +298,7 @@ class Car:
                         else:
                             ps = 0
                             ds = deltaP
-                            tpu = p.getST()
+                            tpu = p.getST() +self.graph.dist(p.getNode(),meal.getChef())
                             td = tpu + meal.getDRT()
                         # ddt, so :
                         gt = td
@@ -469,7 +471,7 @@ class Car:
                                 stop1 = Stop(meal.getChef(), tpu, meal, True)
                                 stop2 = Stop(meal.getDestination(), td, meal, False)
                                 block.insertStop(j + 1, stop1)
-                                block.insertStop(k + 1, stop2)
+                                block.insertStop(k + 2, stop2)
                                 block.shiftScheduleBefore(stop1, ps)
                                 block.shiftScheduleAfter(stop2, ds)
                                 block.shiftScheduleBetween(stop1, stop2, ms)
@@ -477,3 +479,12 @@ class Car:
                                     self.feasibleSchedules.append(schedule)
                                 schedule = deepcopy(self.currentSchedule)
                                 block = schedule[i]
+
+    def removePastStops(self,time):
+        i=0
+        while i<len(self.currentSchedule) and self.currentSchedule[i].getStart()<time:
+            self.currentSchedule[i].removePastStops(time)
+            if len(self.currentSchedule[i])==0:
+                self.currentSchedule.remove(self.currentSchedule[i])
+                i-=1
+            i+=1

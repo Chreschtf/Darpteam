@@ -21,6 +21,14 @@ class Block:
         self.shiftSchedule(self.r)
         self.calcUPnDOWN()
 
+    def calcAandR(self):
+        r=0
+        a=float("inf")
+        for stop in self.stops:
+            r=max(stop.getR(),r)
+            a=min(stop.getA(),a)
+        self.r=r
+        self.a=a
 
     def getA(self):
         return self.a
@@ -57,15 +65,6 @@ class Block:
 
     def insertStop(self,i,stop):
         self.stops.insert(i,stop)
-
-    def case1(self,meal):
-        pass
-    def case2(self,meal):
-        pass
-    def case3(self,meal):
-        pass
-    def case4(self,meal):
-        pass
 
     def getPrevSlack(self):
         return self.prevSlack
@@ -140,31 +139,37 @@ class Block:
         return deviation
 
     def calcServiceTime(self):
-        return self.stops[0].getST()-self.stops[-1].getST()
+        return self.stops[-1].getST()-self.stops[0].getST()
 
 
     def getNbrOfMeals(self):
-        i=0
-        for stop in self.stops:
-            i+=stop.isPickup()
+        return len(self.stops)//2
 
-        return i
-
-    def getNbrOfMealsBefore(self,i):
+    def getChargeBefore(self,i):
         charge=0
         j=0
         while j<=i:
             if self.stops[j].isPickup():
                 charge+=1
+            else:
+                charge-=1
             j+=1
         return charge
 
+    def removePastStops(self,time):
+        i=0
+        meals=dict()
+        while i<len(self.stops) and self.stops[i].getST()<time:
+            i += 1
+            meals.setdefault(stop.getMeal(),[]).append(stop)
+        for meal in meals:
+            if len(meals[meal])==2:
+                self.stops.remove(meals[meal][0])
+                self.stops.remove(meals[meal][1])
+
 
     def getCharge(self):
-        charge=0
-        for stop in self.stops:
-            charge+=stop.isPickup()
-        return charge
+        return self.getNbrOfMeals()
 
     def respectCharge(self,maxCharge):
         charge=0
@@ -195,3 +200,12 @@ class Block:
 
     def __len__(self):
         return len(self.stops)
+
+    def __contains__(self, meal):
+        contains=False
+        i=0
+        while not contains and i<len(self.stops):
+            if self.stops[i].getMeal()==meal:
+                contains=True
+            i+=1
+        return contains

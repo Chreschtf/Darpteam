@@ -35,7 +35,10 @@ class Graph:
                     self.connectNodes(nodeA, nodeB)
 
 
-    	
+    def getSortedNodes(self):
+        self.nodes.sort(key=lambda obj: obj.index)
+        return self.nodes
+
     def getAdjMatrix(self):
     	return self.finalAdjMatrix
 

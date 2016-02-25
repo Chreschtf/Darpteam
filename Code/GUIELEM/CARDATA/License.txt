@@ -1,0 +1,4 @@
+Original car image CC-BY http://opengameart.org/content/car-pickup
+Scaling, coloring and rotations by Akira Baes
+
+16 colors total, rotation in 32 frames, zfill4

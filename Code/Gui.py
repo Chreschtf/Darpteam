@@ -32,135 +32,406 @@ except ImportError:
 
 
 class App:
+	def timestring_to_minutes(self,tstring):
+		x=tstring.split(":")
+		return int(x[0])*60+int(x[1])
+		
+		
+	def minutes_to_timestring(self,minutes):
+		minutes=round(minutes)
+		return str(int(minutes/60)).zfill(2)+":"+str(int(minutes%60)).zfill(2)
 
+	def is_amountstring_ok(self,astring):	
+		try:
+			return(int(astring)>=0)
+		except ValueError:
+			return False
+			
+	def is_time_ok(self,hours,minutes,timestart=0):
+		return (0<=hours<24 and 0<=minutes<60 and timestart<=hours*60+minutes)
+		
+	def is_timestring_ok(self,tstring,tstart=0):
+		try:
+			h,m=tstring.split(":")
+			return self.is_time_ok(int(h),int(m),tstart)
+		except ValueError:
+			return False
+	
+	def is_node_ok(self,nodeNumber):
+		return self.graph!=None and (0<=nodeNumber<len(self.graph.getSortedNodes()))
+			
+	def is_nodestring_ok(self,nstring):
+		try:
+			return self.is_node_ok(int(nstring))
+		except ValueError:
+			return False
+			
+	def nodestring_to_node(self,nstring):
+		if(self.is_nodestring_ok(nstring)):
+			return  self.graph.getSortedNodes()[int(nstring)]
+		else:
+			raise ValueError("No such node")
+			
+			
+	def checkNode(self,event):
+		if(self.is_nodestring_ok(event.widget.get())):
+			event.widget.configure(bg = "#F0F0ED")
+		else:
+			event.widget.configure(bg = "#ff6666")
+
+	def checkValue(self,event):
+		if(self.is_amountstring_ok(event.widget.get())):
+			event.widget.configure(bg = "#F0F0ED")
+		else:
+			event.widget.configure(bg = "#ff6666")
+
+	def checkHour(self,event):
+		splitdata=event.widget.get().split(":")
+		"""if(len(splitdata)==1):
+			splitdata.append("00")
+			aa=event.widget.cget("textvariable")
+			print(aa,repr(aa))
+			event.widget.delete(0, Tk.END)
+			event.widget.insert(0, ":".join(splitdata))
+			#event.widget.winfo_parent()
+			#print(aa.get())
+			#event.widget.cget("textvariable").set(":".join(splitdata))
+		"""
+					
+		if(self.is_timestring_ok(event.widget.get())):
+			event.widget.configure(bg = "#F0F0ED")
+		else:
+			event.widget.configure(bg = "#ff6666")
+			
+	def colorCheck(self,widget,testValue):
+		if(not testValue):
+			widget.configure(bg = "#ff6666")
+		elif(widget.cget('bg')!="#ff6666"):
+			widget.configure(bg = "#F0F0ED")
+			
+			
+	def getCarFrameDuration(self,carFrame):
+		return self.timestring_to_minutes(carFrame.ENDTIME.get())-self.timestring_to_minutes(carFrame.STARTTIME.get())
+			
 	def __init__(self, master):
 		self.graph = None
+		self.availableCars= []
+		self.availableMeals= []
+		self.remainingMeals= []
+		
 		self.guiGraph = None
+		
+		self.hoursInDay = [str(h).zfill(2)+":"+str(m).zfill(2) for h in range(24) for m in range(60)]
+		self.dupeImage = Tk.PhotoImage(file=os.path.join("GUIELEM","duplicate.gif"))
+		
 		
 		#MAINFRAME
 		mainFrame = Tk.Frame(master)
 		mainFrame.pack(fill=Tk.BOTH,expand=True)
 		
 		#PARAMETERS FRAME on the right    self.parametersFrame
-		self.parametersFrame = Tk.Frame(mainFrame,bg="pink")
-		self.parametersFrame.pack(side=Tk.RIGHT,anchor="n",fill=Tk.BOTH)
+		self.parametersFrame = Tk.Frame(mainFrame)#,bg="pink")
+		self.fill_parametersFrame(self.parametersFrame)
 		
 		
+		#SHEDULES FRAME on the right    self.schedulesFrame
+		self.schedulesFrame = Tk.Frame(mainFrame)#,bg="pink")
+		self.fill_schedulesFrame(self.schedulesFrame)
+
 		
-		self.nodesFrame = Tk.Frame(self.parametersFrame)
-		self.nodesFrame.pack(side=Tk.TOP,anchor="nw")
-		
-		
-		self.nodesLabel = Tk.Label(self.nodesFrame,text="Amount of Nodes: ")
-		#self.nodesEntry = Tk.Entry(self.nodesFrame,width=4)
-		self.nodesAmount = Tk.StringVar()
-		
-		self.nodesEntry = Tk.Spinbox(self.nodesFrame, from_=3, to=15, width=4,textvariable=self.nodesAmount)
-		self.nodesButton = Tk.Button(self.nodesFrame, text="Generate",command = self.generateGraph)
-		
-		self.nodesLabel.pack(side=Tk.LEFT,anchor="w")
-		self.nodesEntry.pack(side=Tk.LEFT,anchor="w")
-		self.nodesButton.pack(side=Tk.LEFT,anchor="w")
-		
-		self.depotFrame = Tk.Frame(self.parametersFrame)
-		self.depotFrame.pack(side=Tk.TOP,anchor="nw")
-		
-		def checkNode(event):
-			event.widget.configure(bg = "#ff6666")
-			try:
-				if(0<=int(event.widget.get())<len(self.graph.nodes)):
-					event.widget.configure(bg = "#F0F0ED")
-				print(event.widget.get())
-			except:
-				pass
-				
-		
-		self.depotLabel = Tk.Label(self.depotFrame,text="Depot node: ")
-		#self.depotEntry = Tk.Entry(self.depotFrame,width=4)
-		self.depotValue = Tk.StringVar()
-		
-		self.depotEntry = Tk.Spinbox(self.depotFrame, from_=0, to=1, width=4, textvariable=self.depotValue)
-		self.depotLabel.pack(side=Tk.LEFT,anchor="w")
-		self.depotEntry.pack(side=Tk.LEFT,anchor="w")
-		self.depotEntry.bind("<FocusOut>",checkNode)
-		self.depotEntry.bind("<KeyRelease>",checkNode)
-		
-		self.mealsLabel = Tk.Label(self.parametersFrame,text="Meals:")
-		self.mealsFrame = Tk.Frame(self.parametersFrame)
-		self.mealsLabel.pack(side=Tk.TOP,anchor="nw")
-		self.mealsFrame.pack(side=Tk.TOP,anchor="nw",fill=Tk.X)
-		
-		self.carsLabel = Tk.Label(self.parametersFrame,text="Cars:")
-		self.carsFrame = Tk.Frame(self.parametersFrame)
-		self.carsLabel.pack(side=Tk.TOP,anchor="nw")
-		self.carsFrame.pack(side=Tk.TOP,anchor="nw",fill=Tk.X)
-		
-		
-		
-		
+		#DISPLAY FRAME on the left    self.displayFrame
 		self.displayFrame = Tk.Frame(mainFrame)
-		self.displayFrame.pack(side=Tk.LEFT)
-		
-		self.dupeImage = Tk.PhotoImage(file=os.path.join("GUIELEM","duplicate.gif"))
-		
-		
-		"""
-		self.cooksEntry = Tk.Entry(self.parametersFrame)
-		self.clientsEntry = Tk.Entry(self.parametersFrame)	
-		self.cooksLabel = Tk.Label(self.parametersFrame,text="Amount of Cooks")
-		self.clientsLabel = Tk.Label(self.parametersFrame,text="Amount of Clients")
-		"""
+		self.canvas = Tk.Canvas(self.displayFrame, width=480, height=480)
+		self.canvas.pack()
+	
+		self.schedulesFrame.grid(row=0, column=1, sticky="nsew",)
+		self.parametersFrame.grid(row=0, column=1, sticky="nsew")
+		self.displayFrame.grid(row=0, column=0, sticky="nsew")
 		
 		
-		#e.delete(0, END)
-		#e.insert(0, "a default value")
+		self.button = Tk.Button(
+		self.parametersFrame, text="Start DARP", fg="red", command=self.start_darp)
+		self.button.pack(side=Tk.BOTTOM,anchor="w")
+		
+		
+		
+		self.generateGraph()
+		self.createMeals()
+		self.createCars()
+		self.bring_forth_parameters()
+		#self.bring_forth_schedules()
 		
 		
 
-		self.parserFrame = Tk.Frame(self.parametersFrame)
+	def fill_parametersFrame(self,parametersFrame):
+		
+		#Generate nodes
+		self.nodesFrame = Tk.Frame(parametersFrame)
+		self.nodesLabel = Tk.Label(self.nodesFrame,text="Amount of Nodes: ")
+		self.nodesAmount = Tk.StringVar()
+		
+		self.nodesEntry = Tk.Spinbox(self.nodesFrame, from_=3, to=150, width=4,textvariable=self.nodesAmount)
+		self.nodesButton = Tk.Button(self.nodesFrame, text="Generate",command = self.generateGraph)
+		self.nodesAmount.set(15)
+		
+		self.nodesFrame.pack(side=Tk.TOP,anchor="nw")#,fill=Tk.BOTH, expand=Tk.YES)
+		self.nodesLabel.pack(side=Tk.LEFT,anchor="w")#,fill=Tk.BOTH, expand=Tk.YES)
+		self.nodesEntry.pack(side=Tk.LEFT,anchor="w")#,fill=Tk.BOTH, expand=Tk.YES)
+		self.nodesButton.pack(side=Tk.LEFT,anchor="w")#,fill=Tk.BOTH, expand=Tk.YES)
+		
+		#Select depot
+		self.depotFrame = Tk.Frame(parametersFrame)
+		self.depotFrame.pack(side=Tk.TOP,anchor="nw")
+		
+		self.depotLabel = Tk.Label(self.depotFrame,text="Depot node: ")
+		self.depotValue = Tk.StringVar()
+		self.depotEntry = Tk.Spinbox(self.depotFrame, from_=0, to=150, width=4, textvariable=self.depotValue)
+		self.depotValue.set(0)
+		
+		self.depotLabel.pack(side=Tk.LEFT,anchor="w")
+		self.depotEntry.pack(side=Tk.LEFT,anchor="w")
+		self.depotEntry.bind("<FocusOut>",self.checkNode)
+		self.depotEntry.bind("<KeyRelease>",self.checkNode)
+		
+		
+		miniFrame = Tk.Frame(parametersFrame)
+		miniFrame.pack(anchor="nw",side=Tk.TOP)
+		
+		scrollbar = Tk.Scrollbar(miniFrame)
+		scrollbar.pack(side=Tk.RIGHT, fill=Tk.Y)
+		
+		scrollingCanvas = Tk.Canvas(miniFrame,yscrollcommand=scrollbar.set,height=480-100)
+		scrollbar.config(command=scrollingCanvas.yview)
+		
+		scrollingCanvas.pack(side=Tk.LEFT, fill=Tk.BOTH, expand=Tk.TRUE)
+		scrollingFrame = Tk.Frame(scrollingCanvas)
+		interior_id = scrollingCanvas.create_window(0, 0, window=scrollingFrame,anchor=Tk.NW)
+		def _configure_interior(event):
+			# update the scrollbars to match the size of the inner frame
+			size = (scrollingFrame.winfo_reqwidth(), scrollingFrame.winfo_reqheight())
+			scrollingCanvas.config(scrollregion="0 0 %s %s" % size)
+			if scrollingFrame.winfo_reqwidth() != scrollingCanvas.winfo_width():
+				# update the canvas's width to fit the inner frame
+				scrollingCanvas.config(width=scrollingFrame.winfo_reqwidth())
+		scrollingFrame.bind('<Configure>', _configure_interior)     
+
+		def _configure_canvas(event):
+			if scrollingFrame.winfo_reqwidth() != scrollingCanvas.winfo_width():
+				# update the inner frame's width to fill the canvas
+				scrollingCanvas.itemconfigure(interior_id, width=scrollingCanvas.winfo_width())  
+		scrollingCanvas.bind('<Configure>', _configure_canvas)           
+
+		#Add meals
+		self.mealsLabel = Tk.Label(scrollingFrame,text="Meals:")
+		self.mealsFrame = Tk.Frame(scrollingFrame)
+		self.mealsLabel.pack(side=Tk.TOP,anchor="nw")
+		self.mealsFrame.pack(side=Tk.TOP,anchor="nw",fill=Tk.X)
+		
+		#Add cars
+		self.carsLabel = Tk.Label(scrollingFrame,text="Cars:")
+		self.carsFrame = Tk.Frame(scrollingFrame)
+		self.carsLabel.pack(side=Tk.TOP,anchor="nw")
+		self.carsFrame.pack(side=Tk.TOP,anchor="nw",fill=Tk.X)
+		
+		#Parser: save and Load
+		self.parserFrame = Tk.Frame(parametersFrame)
 		self.parserFrame.pack(side=Tk.BOTTOM,fill=Tk.X)
 		
-		self.exportButton = Tk.Button(self.parserFrame, text="Export as", command = self.export_data#command = 
-		)
+		self.exportButton = Tk.Button(self.parserFrame, text="Export as", command = self.export_data)
 		self.exportButton.pack(side=Tk.LEFT)
 		
 		self.exportEntry = Tk.Entry(self.parserFrame)
-		
 		self.exportEntry.delete(0, Tk.END)
 		self.exportEntry.insert(0, "FilenameTest")
-		
 		self.exportEntry.pack(side=Tk.LEFT,anchor="e",fill=Tk.X)
 		
 		self.loadButton = Tk.Button(self.parserFrame, text="Load",command = self.import_data)
 		self.loadButton.pack(side=Tk.RIGHT)
 		
-		#self.cooksLabel.pack(side=Tk.TOP)
-		#self.cooksEntry.pack(side=Tk.TOP)
-		#self.clientsLabel.pack(side=Tk.TOP)
-		#self.clientsEntry.pack(side=Tk.TOP)
-		
-		self.createMeals()
-		self.createCars()
 		
 		
-		self.canvas = Tk.Canvas(self.displayFrame, width=480, height=480)
-		self.canvas.pack()
-	
-	
-	
-		self.button = Tk.Button(
-		self.parametersFrame, text="Start DARP", fg="red", command=self.start_darp
-		)
-		self.button.pack(side=Tk.BOTTOM,anchor="w")
+	def fill_schedulesFrame(self,schedulesFrame):
 		
 		
-		#self.displayGraph()
+		miniFrame = Tk.Frame(schedulesFrame)
+		miniFrame.pack(anchor="nw",side=Tk.TOP)
+		
+		scrollbar = Tk.Scrollbar(miniFrame)
+		scrollbar.pack(side=Tk.RIGHT, fill=Tk.Y)
+		
+		scrollingCanvas = Tk.Canvas(miniFrame,yscrollcommand=scrollbar.set,height=480-50)
+		scrollbar.config(command=scrollingCanvas.yview)
+		
+		scrollingCanvas.pack(side=Tk.LEFT, fill=Tk.BOTH, expand=Tk.TRUE)
+		scrollingFrame = Tk.Frame(scrollingCanvas)
+		interior_id = scrollingCanvas.create_window(0, 0, window=scrollingFrame,anchor=Tk.NW)
+		def _configure_interior(event):
+			# update the scrollbars to match the size of the inner frame
+			size = (scrollingFrame.winfo_reqwidth(), scrollingFrame.winfo_reqheight())
+			scrollingCanvas.config(scrollregion="0 0 %s %s" % size)
+			if scrollingFrame.winfo_reqwidth() != scrollingCanvas.winfo_width():
+				# update the canvas's width to fit the inner frame
+				scrollingCanvas.config(width=scrollingFrame.winfo_reqwidth())
+		scrollingFrame.bind('<Configure>', _configure_interior)     
 
-		#self.hi_there = Tk.Button(self.parametersFrame, text="Hello", command=self.say_hi)
-		#self.parametersFrame.quit est la commande pour quitter
+		def _configure_canvas(event):
+			if scrollingFrame.winfo_reqwidth() != scrollingCanvas.winfo_width():
+				# update the inner frame's width to fill the canvas
+				scrollingCanvas.itemconfigure(interior_id, width=scrollingCanvas.winfo_width())  
+		scrollingCanvas.bind('<Configure>', _configure_canvas)           
+
 		
+		self.scheduleContainer = Tk.Frame(scrollingFrame)
+		self.scheduleScrollingFrame = scrollingFrame
+		self.scheduleContainer.pack(side=Tk.TOP,anchor="nw")
+		self.updateSchedules()
+		
+		
+		self.backToParamButton = Tk.Button(schedulesFrame,text="Retour aux paramètres",command=self.bring_forth_parameters)
+		self.backToParamButton.pack(side=Tk.BOTTOM,anchor="s")
+		
+		
+		
+		
+		
+	def updateSchedules(self):
+		self.scheduleContainer.destroy()
+		self.scheduleContainer = Tk.Frame(self.scheduleScrollingFrame)
+		self.scheduleContainer.pack(side=Tk.TOP,anchor="nw")
+		
+		testSched = Tk.Label(self.scheduleContainer, text="Affichage des schedules du car:")
+		testSched.pack(side=Tk.TOP,anchor="nw")
+		
+		varSched = Tk.StringVar()
+		varSched.set("Cliquez sur une voiture")
+		scheduleText=Tk.Label(self.scheduleContainer, textvariable=varSched,justify=Tk.LEFT,font="monospace")
+		
+		carsOptionsFrame = Tk.Frame(self.scheduleContainer)
+		carsOptionsFrame.pack(side=Tk.TOP,anchor="n")
+		
+		if(len(self.availableCars)==0):
+			varSched.set("Pas de voiture disponible!")
+			
+		
+		for i,car in enumerate(self.availableCars):
+			def switchSchedule(car=car):
+				scheduleText=self.generate_schedule_list(car)
+				"""
+				for block in car.currentSchedule:
+					scheduleText+=str(block)
+					scheduleText+="\n"
+				"""
+				
+				varSched.set(str(scheduleText))
+			
+			oneCar = Tk.Button(carsOptionsFrame, text="Car "+str(i), command = switchSchedule)
+			oneCar.pack(side=Tk.LEFT,anchor="n")
+			
+			#switchSchedule()
+			
+		scheduleText.pack(side=Tk.TOP,anchor="s")
+		
+		
+		if(len(self.remainingMeals)>0):
+			remainingMealsText = Tk.Label(self.scheduleContainer, 
+			text="Les repas suivants n'ont pas pu être livrés:\n"+self.remainingMealsString(),
+			justify=Tk.LEFT,font="monospace 10")
+			remainingMealsText.pack(side=Tk.TOP,anchor="s")
+		
+		
+	def remainingMealsString(self):
+		answer  = ""
+		
+		for meal in self.remainingMeals:
+			smeal = "\n-Livraison de "
+			smeal+=self.minutes_to_timestring(meal.ddt)
+			smeal+=" ("
+			smeal+=self.minutes_to_timestring(meal.edt)
+			smeal+=" au plus tôt"
+			smeal+= ")\n           du noeud "+str(meal.chef.index)
+			smeal+= " au noeud "+str(meal.destination.index)
+			answer+=smeal+"\n"
+			
+		return answer
+		
+	def generate_schedule_list(self,car):
+		
+		if(len(car.currentSchedule)==0):
+			return "Cette voiture n'a pas de schedule"
+		scheduleTitles="Heure ","Noeud ","Pick/Del "," Heure permise "
+		scheduleLenghts=tuple(len(elem) for elem in scheduleTitles)
+		scheduleElements=[]
+		allSchedules=""
+		
+		schedule = "|".join(scheduleTitles)
+		
+		scheduleElements.append(schedule)
+		allSchedules+=schedule+"\n"
+		
+		schedule = ""
+		schedule+=self.minutes_to_timestring(car.start).ljust(scheduleLenghts[0])
+		schedule+="|"
+		schedule+=str(car.depot.index).ljust(scheduleLenghts[1])
+		schedule+="|"
+		schedule+="Depot".ljust(scheduleLenghts[2])
+		schedule+="|"
+		
+		scheduleElements.append(schedule)
+		allSchedules+=schedule+"\n"
+		
+		temps=car.start
+		
+		prevnode = car.depot
+		for block in car.currentSchedule:
+			
+			#prevslack
+			schedule ="(Temps mort de " + str(round(block.getPrevSlack())) +" (+"+self.minutes_to_timestring(round(block.getPrevSlack()))+") )"
+			scheduleElements.append(schedule)
+			allSchedules+=schedule+"\n"
+			#temps au dépôt + slack
+			#schedule = ""+self.minutes_to_timestring(temps+block.getPrevSlack()).ljust(scheduleLenghts[0])
+			#allSchedules+=schedule+"\n"
+			
+			for stop in block.stops:
+				schedule = ""
+				schedule+=self.minutes_to_timestring(stop.st).ljust(scheduleLenghts[0])
+				schedule+="|"
+				schedule+=str(stop.node.index).ljust(scheduleLenghts[1])
+				schedule+="|"
+				schedule+=((stop.isPickup() and "Pickup") or ("Delivery")).ljust(scheduleLenghts[2])
+				schedule+="| "
+				if(stop.isPickup()):
+					#afficher l'heure à aquelle il doit Pickup AU PLUS TARD
+					#afficher de combien de minutes il pourrait être en avance (earliest - latest)
+					schedule+=self.minutes_to_timestring(stop.meal.getEPT())+" ~ "+self.minutes_to_timestring(stop.meal.getLPT())
+				else:
+					#afficher l'heure à aquelle il doit Dropoff AU PLUS TARD
+					#afficher de combien de minutes il pourrait être en avance (deviation)
+					schedule+=self.minutes_to_timestring(stop.meal.getEDT())+" ~ "+self.minutes_to_timestring(stop.meal.getLDT())
+					
+				#schedule+=str(self.graph.dist(prevnode,stop.node)).ljust(scheduleLenghts[3])[:scheduleLenghts[3]]
+				prevnode=stop.node
+				scheduleElements.append(schedule)
+				allSchedules+=schedule+"\n"
+				
+				temps=stop.st
+		
+			
+		return allSchedules
+			
+
+	def bring_forth_schedules(self):
+		self.schedulesFrame.tkraise()
+		
+	def bring_forth_parameters(self):
+		self.parametersFrame.tkraise()
+
 
 	def start_darp(self):
+		if(self.graph==None):
+			Tk.messagebox.showwarning("DARP resolution","Veuillez générer un graphe")
+			return
+		
 		try:
 			#cooks=int(self.cooksEntry.get())
 			#clients=int(self.clientsEntry.get())
@@ -168,20 +439,23 @@ class App:
 			canStart=True
 			errorMessage=""
 			
-			print(len(self.graph.nodes),"noeuds,",len(self.carFrames),"voitures",len(self.mealsFrames),"livraisons")
+			#print(len(self.graph.getSortedNodes()),"noeuds,",len(self.carFrames),"voitures",len(self.mealsFrames),"livraisons")
 			
 			allCars = []
 			allMeals = []
 			
 			for i,mealFrame in enumerate(self.mealsFrames):
 				try:
-					currentDelivery=int(mealFrame.DELIVERY.get())
+					currentDelivery=self.timestring_to_minutes(mealFrame.DELIVERY.get())
 					currentDeviation=int(mealFrame.DEVIATION.get())
 					currentCook=int(mealFrame.COOK.get())
 					currentClient=int(mealFrame.CLIENT.get())
 					
-					cookNode=self.graph.nodes[currentCook]
-					clientNode=self.graph.nodes[currentClient]
+					
+					
+					
+					cookNode=self.graph.getSortedNodes()[currentCook]
+					clientNode=self.graph.getSortedNodes()[currentClient]
 					
 					distanceNodes=self.graph.dist(cookNode,clientNode)
 					
@@ -189,28 +463,31 @@ class App:
 					allMeals.append(newMeal)
 				except:
 					errorMessage+="\nVeuillez entrer un nombre valide pour le repas"+str(i)
-					#print("Veuillez entrer un nombre valide pour le repas",i)
 					canStart=False
 					
-					
+			allMeals.sort(key=lambda obj: obj.ddt)
 			
 			for i in range(len(self.carFrames)):
 				currentFrame = self.carFrames[i]
 				try:
 					currentCapacity = int(currentFrame.CAPACITY.get())
-					currentStarttime = int(currentFrame.STARTTIME.get())
-					currentDuration = int(currentFrame.DURATION.get())
-					print("La voiture ",i,"a un capacité de ",currentCapacity,
-					", a une starttime de ",currentStarttime," et a une durée de shift de ",
-					currentDuration)
+					currentStarttime = self.timestring_to_minutes(currentFrame.STARTTIME.get())
+					currentDuration = self.getCarFrameDuration(currentFrame)
+					if(currentDuration<=0):
+						raise ValueError("Car's currentDuration<=0")
 					
-					newCar = Car.Car(currentCapacity,currentStarttime,currentDuration,self.depot,self.graph)
+					currentEndtime = self.timestring_to_minutes(currentFrame.ENDTIME.get())
+					currentDepot = self.graph.getSortedNodes()[int(self.depotValue.get())]
+					#print("La voiture ",i,"a un capacité de ",currentCapacity,
+					#", a une starttime de ",currentStarttime," et a une durée de shift de ",
+					#currentDuration)
+					
+					newCar = Car.Car(currentCapacity,currentStarttime,currentDuration,currentDepot,self.graph)
 					allCars.append(newCar)
 					
 					
 				except ValueError:
 					errorMessage+="\nVeuillez entrer un nombre valide pour la voiture"+str(i)
-					#print("Veuillez entrer un nombre valide pour la voiture",i)
 					canStart=False
 					
 			if(canStart):
@@ -218,13 +495,17 @@ class App:
 			
 				print("Starting DARP...")
 				darp.createSchedules()
-			
-				print("The program has not crashed")
+				self.remainingMeals=darp.getNotInsertedMeals()
+				#print(self.remainingMeals)
+				
+				self.availableCars=allCars[:]
+				self.bring_forth_schedules()
+				self.updateSchedules()
+	
 			
 		except ValueError:
 			print("Veuillez entrer un nombre valide")
-		except AttributeError:
-			Tk.messagebox.showwarning("DARP resolution","Veuillez générer un graphe")
+
 		
 		if not canStart:
 			Tk.messagebox.showwarning("DARP resolution",errorMessage)
@@ -237,14 +518,20 @@ class App:
 			
 			cars=[] #maxcap, starttime, duration
 			for carFrame in self.carFrames:
-				cars.append((carFrame.CAPACITY.get(),carFrame.STARTTIME.get(),carFrame.DURATION.get()))
+				cars.append(
+					(
+					carFrame.CAPACITY.get(),
+					str(self.timestring_to_minutes( carFrame.STARTTIME.get() )),
+					str(self.getCarFrameDuration(carFrame))
+					)
+				)
 			
 			meals=[] #dtt, deviation, chef,client
 			for mealFrame in self.mealsFrames:
-				meals.append((mealFrame.DELIVERY.get(),mealFrame.DEVIATION.get(),mealFrame.COOK.get(),mealFrame.CLIENT.get()))
+				meals.append((str(self.timestring_to_minutes(mealFrame.DELIVERY.get())),mealFrame.DEVIATION.get(),mealFrame.COOK.get(),mealFrame.CLIENT.get()))
 				
 			nodes=[] #id, i,j , neighbours
-			for node in self.graph.nodes:
+			for node in self.graph.getSortedNodes():
 				neighbours = ""
 				for neighbour in node.neighbours:
 					neighbours+="|"+str(neighbour.index)
@@ -254,8 +541,9 @@ class App:
 			depot=self.depotValue.get()
 			depots = [(depot)]
 			
-			print("Exporting as ",filename)
-			print("Data:",filename, cars, meals, nodes, depots)
+			Tk.messagebox.showwarning("Exporting as "+filename,"Exported:\n"+"\n".join(
+				("Cars:"+str(cars),"Meals:"+str(meals),"Nodes:"+str(nodes),"Depots:"+str(depots))))
+			
 			
 			DFW = DataFileWriter.DataFileWriter(filename, cars, meals, nodes, depots)
 			DFW.writeXML_File()
@@ -288,9 +576,8 @@ class App:
 		for car in dataFileParser.getCars():
 			carFrame=self.addCar()
 			carFrame.CAPACITY.set(str(car.maxCharge))
-			carFrame.STARTTIME.set(str(car.start))
-			carFrame.DURATION.set(str(int(car.end)-int(car.start)))
-			
+			carFrame.STARTTIME.set(self.minutes_to_timestring(int(car.start)))
+			carFrame.ENDTIME.set(self.minutes_to_timestring(int(car.end)))
 			callFocusOut(carFrame)
 			
 		for meal in dataFileParser.getMeals():
@@ -299,13 +586,13 @@ class App:
 			mealFrame.COOK.set(str(meal.chef.index))
 			mealFrame.CLIENT.set(str(meal.destination.index))
 			mealFrame.DEVIATION.set(str(meal.deviation))
-			mealFrame.DELIVERY.set(str(meal.ddt))
+			mealFrame.DELIVERY.set(self.minutes_to_timestring(int(meal.ddt)))
 			
 			callFocusOut(mealFrame)
 			
 			
 		self.depotValue.set(str(dataFileParser.getDepots()[0].index)) #multiple dépôts? ...
-		self.nodesAmount.set(str(len(self.graph.nodes)))
+		self.nodesAmount.set(str(len(self.graph.getSortedNodes())))
 		#TODO nodesamount
 			
 		
@@ -349,48 +636,34 @@ class App:
 		tempMealFrame.CLIENT = Tk.StringVar()
 		
 		
-		def checkNode(event):
-			event.widget.configure(bg = "#ff6666")
-			try:
-				if(0<=int(event.widget.get())<len(self.graph.nodes)):
-					event.widget.configure(bg = "#F0F0ED")
-				print(event.widget.get())
-			except:
-				pass
-				
-				
-		def checkValue(event):
-			event.widget.configure(bg = "#ff6666")
-			try:
-				if(int(event.widget.get())>=0):
-					event.widget.configure(bg = "#F0F0ED")
-				print(event.widget.get())
-			except:
-				pass
+
 		
-		#entry_COOK = Tk.Entry(tempMealFrame,textvariable=tempMealFrame.COOK,width=6)
-		entry_COOK = Tk.Spinbox(tempMealFrame, from_=0, to=len(self.graph.nodes)-1, textvariable=tempMealFrame.COOK, width=6)
+		#entry_COOK = Tk.Spinbox(tempMealFrame, from_=0, to=len(self.graph.getSortedNodes())-1, textvariable=tempMealFrame.COOK, width=6)
+		entry_COOK = Tk.Spinbox(tempMealFrame, from_=0, to=150, textvariable=tempMealFrame.COOK, width=5)
 		entry_COOK.pack(side=Tk.LEFT)
-		entry_COOK.bind("<FocusOut>",checkNode)
-		entry_COOK.bind("<KeyRelease>",checkNode)
+		entry_COOK.bind("<FocusOut>",self.checkNode)
+		entry_COOK.bind("<KeyRelease>",self.checkNode)
 		#entry_CLIENT = Tk.Entry(tempMealFrame,textvariable=tempMealFrame.CLIENT,width=6)
-		entry_CLIENT = Tk.Spinbox(tempMealFrame, from_=0, to=len(self.graph.nodes)-1, textvariable=tempMealFrame.CLIENT, width=6)
+		entry_CLIENT = Tk.Spinbox(tempMealFrame, from_=0, to=150, textvariable=tempMealFrame.CLIENT, width=5)
 		entry_CLIENT.pack(side=Tk.LEFT)
-		entry_CLIENT.bind("<FocusOut>",checkNode)
-		entry_CLIENT.bind("<KeyRelease>",checkNode)
+		entry_CLIENT.bind("<FocusOut>",self.checkNode)
+		entry_CLIENT.bind("<KeyRelease>",self.checkNode)
 		
 		#entry_DEVIATION = Tk.Entry(tempMealFrame,textvariable=tempMealFrame.DEVIATION,width=9)
-		entry_DEVIATION = Tk.Spinbox(tempMealFrame, from_=0, to=100, textvariable=tempMealFrame.DEVIATION, width=9)
+		entry_DEVIATION = Tk.Spinbox(tempMealFrame, from_=0, to=100, textvariable=tempMealFrame.DEVIATION, width=8)
 		entry_DEVIATION.pack(side=Tk.LEFT) # TODO: realTime
-		entry_DEVIATION.bind("<FocusOut>",checkValue)
-		entry_DEVIATION.bind("<KeyRelease>",checkValue)
+		entry_DEVIATION.bind("<FocusOut>",self.checkValue)
+		entry_DEVIATION.bind("<KeyRelease>",self.checkValue)
 		
-		entry_DELIVERY = Tk.Spinbox(tempMealFrame, from_=0, to=100, textvariable=tempMealFrame.DELIVERY, width=9)
+		entry_DELIVERY = Tk.Spinbox(tempMealFrame, values=self.hoursInDay, textvariable=tempMealFrame.DELIVERY, width=8)
 		entry_DELIVERY.pack(side=Tk.LEFT) # TODO: realTime
-		entry_DELIVERY.bind("<FocusOut>",checkValue)
-		entry_DELIVERY.bind("<KeyRelease>",checkValue)
-		entry_DELIVERY.bind("<<Recolor>>",checkValue)
+		entry_DELIVERY.bind("<FocusOut>",self.checkHour)
+		entry_DELIVERY.bind("<KeyRelease>",self.checkHour)
 		
+		tempMealFrame.DELIVERY.set("10:00")
+		tempMealFrame.DEVIATION.set("10")
+		tempMealFrame.COOK.set(len(self.graph.getSortedNodes())-1)
+		tempMealFrame.CLIENT.set(int(len(self.graph.getSortedNodes())/2))
 		
 		def removeMeal(): 
 			"""
@@ -431,8 +704,8 @@ class App:
 		label_MAXCAPACITY.pack(side=Tk.LEFT)
 		label_STARTTIME = Tk.Label(carHeaderFrame,text="Start",width=10)
 		label_STARTTIME.pack(side=Tk.LEFT)
-		label_DURATION = Tk.Label(carHeaderFrame,text="Duration",width=10)
-		label_DURATION.pack(side=Tk.LEFT)
+		label_ENDTIME = Tk.Label(carHeaderFrame,text="End",width=10)
+		label_ENDTIME.pack(side=Tk.LEFT)
 		"""label_DUPE=Tk.Label(carHeaderFrame,width=3,text="")
 		label_DUPE.pack(side=Tk.LEFT)
 		label_DEL=Tk.Label(carHeaderFrame,width=3,text="")
@@ -450,38 +723,43 @@ class App:
 		
 		tempCarFrame.CAPACITY=Tk.StringVar()
 		tempCarFrame.STARTTIME=Tk.StringVar()
-		tempCarFrame.DURATION=Tk.StringVar()
+		tempCarFrame.ENDTIME=Tk.StringVar()
 		
-		
-		def checkValue(event):
-			event.widget.configure(bg = "#ff6666")
-			try:
-				if(int(event.widget.get())>=0):
-					event.widget.configure(bg = "#F0F0ED")
-				print(event.widget.get())
-			except:
-				pass
 		
 		#carIcon = Tk.Button(tempCarFrame,text="",width=3)
 		#carIcon.pack(side=Tk.LEFT)
 		#entry_MAXCAPACITY = Tk.Entry(tempCarFrame,textvariable=tempCarFrame.CAPACITY,width=10)
-		entry_MAXCAPACITY = Tk.Spinbox(tempCarFrame, from_=5, to=25, textvariable=tempCarFrame.CAPACITY,width=10)
+		entry_MAXCAPACITY = Tk.Spinbox(tempCarFrame, from_=1, to=250, textvariable=tempCarFrame.CAPACITY,width=9)
 		entry_MAXCAPACITY.pack(side=Tk.LEFT)
-		entry_MAXCAPACITY.bind("<FocusOut>",checkValue)
-		entry_MAXCAPACITY.bind("<KeyRelease>",checkValue)
+		entry_MAXCAPACITY.bind("<FocusOut>",self.checkValue)
+		entry_MAXCAPACITY.bind("<KeyRelease>",self.checkValue)
 		#entry_STARTTIME = Tk.Entry(tempCarFrame,textvariable=tempCarFrame.STARTTIME,width=10)
-		entry_STARTTIME = Tk.Spinbox(tempCarFrame, from_=0, to=100, textvariable=tempCarFrame.STARTTIME,width=10)
+		entry_STARTTIME = Tk.Spinbox(tempCarFrame, values=self.hoursInDay , textvariable=tempCarFrame.STARTTIME,width=9)
 		entry_STARTTIME.pack(side=Tk.LEFT) # TODO : real time
-		entry_STARTTIME.bind("<FocusOut>",checkValue)
-		entry_STARTTIME.bind("<KeyRelease>",checkValue)
+		entry_STARTTIME.bind("<FocusOut>",self.checkHour)
+		entry_STARTTIME.bind("<KeyRelease>",self.checkHour)
 		#entry_STARTTIME.bind("<KeyRelease>",checkValue)
 		#entry_DURATION = Tk.Entry(tempCarFrame,textvariable=tempCarFrame.DURATION,width=10)
-		entry_DURATION = Tk.Spinbox(tempCarFrame, from_=0, to=100, textvariable=tempCarFrame.DURATION,width=10)
-		entry_DURATION.pack(side=Tk.LEFT)
-		entry_DURATION.bind("<FocusOut>",checkValue)
-		entry_DURATION.bind("<KeyRelease>",checkValue)
+		entry_ENDTIME = Tk.Spinbox(tempCarFrame, values=self.hoursInDay , textvariable=tempCarFrame.ENDTIME,width=9)
+		entry_ENDTIME.pack(side=Tk.LEFT)
+		entry_ENDTIME.bind("<FocusOut>",self.checkHour)
+		entry_ENDTIME.bind("<KeyRelease>",self.checkHour)
+		
+		
+		def check_hourdiff(event):
+			self.colorCheck(entry_ENDTIME,self.getCarFrameDuration(tempCarFrame)>0)
+			
+		entry_ENDTIME.bind("<FocusOut>", check_hourdiff, add="+")
+		entry_ENDTIME.bind("<KeyRelease>", check_hourdiff, add="+")
+		entry_STARTTIME.bind("<FocusOut>", check_hourdiff, add="+")
+		entry_STARTTIME.bind("<KeyRelease>", check_hourdiff, add="+")
 
 
+
+		tempCarFrame.STARTTIME.set("00:00")
+		tempCarFrame.ENDTIME.set("23:00")
+		tempCarFrame.CAPACITY.set("5")
+		
 
 		def removeCar(): 
 			"""
@@ -499,7 +777,7 @@ class App:
 			mycar = self.addCar()
 			mycar.CAPACITY.set( tempCarFrame.CAPACITY.get() )
 			mycar.STARTTIME.set( tempCarFrame.STARTTIME.get() )
-			mycar.DURATION.set( tempCarFrame.DURATION.get() )
+			mycar.ENDTIME.set( tempCarFrame.ENDTIME.get() )
 			
 			callFocusOut(mycar)
 		
@@ -515,7 +793,7 @@ class App:
 			nodesAmount=int(self.nodesAmount.get())
 			self.graph=Graph.Graph(nodesAmount)
 			#TODO : personalisation (endroit, type de repas etc.)
-			self.depot = self.graph.nodes[0] #TODO : multidepot
+			self.depot = self.graph.getSortedNodes()[0] #TODO : multidepot
 			
 			self.displayGraph(self.graph)
 		except ValueError:
@@ -530,22 +808,28 @@ class App:
 	
 	def verifyEntries(self):
 		#gérer les float ? 0.5 capacity?
-		try:
-			for carFrame in self.carFrames:	
-				if int(carFrame.CAPACITY.get()) < 0 or int(carFrame.STARTTIME.get()) < 0 or int(carFrame.DURATION.get()) < 0:
-					print("car")
-					return False
-			for mealFrame in self.mealsFrames:
-				if (int(mealFrame.DELIVERY.get()) < 0 or int(mealFrame.DEVIATION.get()) < 0 or not(0 <= int(mealFrame.COOK.get()) < len(self.graph.nodes)) or not(0 <= int(mealFrame.CLIENT.get()) < len(self.graph.nodes))):
-					print("meal")
-					return False
-			if not(0 <= int(self.depotValue.get()) < len(self.graph.nodes)):
-				print("depot")
+		for index,carFrame in enumerate(self.carFrames):	
+			print(index)
+			#if int(carFrame.CAPACITY.get()) < 0 or int(carFrame.STARTTIME.get()) < 0 or int(carFrame.DURATION.get()) < 0:
+			if not(self.is_amountstring_ok(carFrame.CAPACITY.get())
+			and self.is_timestring_ok(carFrame.STARTTIME.get())
+			and self.is_timestring_ok(carFrame.ENDTIME.get())
+			and self.getCarFrameDuration(carFrame)>0):
+				Tk.messagebox.showwarning("DARP export","Cannot export: Bad CAR values for car "+str(index))
 				return False
-			return True
-		except:
-			print("value")
+		for index,mealFrame in enumerate(self.mealsFrames):
+			#if (int(mealFrame.DELIVERY.get()) < 0 or int(mealFrame.DEVIATION.get()) < 0 or not(0 <= int(mealFrame.COOK.get()) < len(self.graph.getSortedNodes())) or not(0 <= int(mealFrame.CLIENT.get()) < len(self.graph.getSortedNodes()))):
+			if not(self.is_timestring_ok(mealFrame.DELIVERY.get())
+			and self.is_amountstring_ok(mealFrame.DEVIATION.get())
+			and self.is_nodestring_ok(mealFrame.COOK.get())
+			and self.is_nodestring_ok(mealFrame.CLIENT.get())):
+				Tk.messagebox.showwarning("DARP export","Cannot export: Bad MEAL values for meal "+str(index))
+				return False
+		#if not(0 <= int(self.depotValue.get()) < len(self.graph.getSortedNodes())):
+		if not(self.is_nodestring_ok(self.depotValue.get())):
+			Tk.messagebox.showwarning("DARP export","Cannot export: bad DEPOT NODE value")
 			return False
+		return True
 			
 def callFocusOut(parent):
 	#set the focus on the childrens of a frame
@@ -573,9 +857,11 @@ class GUIGraph:
 	def generateGraph(self,graph):
 		self.canvas.delete(Tk.ALL)
 		self.graph=graph
-		self.nodesAmount=len(graph.nodes)
 		
-		self.nodes=graph.nodes
+		
+		self.nodesAmount=len(graph.getSortedNodes())
+		
+		self.nodes=graph.getSortedNodes()
 		
 		#for i in range(self.nodesAmount):
 		#	self.nodes.append((randint(-100,100),randint(50,100)))
@@ -604,6 +890,13 @@ class GUIGraph:
 			x,y = node.i,node.j
 			self.positionsInGraph.append(((x-self.minX)/self.deltaX*self.screensize+self.margin,(y-self.minY)/self.deltaY*self.screensize+self.margin))
 			
+			
+			
+		width=int(self.canvas.cget("width"))
+		
+		self.canvas.create_line(4, width-4, 4, width-4-(1/self.deltaY*self.screensize))
+		self.canvas.create_line(4, width-4, 4+(1/self.deltaX*self.screensize), width-4)
+		
 	def drawGraph(self):	
 			
 		#adjacenceMatrix= [[None]*self.nodesAmount for i in range(self.nodesAmount)]
