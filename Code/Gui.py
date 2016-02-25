@@ -275,6 +275,10 @@ class App:
 		carsOptionsFrame = Tk.Frame(self.scheduleContainer)
 		carsOptionsFrame.pack(side=Tk.TOP,anchor="n")
 		
+		if(len(self.availableCars)==0):
+			varSched.set("Pas de voiture disponible!")
+			
+		
 		for i,car in enumerate(self.availableCars):
 			def switchSchedule(car=car):
 				scheduleText=self.generate_schedule_list(car)
@@ -295,7 +299,9 @@ class App:
 		
 		
 		if(len(self.remainingMeals)>0):
-			remainingMealsText = Tk.Label(self.scheduleContainer, text="Les repas suivants n'ont pas pu être livrés:\n"+self.remainingMealsString())
+			remainingMealsText = Tk.Label(self.scheduleContainer, 
+			text="Les repas suivants n'ont pas pu être livrés:\n"+self.remainingMealsString(),
+			justify=Tk.LEFT,font="monospace 10")
 			remainingMealsText.pack(side=Tk.TOP,anchor="s")
 		
 		
@@ -303,11 +309,12 @@ class App:
 		answer  = ""
 		
 		for meal in self.remainingMeals:
-			smeal = "Livraison de "
+			smeal = "\n-Livraison de "
 			smeal+=self.minutes_to_timestring(meal.ddt)
-			smeal+=" (au plus tôt "
+			smeal+=" ("
 			smeal+=self.minutes_to_timestring(meal.edt)
-			smeal+= ") du noeud "+str(meal.chef.index)
+			smeal+=" au plus tôt"
+			smeal+= ")\n           du noeud "+str(meal.chef.index)
 			smeal+= " au noeud "+str(meal.destination.index)
 			answer+=smeal+"\n"
 			
@@ -343,8 +350,10 @@ class App:
 		prevnode = car.depot
 		for block in car.currentSchedule:
 			
-			schedule = self.minutes_to_timestring(temps+block.getPrevSlack()).ljust(scheduleLenghts[0])
-			schedule +="|Temps vide de " +  self.minutes_to_timestring(block.getPrevSlack()) 
+			#temps au dépôt + slack
+			schedule = ""+self.minutes_to_timestring(temps+block.getPrevSlack()).ljust(scheduleLenghts[0])
+			#prevslack
+			schedule +="|Temps vide de " + str(round(block.getPrevSlack())) 
 			scheduleElements.append(schedule)
 			allSchedules+=schedule+"\n"
 			
@@ -444,7 +453,7 @@ class App:
 				print("Starting DARP...")
 				darp.createSchedules()
 				self.remainingMeals=darp.getNotInsertedMeals()
-				print(self.remainingMeals)
+				#print(self.remainingMeals)
 				
 				self.availableCars=allCars[:]
 				self.bring_forth_schedules()
