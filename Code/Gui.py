@@ -38,8 +38,12 @@ class App:
 		
 		
 	def minutes_to_timestring(self,minutes):
+		ans=""
+		if(minutes<0):
+			ans="-"
+			minutes=-minutes
 		minutes=round(minutes)
-		return str(int(minutes/60)).zfill(2)+":"+str(int(minutes%60)).zfill(2)
+		return (ans+str(int(minutes/60))).zfill(2)+":"+str(int(minutes%60)).zfill(2)
 
 	def is_amountstring_ok(self,astring):	
 		try:
@@ -317,8 +321,10 @@ class App:
 			def switchSchedule(car=car):
 				scheduleText=self.generate_schedule_list(car)				
 				varSched.set(str(scheduleText))
-			
-			oneCar = Tk.Button(carsOptionsFrame, text="Car "+str(i), command = switchSchedule)
+			if(len(self.availableCars)<10):
+				oneCar = Tk.Button(carsOptionsFrame, text="Car "+str(i), command = switchSchedule)
+			else:
+				oneCar = Tk.Button(carsOptionsFrame, text=str(i), command = switchSchedule)
 			oneCar.pack(side=Tk.LEFT,anchor="n")
 			
 			#switchSchedule()
@@ -384,7 +390,7 @@ class App:
 		for block in car.currentSchedule:
 			
 			#prevslack
-			schedule ="(Temps mort de " + str(round(block.getPrevSlack(),2)) +\
+			schedule ="(Temps mort de " + str(round(block.getPrevSlack(),2)) +"'"+\
 			(block.getPrevSlack()>=60 and " (+"+self.minutes_to_timestring(round(block.getPrevSlack()))+")" or "") +" )"
 			scheduleElements.append(schedule)
 			allSchedules+=schedule+"\n"
@@ -393,6 +399,12 @@ class App:
 			#allSchedules+=schedule+"\n"
 			
 			for stop in block.stops:
+				dist = self.graph.dist(prevnode,stop.node)
+				prevnode=stop.node
+				if(dist>0):
+					schedule= "(Déplacement de "+str(round(dist,2))+"km )"
+					allSchedules+=schedule+"\n"
+			
 				schedule = ""
 				schedule+=self.minutes_to_timestring(stop.st).ljust(scheduleLenghts[0])
 				schedule+="|"
@@ -409,15 +421,14 @@ class App:
 					#afficher de combien de minutes il pourrait être en avance (deviation)
 					schedule+=self.minutes_to_timestring(stop.meal.getEDT())+" ~ "+self.minutes_to_timestring(stop.meal.getLDT())
 					
-				#schedule+=str(self.graph.dist(prevnode,stop.node)).ljust(scheduleLenghts[3])[:scheduleLenghts[3]]
-				#prevnode=stop.node
+				
 				scheduleElements.append(schedule)
 				allSchedules+=schedule+"\n"
 				
 				temps=stop.st
 				
 		difference = car.getEnd()-temps
-		schedule ="(Temps mort de " + str(round(difference,2)) +\
+		schedule ="(Temps mort de " + str(round(difference,2)) +"'"+\
 		(difference>=60 and " (+"+self.minutes_to_timestring(round(difference))+")" or "") + " )"
 		allSchedules+=schedule+"\n"
 				
