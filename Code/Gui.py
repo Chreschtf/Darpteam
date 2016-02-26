@@ -6,7 +6,9 @@ import Graph
 import Meal
 import Node
 import os
-import GraphDrawer
+import GUIGraph
+import GUIDrawings
+
 from random import randint
 from random import choice
 import DataFileWriter
@@ -159,12 +161,14 @@ class App:
 		
 		
 		
+		self.currentLoop = self.parametersFrame.after(1000,self.colorMeals)
+		
+		
 		self.generateGraph()
 		self.createMeals()
 		self.createCars()
 		self.bring_forth_parameters()
 		#self.bring_forth_schedules()
-		
 		
 
 	def fill_parametersFrame(self,parametersFrame):
@@ -441,11 +445,22 @@ class App:
 			
 
 	def bring_forth_schedules(self):
+		self.stop_meals_recoloring()
 		self.schedulesFrame.tkraise()
 		
+		
 	def bring_forth_parameters(self):
+		self.start_meals_recoloring()
 		self.parametersFrame.tkraise()
-
+	
+	def start_meals_recoloring(self):
+		if(self.currentLoop==None):
+			self.currentLoop = self.parametersFrame.after(1000,self.colorMeals)
+		
+	def stop_meals_recoloring(self):
+		if(self.currentLoop!=None):
+			self.parametersFrame.after_cancel(self.currentLoop)
+			self.currentLoop = None
 
 	def start_darp(self):
 		if(self.graph==None):
@@ -514,11 +529,11 @@ class App:
 				darp = DarpAlgo.DarpAlgo(allMeals,allCars)
 			
 				print("Starting DARP...")
+				self.stop_meals_recoloring()
 				darp.createSchedules()
 				self.remainingMeals=darp.getNotInsertedMeals()
-				#print(self.remainingMeals)
-				
 				self.availableCars=allCars[:]
+				
 				self.bring_forth_schedules()
 				self.updateSchedules()
 	
@@ -663,11 +678,23 @@ class App:
 		entry_COOK.pack(side=Tk.LEFT)
 		entry_COOK.bind("<FocusOut>",self.checkNode)
 		entry_COOK.bind("<KeyRelease>",self.checkNode)
+		entry_COOK.bind("<Motion>",self.checkNode)
+		
+		#entry_COOK.bind("<FocusOut>",self.colorMeals,add="+")
+		#entry_COOK.bind("<KeyRelease>",self.colorMeals,add="+")
+		#entry_COOK.bind("<Motion>",self.colorMeals,add="+")
+		
 		#entry_CLIENT = Tk.Entry(tempMealFrame,textvariable=tempMealFrame.CLIENT,width=6)
 		entry_CLIENT = Tk.Spinbox(tempMealFrame, from_=0, to=150, textvariable=tempMealFrame.CLIENT, width=5)
 		entry_CLIENT.pack(side=Tk.LEFT)
 		entry_CLIENT.bind("<FocusOut>",self.checkNode)
 		entry_CLIENT.bind("<KeyRelease>",self.checkNode)
+		entry_CLIENT.bind("<Motion>",self.checkNode)
+		
+		#entry_CLIENT.bind("<FocusOut>",self.colorMeals,add="+")
+		#entry_CLIENT.bind("<KeyRelease>",self.colorMeals,add="+")
+		#entry_CLIENT.bind("<Motion>",self.colorMeals,add="+")
+		
 		
 		#entry_DEVIATION = Tk.Entry(tempMealFrame,textvariable=tempMealFrame.DEVIATION,width=9)
 		entry_DEVIATION = Tk.Spinbox(tempMealFrame, from_=0, to=100, textvariable=tempMealFrame.DEVIATION, width=8)
@@ -710,8 +737,6 @@ class App:
 		
 		duplicateButton = Tk.Button(tempMealFrame,image=self.dupeImage,command=duplicateMeal)
 		duplicateButton.pack(side=Tk.RIGHT)
-		
-		
 		
 		return tempMealFrame
 			
@@ -822,7 +847,7 @@ class App:
 	def displayGraph(self,graph):
 		if(self.guiGraph!=None):
 			self.guiGraph.__init__(self.canvas)
-		self.guiGraph = GUIGraph(self.canvas)
+		self.guiGraph = GUIGraph.GUIGraph(self.canvas)
 		self.guiGraph.generateGraph(graph)
 		self.guiGraph.drawGraph()
 	
@@ -851,119 +876,26 @@ class App:
 			return False
 		return True
 			
+			
+	def colorMeals(self,event=None):
+		if(self.guiGraph != None):
+			mealPairs = []
+			for mealFrame in self.mealsFrames:
+				cook = mealFrame.COOK.get()
+				client = mealFrame.CLIENT.get()
+				if(self.is_nodestring_ok(cook) and self.is_nodestring_ok(client)):
+					mealPairs.append((int(cook), int(client)))
+			self.guiGraph.redrawMeals(mealPairs)
+		
+		self.currentLoop = self.parametersFrame.after(500,self.colorMeals)
+		
+
 def callFocusOut(parent):
 	#set the focus on the childrens of a frame
 	#the focus is lost, calling FocusOut (recoloring our widgets)
 	for widget in parent.winfo_children():
 		widget.focus_set()
-		
-class GUIGraph:
-	def __init__(self,canvas):
-		#self.nodesAmount = 20
-		self.canvas = canvas
-		self.realNodes = []
-		self.positionsInGraph = []
-		self.canvasNodes = []
-		self.margin = 25
-		
-		self.mouseDelta = (None,None)
-		self.currentNode=None
-		
-		self.canvas.bind("<ButtonPress-1>", self.clickObject)
-		self.canvas.bind("<B1-Motion>", self.moveObject)
-		self.canvas.bind("<ButtonRelease-1>", self.releaseObject)
-		
 	
-	def generateGraph(self,graph):
-		self.canvas.delete(Tk.ALL)
-		self.graph=graph
-		
-		
-		self.nodesAmount=len(graph.getSortedNodes())
-		
-		self.nodes=graph.getSortedNodes()
-		
-		#for i in range(self.nodesAmount):
-		#	self.nodes.append((randint(-100,100),randint(50,100)))
-		
-		self.minX = float("inf")
-		self.minY = float("inf")
-		self.maxX = -float("inf")
-		self.maxY = -float("inf")
-		
-		for node in self.nodes:
-			#prendre les valeurs min et max pour l'échelle
-			x,y = node.i,node.j
-			self.minX=min(self.minX,x)
-			self.minY=min(self.minY,y)
-			
-			self.maxX=max(self.maxX,x)
-			self.maxY=max(self.maxY,y)
-			
-		self.deltaX= self.maxX-self.minX
-		self.deltaY= self.maxY-self.minY
-
-		self.screensize=int(self.canvas.cget("width"))-2*self.margin
-		
-		for node in self.nodes:
-			#convertir les positions des nodes en nouvelles positions
-			x,y = node.i,node.j
-			self.positionsInGraph.append(((x-self.minX)/self.deltaX*self.screensize+self.margin,(y-self.minY)/self.deltaY*self.screensize+self.margin))
-			
-			
-			
-		width=int(self.canvas.cget("width"))
-		
-		self.canvas.create_line(4, width-4, 4, width-4-(1/self.deltaY*self.screensize))
-		self.canvas.create_line(4, width-4, 4+(1/self.deltaX*self.screensize), width-4)
-		
-	def drawGraph(self):	
-			
-		#adjacenceMatrix= [[None]*self.nodesAmount for i in range(self.nodesAmount)]
-		#for i in range(self.nodesAmount):
-		#	for j in range(self.nodesAmount):
-		#		adjacenceMatrix[i][j]=choice([0,0,0,0,0,1])
-		
-		adjacenceMatrix=self.graph.getAdjMatrix()
-		
-		
-		
-		for j,(x,y) in enumerate(self.positionsInGraph):
-			self.canvasNodes.append(GraphDrawer.NodeDrawing(x,y,str(j),self.canvas,self.nodes[j],self.margin))
-			
-			
-		#self.linesDrawer = NodeLines(self.canvas,self.canvasNodes,adjacenceMatrix)
-		GraphDrawer.generateLines(self.canvas,self.canvasNodes,adjacenceMatrix)
-		
-		for drawNode in self.canvasNodes:
-			drawNode.generateDrawing()
-	
-	def clickObject(self,event):
-		#self.coords = event.x,event.y
-		self.currentObject = event.widget.find_withtag("current")
-		
-		if(len(self.currentObject)!=0):
-			drawnClickedObject = self.currentObject[0]
-			
-			for node in self.canvasNodes:
-				if node.isMine(drawnClickedObject):
-					self.mouseDelta = node.x-event.x, node.y-event.y
-					break
-					
-	def moveObject(self,event):
-		if(len(self.currentObject)!=0):
-			drawnClickedObject = self.currentObject[0]
-			
-			for node in self.canvasNodes:
-				if node.isMine(drawnClickedObject):
-					node.move(event.x+self.mouseDelta[0],event.y+self.mouseDelta[1])
-					break
-			#clickedNode = drawnClickedObject.parent
-		#self.linesDrawer.drawLines() #lines are self-updating now
-			
-	def releaseObject(self,event):
-		pass	
-		
 		
 	
 root = Tk.Tk()
