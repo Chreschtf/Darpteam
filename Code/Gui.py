@@ -120,12 +120,15 @@ class App:
 		return self.timestring_to_minutes(carFrame.ENDTIME.get())-self.timestring_to_minutes(carFrame.STARTTIME.get())
 			
 	def __init__(self, master):
+		self.foodDisplay = True
+	
 		self.graph = None
 		self.availableCars= []
 		self.availableMeals= []
 		self.remainingMeals= []
 		
 		self.guiGraph = None
+		self.showingParameters = True
 		
 		self.hoursInDay = [str(h).zfill(2)+":"+str(m).zfill(2) for h in range(24) for m in range(60)]
 		self.dupeImage = Tk.PhotoImage(file=os.path.join("GUIELEM","duplicate.gif"))
@@ -149,6 +152,14 @@ class App:
 		self.displayFrame = Tk.Frame(mainFrame)
 		self.canvas = Tk.Canvas(self.displayFrame, width=480, height=480)
 		self.canvas.pack()
+		
+		def displaySwitcher():
+			self.switch_display(permanent=self.showingParameters)
+		
+		self.displaySwitch = Tk.Button(self.displayFrame,text="Switch display",
+		command=displaySwitcher)
+		self.displaySwitch.pack(side=Tk.TOP,anchor="w")
+	
 	
 		self.schedulesFrame.grid(row=0, column=1, sticky="nsew",)
 		self.parametersFrame.grid(row=0, column=1, sticky="nsew")
@@ -161,7 +172,7 @@ class App:
 		
 		
 		
-		self.currentLoop = self.parametersFrame.after(1000,self.colorMeals)
+		self.currentLoop = self.parametersFrame.after(1000,self.colorLoop)
 		
 		
 		self.generateGraph()
@@ -170,6 +181,19 @@ class App:
 		self.bring_forth_parameters()
 		#self.bring_forth_schedules()
 		
+		
+	
+	def switch_display(self,event=None,setTo=None,permanent=True):
+		if(setTo==None):
+			self.foodDisplay=not self.foodDisplay
+			setTo=self.foodDisplay
+		if(setTo==True):
+			self.colorMeals()
+			if(permanent):
+				self.start_meals_recoloring()
+		else:
+			self.stop_meals_recoloring()
+			self.uncolorMeals()
 
 	def fill_parametersFrame(self,parametersFrame):
 		
@@ -445,17 +469,19 @@ class App:
 			
 
 	def bring_forth_schedules(self):
+		self.showingParameters=False
 		self.stop_meals_recoloring()
 		self.schedulesFrame.tkraise()
 		
 		
 	def bring_forth_parameters(self):
+		self.showingParameters=True
 		self.start_meals_recoloring()
 		self.parametersFrame.tkraise()
 	
 	def start_meals_recoloring(self):
 		if(self.currentLoop==None):
-			self.currentLoop = self.parametersFrame.after(1000,self.colorMeals)
+			self.currentLoop = self.parametersFrame.after(1000,self.colorLoop)
 		
 	def stop_meals_recoloring(self):
 		if(self.currentLoop!=None):
@@ -680,9 +706,9 @@ class App:
 		entry_COOK.bind("<KeyRelease>",self.checkNode)
 		entry_COOK.bind("<Motion>",self.checkNode)
 		
-		#entry_COOK.bind("<FocusOut>",self.colorMeals,add="+")
-		#entry_COOK.bind("<KeyRelease>",self.colorMeals,add="+")
-		#entry_COOK.bind("<Motion>",self.colorMeals,add="+")
+		#entry_COOK.bind("<FocusOut>",self.colorLoop,add="+")
+		#entry_COOK.bind("<KeyRelease>",self.colorLoop,add="+")
+		#entry_COOK.bind("<Motion>",self.colorLoop,add="+")
 		
 		#entry_CLIENT = Tk.Entry(tempMealFrame,textvariable=tempMealFrame.CLIENT,width=6)
 		entry_CLIENT = Tk.Spinbox(tempMealFrame, from_=0, to=150, textvariable=tempMealFrame.CLIENT, width=5)
@@ -691,9 +717,9 @@ class App:
 		entry_CLIENT.bind("<KeyRelease>",self.checkNode)
 		entry_CLIENT.bind("<Motion>",self.checkNode)
 		
-		#entry_CLIENT.bind("<FocusOut>",self.colorMeals,add="+")
-		#entry_CLIENT.bind("<KeyRelease>",self.colorMeals,add="+")
-		#entry_CLIENT.bind("<Motion>",self.colorMeals,add="+")
+		#entry_CLIENT.bind("<FocusOut>",self.colorLoop,add="+")
+		#entry_CLIENT.bind("<KeyRelease>",self.colorLoop,add="+")
+		#entry_CLIENT.bind("<Motion>",self.colorLoop,add="+")
 		
 		
 		#entry_DEVIATION = Tk.Entry(tempMealFrame,textvariable=tempMealFrame.DEVIATION,width=9)
@@ -876,8 +902,12 @@ class App:
 			return False
 		return True
 			
-			
-	def colorMeals(self,event=None):
+	def colorLoop(self,event=None):
+		self.colorMeals()
+		self.currentLoop = self.parametersFrame.after(500,self.colorLoop)
+		
+	
+	def colorMeals(self):
 		if(self.guiGraph != None):
 			mealPairs = []
 			for mealFrame in self.mealsFrames:
@@ -887,7 +917,9 @@ class App:
 					mealPairs.append((int(cook), int(client)))
 			self.guiGraph.redrawMeals(mealPairs)
 		
-		self.currentLoop = self.parametersFrame.after(500,self.colorMeals)
+	def uncolorMeals(self):
+		if(self.guiGraph != None):
+			self.guiGraph.redrawMeals(tuple())
 		
 
 def callFocusOut(parent):
