@@ -30,7 +30,6 @@ class AvailableColors:
 	def get_image_set(self):
 		index=self.indexes.pop()
 		color_index=int(round(index//self.pack_size%len(self.colors)))
-		print(index,"/",len(self.black_icons),"-",color_index,"/",len(self.colors))
 		return (self.black_icons[index],self.white_icons[index])#,self.colorsvals[color_index],index)
 		
 	def return_image_set(self,index):
