@@ -315,13 +315,7 @@ class App:
 		
 		for i,car in enumerate(self.availableCars):
 			def switchSchedule(car=car):
-				scheduleText=self.generate_schedule_list(car)
-				"""
-				for block in car.currentSchedule:
-					scheduleText+=str(block)
-					scheduleText+="\n"
-				"""
-				
+				scheduleText=self.generate_schedule_list(car)				
 				varSched.set(str(scheduleText))
 			
 			oneCar = Tk.Button(carsOptionsFrame, text="Car "+str(i), command = switchSchedule)
@@ -337,11 +331,15 @@ class App:
 			text="Les repas suivants n'ont pas pu être livrés:\n"+self.remainingMealsString(),
 			justify=Tk.LEFT,font="monospace 10")
 			remainingMealsText.pack(side=Tk.TOP,anchor="s")
+		else:
+			remainingMealsText = Tk.Label(self.scheduleContainer,
+			text="Tous les repas on été distribués!",justify=Tk.LEFT,font="monospace 10")
+			remainingMealsText.pack(side=Tk.TOP,anchor="s")
 		
 		
 	def remainingMealsString(self):
-		answer  = ""
 		
+		answer  = ""
 		for meal in self.remainingMeals:
 			smeal = "\n-Livraison de "
 			smeal+=self.minutes_to_timestring(meal.ddt)
@@ -350,6 +348,7 @@ class App:
 			smeal+=" au plus tôt"
 			smeal+= ")\n           du noeud "+str(meal.chef.index)
 			smeal+= " au noeud "+str(meal.destination.index)
+			smeal+= " ("+str(round(self.graph.dist(meal.chef,meal.destination),2))+"km)"
 			answer+=smeal+"\n"
 			
 		return answer
@@ -373,7 +372,7 @@ class App:
 		schedule+="|"
 		schedule+=str(car.depot.index).ljust(scheduleLenghts[1])
 		schedule+="|"
-		schedule+="Depot".ljust(scheduleLenghts[2])
+		schedule+="Dépôt".ljust(scheduleLenghts[2])
 		schedule+="|"
 		
 		scheduleElements.append(schedule)
@@ -385,7 +384,8 @@ class App:
 		for block in car.currentSchedule:
 			
 			#prevslack
-			schedule ="(Temps mort de " + str(round(block.getPrevSlack())) +" (+"+self.minutes_to_timestring(round(block.getPrevSlack()))+") )"
+			schedule ="(Temps mort de " + str(round(block.getPrevSlack(),2)) +\
+			(block.getPrevSlack()>=60 and " (+"+self.minutes_to_timestring(round(block.getPrevSlack()))+")" or "") +" )"
 			scheduleElements.append(schedule)
 			allSchedules+=schedule+"\n"
 			#temps au dépôt + slack
@@ -410,12 +410,21 @@ class App:
 					schedule+=self.minutes_to_timestring(stop.meal.getEDT())+" ~ "+self.minutes_to_timestring(stop.meal.getLDT())
 					
 				#schedule+=str(self.graph.dist(prevnode,stop.node)).ljust(scheduleLenghts[3])[:scheduleLenghts[3]]
-				prevnode=stop.node
+				#prevnode=stop.node
 				scheduleElements.append(schedule)
 				allSchedules+=schedule+"\n"
 				
 				temps=stop.st
-		
+				
+		difference = car.getEnd()-temps
+		schedule ="(Temps mort de " + str(round(difference,2)) +\
+		(difference>=60 and " (+"+self.minutes_to_timestring(round(difference))+")" or "") + " )"
+		allSchedules+=schedule+"\n"
+				
+		schedule = self.minutes_to_timestring(car.getEnd()).ljust(scheduleLenghts[0])+\
+		"|"+str(car.depot.index).ljust(scheduleLenghts[1])+\
+		"|"+"Dépôt"
+		allSchedules+=schedule+"\n"
 			
 		return allSchedules
 			
