@@ -5,41 +5,39 @@ except ImportError:
 
 import os
 from random import shuffle
-
 class AvailableColors:
+	client_icons = []
+	cook_icons = []
+	pack_size=25
+	#colorsvals=(64,192,64),(224,64,64),(96,96,224),(224,128,64), (64,192,192), (192,96,192),(224,192,32),(128,128,128)
+	colorsvals="#40C040","#E04040","#6060E0","#E08040","#40C0C0","#C060C0","#E0C020","#808080"
+	colors="green","red","blue","orange", "cyan","purple","yellow","grey"
 	def __init__(self):
-		self.colors="blue","red","green","orange", "yellow"
-		self.colorsvals=(64,64,224), (64,224,64),(224,64,64),(224,128,64), (224,224,64)
-		black_offsets=2,3,4,5,6
-		white_offsets=9,10,11,12,13 #utilisé uniquement lors du load initial
-		self.pack_size=24			
-		self.black_icons=[ ]		
-		self.white_icons=[ ]
-		for i in range(self.pack_size):
-			for j in black_offsets:
-				self.black_icons.append(Tk.PhotoImage(file=os.path.join("GUIELEM","FOODICONS","FOODICON"+str(i+j*self.pack_size).zfill(4)+".gif")))
-			for j in white_offsets:
-				self.white_icons.append(Tk.PhotoImage(file=os.path.join("GUIELEM","FOODICONS","FOODICON"+str(i+j*self.pack_size).zfill(4)+".gif")))
+		self.colors=AvailableColors.colors
+		self.pack_size=AvailableColors.pack_size	
+		if(len(AvailableColors.client_icons)==0):
+			for j in range(len(self.colors)):
+				for i in range(self.pack_size):
+					AvailableColors.client_icons.append(Tk.PhotoImage(file=os.path.join("GUIELEM","BLACKFORE","FOOD_BLACKFORE"+str(i+j*self.pack_size).zfill(4)+".gif")))
+					AvailableColors.cook_icons.append(Tk.PhotoImage(file=os.path.join("GUIELEM","WHITEBACK","FOOD_WHITEBACK"+str(i+j*self.pack_size).zfill(4)+".gif")))
 		self.knownMeals = []
 		
-		
-		self.baseIndexes=[i for i in range(len(self.colors)*self.pack_size)]
-		shuffle(self.baseIndexes)
-		self.reset_set() #self.indexes
+		self.image_index=0
+		self.image_delta=self.pack_size+1
 		
 	def get_image_set(self):
-		index=self.indexes.pop()
-		color_index=int(round(index//self.pack_size%len(self.colors)))
-		return (self.black_icons[index],self.white_icons[index])#,self.colorsvals[color_index],index)
-		
-	def return_image_set(self,index):
-		index.insert(index,0)
+		index = self.image_index
+		#print(index,self.image_index,len(AvailableColors.client_icons))
+		self.image_index=(self.image_index+self.image_delta)%len(AvailableColors.client_icons)
+		return (AvailableColors.cook_icons[index],AvailableColors.client_icons[index], index)
 		
 	def reset_set(self):
-		self.indexes=self.baseIndexes[:]
+		self.image_index=0
 		
 		
-		
+def get_color(index):
+	return AvailableColors.colorsvals[int(index/AvailableColors.pack_size)%len(AvailableColors.colors)]
+			
 class NodeDrawing:
 	def __init__(self,x,y,content,canvas,realNode,margin):
 		self.canvas=canvas
@@ -49,6 +47,7 @@ class NodeDrawing:
 		self.realNode=realNode
 		self.icons = []
 		self.images= []
+		self.iconcircles = []
 		
 		self.lowerbound = margin
 		self.upperbound = int(self.canvas.cget("width"))-margin
@@ -64,23 +63,42 @@ class NodeDrawing:
 		
 		self.notifyListeners("moved")
 		
+		
+	def drawWidth(self):
+		return 10+(10*(len(self.icons)>0))
+	
 	def updateIcons(self):
 		num = len(self.icons)
-		w=24
+		
+		w=20
 		w2=w/2
-		l=self.x-20+w2
-		h=self.x+20-w2
+		l=self.x-25+w2
+		h=self.x+25-w2
 		d=h-l
 		
-		y=self.y-w2-5
+		r=15#(10*10+10*10)**0.5+0.5
+		
+		y=self.y-w
 		if(num==1):
-			self.canvas.coords(self.icons[0],((l+h)/2,y))
+			self.canvas.coords(self.icons[0],(self.x,y))
+			self.canvas.coords(self.iconcircles[0],(self.x-r,y-r,self.x+r-1,y+r-1))
+			#elif(num==2):
+			#	self.canvas.coords(self.icons[0],(self.x-w2,y))
+			#	self.canvas.coords(self.icons[1],(self.x+w2,y))
+			#	
+			#	self.canvas.coords(self.iconcircles[0],(self.x-w2-r,y-r,self.x-w2+r,y+r)
+			#	self.canvas.coords(self.iconcircles[1],(self.x+w2-r,y-r,self.x+w2+r,y+r)
 		else:
 			for i,image in enumerate(self.icons):
-				self.canvas.coords(image,(l+i*d/(num-1),y))
+				x=l+i*d/(num-1)
+				self.canvas.coords(image,(x,y))
+				
+				self.canvas.coords(self.iconcircles[i],(x-r,y-r,x+r-1,y+r-1))
+				
+		self.canvas.coords(self.oval,self.ovalCoords())
 		
 	def isMine(self,shape):
-		return self.oval==shape or self.text==shape or shape in self.icons
+		return self.oval==shape or self.text==shape or shape in self.iconcircles
 		
 	def isMyNode(self,realNode):
 		return self.realNode == realNode
@@ -90,7 +108,7 @@ class NodeDrawing:
 		self.text=self.canvas.create_text((self.x,self.y),text=self.content)
 		
 	def ovalCoords(self):
-		return (self.x-20,self.y-20,self.x+20,self.y+20)
+		return (self.x-self.drawWidth(),self.y-self.drawWidth(),self.x+self.drawWidth(),self.y+self.drawWidth())
 	
 	def addListener(self,listener):
 		self.listeners.append(listener)
@@ -109,9 +127,15 @@ class NodeDrawing:
 		for image in self.icons:
 			self.canvas.delete(image)
 		
-	def addIcon(self,icon):
+	def addIcon(self,icon,index,cook=True):
+		if(cook):
+			self.iconcircles.append(self.canvas.create_oval((0,0,0,0),fill="white"))
+		else:
+			self.iconcircles.append(self.canvas.create_oval((0,0,0,0),fill=get_color(index)))
+			
 		self.images.append(icon)
 		self.icons.append(self.canvas.create_image((0,0),image=icon))
+		
 		self.updateIcons()
 		
 	def removeIcon(self,icon):
@@ -121,12 +145,17 @@ class NodeDrawing:
 		self.icons.pop(index)
 		self.updateIcons()
 		
+		
 				
 	def removeIcons(self):
 		for icon in self.icons:
 			self.canvas.delete(icon)
+		for circle in self.iconcircles:
+			self.canvas.delete(circle)
 		self.images=[]
 		self.icons=[]
+		self.iconcircles = []
+		self.updateIcons()
 		
 def generateLines(canvas,nodeslist,adjacence):
 	for i in range(len(nodeslist)):

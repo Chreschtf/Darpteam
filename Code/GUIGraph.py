@@ -126,8 +126,8 @@ class GUIGraph:
 		GUIGraph.coloredIcons.reset_set()
 		
 		for cooknode,clientnode in mealpairs:
-			cookimage, clientimage = GUIGraph.coloredIcons.get_image_set()
-			self.canvasNodes[cooknode].addIcon(cookimage)
-			self.canvasNodes[clientnode].addIcon(clientimage)
+			cookimage, clientimage, index = GUIGraph.coloredIcons.get_image_set()
+			self.canvasNodes[cooknode].addIcon(cookimage,index,cook=True)
+			self.canvasNodes[clientnode].addIcon(clientimage,index,cook=False)
 		
 			
