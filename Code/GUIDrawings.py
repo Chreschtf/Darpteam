@@ -27,6 +27,8 @@ class AvailableColors:
 		
 	def get_image_set(self):
 		index = self.image_index
+		if(index%self.pack_size==self.pack_size-1):
+			self.image_index-=self.pack_size
 		#print(index,self.image_index,len(AvailableColors.client_icons))
 		self.image_index=(self.image_index+self.image_delta)%len(AvailableColors.client_icons)
 		return (AvailableColors.cook_icons[index],AvailableColors.client_icons[index], index)
