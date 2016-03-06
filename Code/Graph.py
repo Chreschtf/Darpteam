@@ -19,12 +19,14 @@ class Graph:
             self.nodes = nodeList
             self.connectGraph(neighbours)
 
-            
+        self.predecessors = [[ -1 for j in range (self.nbrNodes) ] for i in range (self.nbrNodes)]
+        self.initialPredecessors()
         self.finalAdjMatrix = deepcopy(self.adjacencyMatrix)
         self.copyAdjacencyMatrix = deepcopy(self.adjacencyMatrix)
-        self.Floyd_Warshall(self.copyAdjacencyMatrix)
+        self.Floyd_Warshall(self.copyAdjacencyMatrix, [[ None for j in range (nbrNodes) ] for i in range (nbrNodes)])
         self.assureTriangleInequality()
-        self.Floyd_Warshall(self.adjacencyMatrix)
+        self.Floyd_Warshall(self.adjacencyMatrix, self.predecessors)
+        print(self.getRoute(self.getNodeWithIndex(0),self.getNodeWithIndex(4)))
 
 
     def connectGraph(self, neighbours):
@@ -125,7 +127,7 @@ class Graph:
 
 
 
-    def Floyd_Warshall(self, adjacencyMatrix):
+    def Floyd_Warshall(self, adjacencyMatrix, predecessors):
         """
         None is infinity
         """
@@ -138,10 +140,20 @@ class Graph:
 
                         if adjacencyMatrix[i][j] is None:
                             adjacencyMatrix[i][j] = adjacencyMatrix[i][k] + adjacencyMatrix[k][j]
+                            predecessors[i][j] = predecessors[k][j]
+
 
                         elif adjacencyMatrix[i][j] > adjacencyMatrix[i][k] + adjacencyMatrix[k][j]:
                             adjacencyMatrix[i][j] = adjacencyMatrix[i][k] + adjacencyMatrix[k][j]
+                            predecessors[i][j] = predecessors[k][j]
 
+
+    def initialPredecessors(self):
+    	for i in range(self.nbrNodes):
+    		for j in range(self.nbrNodes):
+    			if self.adjacencyMatrix[i][j] is not None:
+    				self.predecessors[i][j] = i
+    		
 
 
     def assureTriangleInequality(self):
@@ -159,23 +171,25 @@ class Graph:
     	else:
         	return -1
 
+    def getRoute(self, nodeA, nodeB, route=[]):
+    	if nodeA.index == nodeB.index:
+    		return route
+    	elif self.predecessors[nodeA.index][nodeB.index] == -1:
+    		raise ValueError("There isn't a route between this two nodes")
+    	else:
+    		route.insert(0, nodeB)
+    		return self.getRoute(nodeA, self.getNodeWithIndex(self.predecessors[nodeA.index][nodeB.index]), route)
 
-"""
+
+    def getNodeWithIndex(self, index):
+    	i = 0
+    	while i < len(self.nodes) and self.nodes[i].index != index:
+    		i += 1
+    	return self.nodes[i]
+
+""""
 if __name__ == "__main__":
     G = Graph(8)
-    for v in G.nodes:
-       print((v.index, "	", v.i, v.j, "		"), end="")
-       print([neigh.index for neigh in v.neighbours])
-
-
-    for Mat in [G.adjacencyMatrix]:
-        print("\n---------------------------------------------\n")
-        for line in Mat:
-           for i in line:
-               print( " | "+str(i), end=" ") #{:3d}".format(i), end="" )
-           print(" |")
-
-    print("\nNbr Nodes", G.nbrNodes, "| Nbr Edges", G.nbrEdges)
-
+    
 """
 
