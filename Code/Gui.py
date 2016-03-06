@@ -281,12 +281,33 @@ class App:
 		self.loadButton.pack(side=Tk.RIGHT)
 		
 		
+	def redrawCars(self,obj=None,blanc="",mode="w"):
+		data=self.timeAmount.get()
+		if(self.is_timestring_ok(data)):
+			self.guiGraph.redrawCars(self.timestring_to_minutes(data))
 		
 	def fill_schedulesFrame(self,schedulesFrame):
+		
+		self.timeAmount = Tk.StringVar()
+		
+		timebar = Tk.Spinbox(schedulesFrame,values=self.hoursInDay , textvariable=self.timeAmount,width=9)
+		timebar.pack(side=Tk.BOTTOM,anchor="w")
+		timebar.bind("<FocusOut>",self.checkHour)
+		timebar.bind("<KeyRelease>",self.checkHour)
+		timebar.bind("<ButtonRelease-1>",self.checkHour)
+		
+		self.timeAmount.trace('w',self.redrawCars)
+		
+		"""
+		timebar.bind("<FocusOut>",self.redrawCars,add="+")
+		timebar.bind("<KeyRelease>",self.redrawCars,add="+")
+		timebar.bind("<ButtonRelease-1>",self.redrawCars,add="+")
+		"""
 		
 		
 		miniFrame = Tk.Frame(schedulesFrame)
 		miniFrame.pack(anchor="nw",side=Tk.TOP)
+		
 		
 		scrollbar = Tk.Scrollbar(miniFrame)
 		scrollbar.pack(side=Tk.RIGHT, fill=Tk.Y)
@@ -473,11 +494,16 @@ class App:
 		self.stop_meals_recoloring()
 		self.schedulesFrame.tkraise()
 		
+		self.guiGraph.resetCars(self.availableCars,self.graph)
+		
 		
 	def bring_forth_parameters(self):
 		self.showingParameters=True
 		self.start_meals_recoloring()
 		self.parametersFrame.tkraise()
+		
+		
+		self.guiGraph.removeCars()
 	
 	def start_meals_recoloring(self):
 		if(self.currentLoop==None):

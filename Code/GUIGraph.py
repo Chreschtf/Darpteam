@@ -5,6 +5,7 @@ except ImportError:
 	
 import Graph
 import GUIDrawings
+from CarDrawing import CarDrawing
 
 class GUIGraph:
 	coloredIcons = None
@@ -26,6 +27,8 @@ class GUIGraph:
 		self.canvas.bind("<ButtonPress-1>", self.clickObject)
 		self.canvas.bind("<B1-Motion>", self.moveObject)
 		self.canvas.bind("<ButtonRelease-1>", self.releaseObject)
+		
+		self.drawnCars=[]
 		
 		print("New GUIGraph")
 	
@@ -129,6 +132,26 @@ class GUIGraph:
 			cookimage, clientimage, index = GUIGraph.coloredIcons.get_image_set()
 			self.canvasNodes[cooknode].addIcon(cookimage,index,cook=True)
 			self.canvasNodes[clientnode].addIcon(clientimage,index,cook=False)
+	
+	
+	def redrawCars(self,time=0):
+		#à utiliser quand on bouge les cars
+		for carDraw in self.drawnCars:
+			carDraw.move_drawing(time)
+	
+	def resetCars(self,cars,graph):
+		#à utiliser quand on entre dans la vue avec cars
+		self.removeCars()
+		for car in cars:
+			self.drawnCars.append(CarDrawing(car,graph,self,self.canvas))
+		self.redrawCars()
+		
+	def removeCars(self):
+		#à utiliser quand on sort de la vue avec cars
+		for car in self.drawnCars:
+			car.remove_drawing()
+		self.drawnCars=[]
+		CarDrawing.reset_index()
 		
 	def findNode(self,realNode):
 		for node in self.canvasNodes:
