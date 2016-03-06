@@ -130,4 +130,8 @@ class GUIGraph:
 			self.canvasNodes[cooknode].addIcon(cookimage,index,cook=True)
 			self.canvasNodes[clientnode].addIcon(clientimage,index,cook=False)
 		
-			
+	def findNode(self,realNode):
+		for(node in self.canvasNodes):
+			if(node.realNode==realNode):
+				return node
+		return None
