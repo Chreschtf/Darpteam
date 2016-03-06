@@ -155,6 +155,6 @@ class GUIGraph:
 		
 	def findNode(self,realNode):
 		for node in self.canvasNodes:
-			if(node.realNode==realNode):
+			if(node.realNode.index==realNode.index):
 				return node
 		return None

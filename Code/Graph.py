@@ -26,7 +26,7 @@ class Graph:
         self.Floyd_Warshall(self.copyAdjacencyMatrix, [[ None for j in range (nbrNodes) ] for i in range (nbrNodes)])
         self.assureTriangleInequality()
         self.Floyd_Warshall(self.adjacencyMatrix, self.predecessors)
-        print(self.getRoute(self.getNodeWithIndex(0),self.getNodeWithIndex(4)))
+        #print(self.getRoute(self.getNodeWithIndex(0),self.getNodeWithIndex(4)))
 
 
     def connectGraph(self, neighbours):
@@ -171,8 +171,13 @@ class Graph:
     	else:
         	return -1
 
-    def getRoute(self, nodeA, nodeB, route=[]):
+    def getRoute(self, nodeA, nodeB, route=None):
+    	if route==None:
+    		route=[]
+    	#print("Routed nodes:",nodeA,nodeA.index,nodeB,nodeB.index,nodeA.index==nodeB.index)
+    	#print("Route:",[aaa.index for aaa in route])
     	if nodeA.index == nodeB.index:
+    		#print("Route:",[aaa.index for aaa in route])
     		return route
     	elif self.predecessors[nodeA.index][nodeB.index] == -1:
     		raise ValueError("There isn't a route between this two nodes")

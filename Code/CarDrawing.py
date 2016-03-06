@@ -8,6 +8,7 @@ import Car
 import Block
 import Stop
 from math import atan2
+from math import pi
 
 if __name__=="__main__":
 	root = Tk.Tk()
@@ -49,7 +50,7 @@ class CarDrawing:
 		self.has_schedule=True
 			
 		for block in self.schedule:
-			lastTime+=block.prevSlack
+			lastTime+=block.getPrevSlack()
 			self.times.append(lastTime)
 			self.nodes.append(lastNode)
 			#if(lastNode!=block.getStart()):
@@ -63,7 +64,10 @@ class CarDrawing:
 					self.times.append(lastTime)
 					self.nodes.append(lastNode)
 		
-		
+			lastTime+=block.getNextSlack()
+			self.times.append(lastTime)
+			self.nodes.append(lastNode)
+			
 		dist = self.graph.dist(lastNode,self.car.depot)
 		lastNode=self.car.depot
 		lastTime+=dist
@@ -71,8 +75,8 @@ class CarDrawing:
 			self.times.append(lastTime)
 			self.nodes.append(lastNode)
 			
-		#print(self.times)
-		#print(self.nodes)
+		print("Times:",self.times)
+		print("Nodes:",[node.index for node in self.nodes])
 	def get_schedule_lastnode(self,time):
 		#retourne le dernier noeud de pickup/delivery fait et la distance actuelle
 		for index,timeframe in enumerate(self.times):
@@ -85,37 +89,40 @@ class CarDrawing:
 					index=0
 					#dépôt, pas encore sorti
 				
-				lastNode=self.nodes[index]
-				lastTime=self.times[index] #is the one before timeframe
+				lastNode=self.nodes[previndex]
+				lastTime=self.times[previndex] #is the one before timeframe
 				
 				deltaPos=(time-lastTime) #combien d'unités on a avancé
 				#/(timeframe-lastTime or 1) #no division by zero #edit:not needed
-				print("Pickup/del:",lastNode,nextNode,deltaPos)
+				print("Pickup:",lastNode.index,"Deli:",nextNode.index,"Distance:",deltaPos)
 				return lastNode,nextNode,deltaPos
 		
-		print("Pickup/del:",self.car.depot, self.car.depot, 0)
+		print("PICKDEL STUCK AT DEPOT")
 		return self.car.depot, self.car.depot, 0
 		
 	def get_schedule_node(self,time):
 		#retourne le dernier noeud visité et le noeud suivant, et l'échelle entre les deux
 		node1, node2, deltaPos = self.get_schedule_lastnode(time)
-		#route = self.graph.getRoute(node1,node2)
-		route=[node1,node2]
+		print("Routed nodes:",node1.index,node2.index)
+		route = self.graph.getRoute(node1,node2,None)
+		print("Route:",[aaa.index for aaa in route])
+		#route=[node1,node2]
 		
 		currentDistance = 0
 		prevNode = node1
-		
+		#deltaPos: distance parcourue sur la route actuelle (noeud se trouve <deltaPos)
 		for index,node in enumerate(route):
 			dist=self.graph.dist(prevNode,node)
-			if(currentDistance+dist>deltaPos):
+			if(currentDistance+dist>=deltaPos):
 				startingNode = prevNode
-				posScale = (currentDistance-deltaPos)/(self.graph.dist(prevNode,node) or 1)
+				print("Delta:",deltaPos,"Current dist:",deltaPos-currentDistance,"Dist:",dist)
+				posScale = (deltaPos-currentDistance)/(self.graph.dist(prevNode,node) or 1)
 				endingNode = node
-				print("Node",startingNode, endingNode,posScale)
+				print("Node:",startingNode.index,"Next:",endingNode.index,"Scale:",posScale)
 				return startingNode, endingNode,posScale
-			
+			prevNode=node
 			currentDistance+=dist
-		print("Node",node1,node1,0)
+		print("NODE STUCK ON START")
 		return node1,node1,0
 	def get_schedule_position(self,time):
 		#retourne la position x et y du centre de la voiture, ainsi que l'angle
@@ -126,7 +133,7 @@ class CarDrawing:
 		
 		if(drawNode1==None or drawNode2==None):
 			print("Cannot find in:")
-			print(self.GUIgraph.canvasNodes)
+			print([(node.realNode,node.realNode.index) for node in self.GUIgraph.canvasNodes])
 			print(node1,node1.index,drawNode1)
 			print(node2,node2.index,drawNode2)
 			return 0,0,0 #what the hell is happening
@@ -138,11 +145,19 @@ class CarDrawing:
 		dx=drawNode2.x-drawNode1.x
 		dy=drawNode2.y-drawNode1.y
 		
+		
+		
+		angle = atan2(-dy,dx)/pi*180#atan2 prends en compte tout
+		 
+		dd=dx,dy
 		dx*=posScale
 		dy*=posScale
 		
-		angle = atan2(dy,dx) #atan2 prends en compte tout
+		print("Drawing on node",node1.index,drawNode1,"Position",drawNode1.x,drawNode1.y)
+		print("Drawing towards node",node2.index,drawNode2,"Position",drawNode2.x,drawNode2.y)
+		print("Moving",dd,"Atan2:",angle,"Scaled",dx,dy,"Factor",posScale)
 		
+		print("Drawing at",x0+dx,y0+dy,angle)
 		return x0+dx,y0+dy,angle
 		
 	def move_drawing(self,time):
