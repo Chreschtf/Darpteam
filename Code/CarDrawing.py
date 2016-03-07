@@ -3,6 +3,7 @@ try:
 except ImportError:
 	import tkinter as Tk
 
+print=lambda *x:None
 import os
 import Car
 import Block
@@ -26,7 +27,7 @@ class CarDrawing:
 		self.graph=graph
 		self.GUIgraph = GUIgraph
 		self.schedule=car.currentSchedule
-		CarDrawing.index+=1;
+		CarDrawing.index=(CarDrawing.index+1)%CarDrawing.colorNum;
 		self.has_schedule=False
 		self.transform_schedule()
 		
@@ -41,7 +42,7 @@ class CarDrawing:
 	def transform_schedule(self):
 		self.times=[0]
 		self.nodes=[self.car.depot]
-		lastTime=0
+		lastTime=self.car.getStart()
 		lastNode=self.car.depot
 		if(len(self.schedule)==0):
 			self.has_schedule=False
@@ -64,23 +65,33 @@ class CarDrawing:
 					self.times.append(lastTime)
 					self.nodes.append(lastNode)
 		
-			lastTime+=block.getNextSlack()
-			self.times.append(lastTime)
-			self.nodes.append(lastNode)
+			dist=block.getNextSlack()
+			lastTime+=dist
+			if(dist>0):
+				self.times.append(lastTime)
+				self.nodes.append(lastNode)
 			
 		dist = self.graph.dist(lastNode,self.car.depot)
-		lastNode=self.car.depot
-		lastTime+=dist
+		lastTime=max(lastTime+dist,self.car.getEnd()-dist)
 		if(dist>0):
 			self.times.append(lastTime)
+			self.nodes.append(lastNode)
+		lastNode=self.car.depot
+		lastTime=max(lastTime+dist,self.car.getEnd())
+		if(dist>0):
+			self.times.append(lastTime)
+			self.nodes.append(lastNode)
+			self.times.append(24*60-1)
 			self.nodes.append(lastNode)
 			
 		print("Times:",self.times)
 		print("Nodes:",[node.index for node in self.nodes])
 	def get_schedule_lastnode(self,time):
 		#retourne le dernier noeud de pickup/delivery fait et la distance actuelle
+		print(time,self.times)
 		for index,timeframe in enumerate(self.times):
 			if(timeframe>time):
+				print("Enter")
 				nextNode = self.nodes[index]
 				
 				previndex = index-1
@@ -140,7 +151,7 @@ class CarDrawing:
 		
 		x0=drawNode1.x
 		y0=drawNode1.y
-		y0-=CarDrawing.index*5/2+self.carNum*5 #pour les décaler si elles se superposent
+		y0+=-CarDrawing.index+self.carNum*2 #pour les décaler si elles se superposent
 		
 		dx=drawNode2.x-drawNode1.x
 		dy=drawNode2.y-drawNode1.y

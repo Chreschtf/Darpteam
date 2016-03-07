@@ -496,12 +496,10 @@ class App:
 		
 		self.guiGraph.resetCars(self.availableCars,self.graph)
 		
-		
 	def bring_forth_parameters(self):
 		self.showingParameters=True
 		self.start_meals_recoloring()
 		self.parametersFrame.tkraise()
-		
 		
 		self.guiGraph.removeCars()
 	
