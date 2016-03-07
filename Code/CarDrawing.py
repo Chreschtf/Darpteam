@@ -174,9 +174,10 @@ class CarDrawing:
 	def move_drawing(self,time):
 		if(self.has_schedule):
 			self.remove_drawing()
-			x,y,angle = self.get_schedule_position(time)
-			self.carDrawing=self.canvas.create_image(
-		(x,y),image=self.getImage(angle))
+			if(self.GUIgraph.showCars):
+				x,y,angle = self.get_schedule_position(time)
+				self.carDrawing=self.canvas.create_image(
+				(x,y),image=self.getImage(angle))
 		#self.canvas.image(self.carDrawing,self.getImage(angle))
 		#self.canvas.coords(self.carDrawing,(x,y))
 		
@@ -191,7 +192,7 @@ class CarDrawing:
 			self.carDrawing=None
 		
 	def getImage(self,angle):
-		return CarDrawing.carImage[self.carNum][(int(angle/360*CarDrawing.rotNum)%CarDrawing.rotNum)];
+		return CarDrawing.carImage[self.carNum][(int(round(angle/360*CarDrawing.rotNum))%CarDrawing.rotNum)];
 		
 		
 		

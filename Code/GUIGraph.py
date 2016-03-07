@@ -10,6 +10,7 @@ from CarDrawing import CarDrawing
 class GUIGraph:
 	coloredIcons = None
 	
+	
 	def __init__(self,canvas):
 		#self.nodesAmount = 20
 		self.canvas = canvas
@@ -29,8 +30,9 @@ class GUIGraph:
 		self.canvas.bind("<ButtonRelease-1>", self.releaseObject)
 		
 		self.drawnCars=[]
-		
-		print("New GUIGraph")
+		self.showCars=True
+		self.lastTime=0
+		#print("New GUIGraph")
 	
 	def generateGraph(self,graph):
 		self.canvas.delete(Tk.ALL)
@@ -121,6 +123,7 @@ class GUIGraph:
 			
 	def releaseObject(self,event):
 		pass	
+		self.redrawCars()
 
 		
 	def redrawMeals(self,mealpairs):
@@ -134,8 +137,12 @@ class GUIGraph:
 			self.canvasNodes[clientnode].addIcon(clientimage,index,cook=False)
 	
 	
-	def redrawCars(self,time=0):
+	def redrawCars(self,time=None):
 		#à utiliser quand on bouge les cars
+		if(time==None):
+			time=self.lastTime
+		else:
+			self.lastTime=time
 		for carDraw in self.drawnCars:
 			carDraw.move_drawing(time)
 	
@@ -158,3 +165,6 @@ class GUIGraph:
 			if(node.realNode.index==realNode.index):
 				return node
 		return None
+		
+	def toggleCars(self):
+		self.showCars=not self.showCars

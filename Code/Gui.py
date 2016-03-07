@@ -285,8 +285,15 @@ class App:
 		data=self.timeAmount.get()
 		if(self.is_timestring_ok(data)):
 			self.guiGraph.redrawCars(self.timestring_to_minutes(data))
+	
+	def toggleCars(self,event=None):
+		self.guiGraph.toggleCars();
+		self.redrawCars()
 		
 	def fill_schedulesFrame(self,schedulesFrame):
+		
+		showCar = Tk.Button(schedulesFrame,text="Toggle cars",command=self.toggleCars)
+		showCar.pack(side=Tk.BOTTOM,anchor="w")
 		
 		self.timeAmount = Tk.StringVar()
 		
