@@ -20,7 +20,7 @@ class GUIGraph:
 		self.realNodes = []
 		self.positionsInGraph = []
 		self.canvasNodes = []
-		self.margin = 25
+		self.margin = 80
 		
 		self.mouseDelta = (None,None)
 		self.currentNode=None
@@ -63,19 +63,23 @@ class GUIGraph:
 		self.deltaX= self.maxX-self.minX
 		self.deltaY= self.maxY-self.minY
 
-		self.screensize=int(self.canvas.cget("width"))-2*self.margin
+		self.screenWidth=int(self.canvas.cget("width"))-2*self.margin
+		self.screenHeight=int(self.canvas.cget("height"))-2*self.margin
+                
 		
 		for node in self.nodes:
 			#convertir les positions des nodes en nouvelles positions
 			x,y = node.i,node.j
-			self.positionsInGraph.append(((x-self.minX)/self.deltaX*self.screensize+self.margin,(y-self.minY)/self.deltaY*self.screensize+self.margin))
+			self.positionsInGraph.append(
+                                ((x-self.minX)/self.deltaX*self.screenWidth+self.margin,
+                                 (y-self.minY)/self.deltaY*self.screenHeight+self.margin +self.margin/2))
 			
 			
 			
 		width=int(self.canvas.cget("width"))
 		
-		self.canvas.create_line(4, width-4, 4, width-4-(1/self.deltaY*self.screensize))
-		self.canvas.create_line(4, width-4, 4+(1/self.deltaX*self.screensize), width-4)
+		self.canvas.create_line(4, width-4, 4, width-4-(1/self.deltaY*self.screenHeight))
+		self.canvas.create_line(4, width-4, 4+(1/self.deltaX*self.screenWidth), width-4)
 		
 	def drawGraph(self):	
 			

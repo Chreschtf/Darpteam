@@ -17,6 +17,11 @@ import DataFileParser
 #TODO Ajouter les cars et les meals et les mettre à jour quand on load un file.
 #Mettre à jour la valeur maximale des spinbox (depot, meals.cook, meals.client) quand le graphe change de taille (après un load/après un generate)
 
+SCREENWIDTH=1000-350
+SCREENHEIGHT=800-100
+AUTOPLAY_SPEED=int(1000/24)
+#SCREENWIDTH=1500 
+#SCREENHEIGHT=950
 
 try:
 	import Tkinter as Tk
@@ -143,16 +148,15 @@ class App:
 		self.fill_parametersFrame(self.parametersFrame)
 		
 		
-		#SHEDULES FRAME on the right    self.schedulesFrame
+		#SCHEDULES FRAME on the right    self.schedulesFrame
 		self.schedulesFrame = Tk.Frame(mainFrame)#,bg="pink")
 		self.fill_schedulesFrame(self.schedulesFrame)
 
-		
 		#DISPLAY FRAME on the left    self.displayFrame
 		self.displayFrame = Tk.Frame(mainFrame)
-		self.canvas = Tk.Canvas(self.displayFrame, width=480, height=480)
+		self.canvas = Tk.Canvas(self.displayFrame, width=SCREENWIDTH, height=SCREENHEIGHT )
 		self.canvas.pack()
-		
+		 
 		def displaySwitcher():
 			self.switch_display(permanent=self.showingParameters)
 		
@@ -173,7 +177,9 @@ class App:
 		
 		
 		self.currentLoop = self.parametersFrame.after(1000,self.colorLoop)
-		
+		self.carsLoop = None
+		self.carsEarliestSchedule = 0;
+		self.carsLatestSchedule = -1;
 		
 		self.generateGraph()
 		self.createMeals()
@@ -232,7 +238,7 @@ class App:
 		scrollbar = Tk.Scrollbar(miniFrame)
 		scrollbar.pack(side=Tk.RIGHT, fill=Tk.Y)
 		
-		scrollingCanvas = Tk.Canvas(miniFrame,yscrollcommand=scrollbar.set,height=480-100)
+		scrollingCanvas = Tk.Canvas(miniFrame,yscrollcommand=scrollbar.set,height=SCREENHEIGHT-100)
 		scrollbar.config(command=scrollingCanvas.yview)
 		
 		scrollingCanvas.pack(side=Tk.LEFT, fill=Tk.BOTH, expand=Tk.TRUE)
@@ -292,18 +298,24 @@ class App:
 		
 	def fill_schedulesFrame(self,schedulesFrame):
 		
+		carsCommandsFrame = Tk.Frame(schedulesFrame)
+		carsCommandsFrame.pack(side=Tk.BOTTOM,anchor="w")
+		
 		showCar = Tk.Button(schedulesFrame,text="Toggle cars",command=self.toggleCars)
 		showCar.pack(side=Tk.BOTTOM,anchor="w")
 		
 		self.timeAmount = Tk.StringVar()
 		
-		timebar = Tk.Spinbox(schedulesFrame,values=self.hoursInDay , textvariable=self.timeAmount,width=9)
-		timebar.pack(side=Tk.BOTTOM,anchor="w")
+		timebar = Tk.Spinbox(carsCommandsFrame,values=self.hoursInDay , textvariable=self.timeAmount,width=9)
+		timebar.pack(side=Tk.LEFT,anchor="w")
 		timebar.bind("<FocusOut>",self.checkHour)
 		timebar.bind("<KeyRelease>",self.checkHour)
 		timebar.bind("<ButtonRelease-1>",self.checkHour)
 		
 		self.timeAmount.trace('w',self.redrawCars)
+		
+		autoplay = Tk.Button(carsCommandsFrame, text="Autoplay",command=self.switch_cars_autoplay)
+		autoplay.pack(side=Tk.LEFT, anchor="e")
 		
 		"""
 		timebar.bind("<FocusOut>",self.redrawCars,add="+")
@@ -319,7 +331,7 @@ class App:
 		scrollbar = Tk.Scrollbar(miniFrame)
 		scrollbar.pack(side=Tk.RIGHT, fill=Tk.Y)
 		
-		scrollingCanvas = Tk.Canvas(miniFrame,yscrollcommand=scrollbar.set,height=480-50)
+		scrollingCanvas = Tk.Canvas(miniFrame,yscrollcommand=scrollbar.set,height=SCREENHEIGHT-50)
 		scrollbar.config(command=scrollingCanvas.yview)
 		
 		scrollingCanvas.pack(side=Tk.LEFT, fill=Tk.BOTH, expand=Tk.TRUE)
@@ -495,6 +507,20 @@ class App:
 			
 		return allSchedules
 			
+		
+	def calculateEarlySchedule(self):
+		self.carsEarliestSchedule=float('inf')
+		self.carsLatestSchedule=float('-inf')
+		for car in self.availableCars:
+			if len(car.currentSchedule)>0:
+				stop = car.currentSchedule[0].stops[0]
+				self.carsEarliestSchedule=min(self.carsEarliestSchedule,stop.st)
+				
+				stop = car.currentSchedule[-1].stops[-1]
+				self.carsLatestSchedule=max(self.carsLatestSchedule,stop.st)
+		print("Early,late:",self.carsEarliestSchedule,self.carsLatestSchedule)
+			
+			
 
 	def bring_forth_schedules(self):
 		self.showingParameters=False
@@ -509,6 +535,7 @@ class App:
 		self.parametersFrame.tkraise()
 		
 		self.guiGraph.removeCars()
+		self.stop_cars_autoplay()
 	
 	def start_meals_recoloring(self):
 		if(self.currentLoop==None):
@@ -518,7 +545,34 @@ class App:
 		if(self.currentLoop!=None):
 			self.parametersFrame.after_cancel(self.currentLoop)
 			self.currentLoop = None
-
+			
+	def start_cars_autoplay(self):
+		if(self.carsLoop==None):
+			self.calculateEarlySchedule()
+			self.carsLoop = self.parametersFrame.after(AUTOPLAY_SPEED,self.carsAutoLoop)
+	
+	def stop_cars_autoplay(self):
+		if(self.carsLoop!=None):
+			self.parametersFrame.after_cancel(self.carsLoop)
+			self.carsLoop = None
+			
+	def switch_cars_autoplay(self):
+		if(self.carsLoop==None):
+			self.start_cars_autoplay()
+		else:
+			self.stop_cars_autoplay()
+		
+		
+	def carsAutoLoop(self,even=None):
+		if(self.is_timestring_ok(self.timeAmount.get())):
+			time = (self.timestring_to_minutes(self.timeAmount.get()) +1) % (24*60)
+			if(self.carsEarliestSchedule<self.carsLatestSchedule):
+				time=max(self.carsEarliestSchedule,
+				time<self.carsLatestSchedule and time or self.carsEarliestSchedule)
+			self.timeAmount.set(self.minutes_to_timestring(time))
+		self.carsLoop = self.parametersFrame.after(AUTOPLAY_SPEED,self.carsAutoLoop)
+		
+		
 	def start_darp(self):
 		if(self.graph==None):
 			Tk.messagebox.showwarning("DARP resolution","Veuillez générer un graphe")

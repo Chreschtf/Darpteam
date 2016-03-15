@@ -42,6 +42,7 @@ def get_color(index):
 			
 class NodeDrawing:
 	def __init__(self,x,y,content,canvas,realNode,margin):
+		self.circleRay = 40
 		self.canvas=canvas
 		self.x=x 
 		self.y=y 
@@ -67,20 +68,20 @@ class NodeDrawing:
 		
 		
 	def drawWidth(self):
-		return 10+(10*(len(self.icons)>0))
+		return self.circleRay+(self.circleRay/2*(len(self.icons)>0))
 	
 	def updateIcons(self):
 		num = len(self.icons)
 		
-		w=20
+		w=self.circleRay/2
 		w2=w/2
-		l=self.x-25+w2
-		h=self.x+25-w2
+		l=self.x-self.circleRay+w2
+		h=self.x+self.circleRay-w2
 		d=h-l
 		
-		r=15#(10*10+10*10)**0.5+0.5
+		r=self.circleRay#(10*10+10*10)**0.5+0.5
 		
-		y=self.y-w
+		y=self.y-self.circleRay*1.5
 		if(num==1):
 			self.canvas.coords(self.icons[0],(self.x,y))
 			self.canvas.coords(self.iconcircles[0],(self.x-r,y-r,self.x+r-1,y+r-1))
@@ -107,7 +108,7 @@ class NodeDrawing:
 		
 	def generateDrawing(self):
 		self.oval=self.canvas.create_oval(self.ovalCoords(),fill="pink",activefill="red")
-		self.text=self.canvas.create_text((self.x,self.y),text=self.content)
+		self.text=self.canvas.create_text((self.x,self.y),text=self.content,font=("Comic sans",int(self.circleRay/2+4)))
 		
 	def ovalCoords(self):
 		return (self.x-self.drawWidth(),self.y-self.drawWidth(),self.x+self.drawWidth(),self.y+self.drawWidth())
@@ -199,8 +200,8 @@ class LineDrawing:
 		
 	def generate(self):
 		if(not self.thinLine):
-			self.fatlLine=self.canvas.create_line(self.lineCoords(),width=8,fill="grey")
-			self.thinLine=self.canvas.create_line(self.lineCoords(),width=6,fill="pink")#,dash=6)
+			self.fatlLine=self.canvas.create_line(self.lineCoords(),width=20,fill="grey")
+			self.thinLine=self.canvas.create_line(self.lineCoords(),width=16,fill="pink")#,dash=6)
 		else:
 			pass
 			
