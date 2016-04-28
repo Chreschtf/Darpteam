@@ -8,12 +8,13 @@ import Node
 import os
 import GUIGraph
 import GUIDrawings
-
+import cProfile
+import time
 from random import randint
 from random import choice
 import DataFileWriter
 import DataFileParser
-
+darpGlob = 0
 #TODO Ajouter les cars et les meals et les mettre à jour quand on load un file.
 #Mettre à jour la valeur maximale des spinbox (depot, meals.cook, meals.client) quand le graphe change de taille (après un load/après un generate)
 
@@ -637,11 +638,24 @@ class App:
 					canStart=False
 					
 			if(canStart):
+				print(len(allMeals),"meals")
+				print(len(allCars),"cars")
 				darp = DarpAlgo.DarpAlgo(allMeals,allCars)
-			
 				print("Starting DARP...")
 				self.stop_meals_recoloring()
-				darp.createSchedules()
+				starttime = time.clock()
+				
+				profiling=False
+				if(profiling):
+					global darpGlob
+					darpGlob=darp
+					cProfile.run("darpGlob.createSchedules()")
+				else:
+					darp.createSchedules()
+				
+				endtime = time.clock()
+				print("Time elapsed:",(endtime-starttime),"sec")
+				print("-"*10)
 				self.remainingMeals=darp.getNotInsertedMeals()
 				self.availableCars=allCars[:]
 				
